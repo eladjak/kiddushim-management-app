@@ -1,12 +1,12 @@
 
 import { Navigation } from "@/components/Navigation";
-import { Calendar, Users, FileText, Bell } from "lucide-react";
+import { Calendar, Users, FileText, Bell, CheckCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user } = useAuth();
@@ -16,14 +16,16 @@ const Index = () => {
   const { data: events, isLoading: eventsLoading } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
+      console.log("Fetching events...");
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .gte("date", new Date().toISOString())
-        .order("date", { ascending: true })
+        .gte("main_time", new Date().toISOString())
+        .order("main_time", { ascending: true })
         .limit(2);
 
       if (error) {
+        console.error("Error fetching events:", error);
         toast({
           variant: "destructive",
           title: "שגיאה בטעינת האירועים",
@@ -32,21 +34,24 @@ const Index = () => {
         throw error;
       }
 
+      console.log("Events fetched successfully:", data);
       return data;
     },
     enabled: !!user,
   });
 
   // Fetch event assignments
-  const { data: assignments } = useQuery({
+  const { data: assignments, isLoading: assignmentsLoading } = useQuery({
     queryKey: ["assignments", user?.id],
     queryFn: async () => {
+      console.log("Fetching assignments...");
       const { data, error } = await supabase
         .from("event_assignments")
         .select("*")
         .eq("user_id", user?.id);
 
       if (error) {
+        console.error("Error fetching assignments:", error);
         toast({
           variant: "destructive",
           title: "שגיאה בטעינת השיבוצים",
@@ -55,15 +60,17 @@ const Index = () => {
         throw error;
       }
 
+      console.log("Assignments fetched successfully:", data);
       return data;
     },
     enabled: !!user,
   });
 
   // Fetch notifications
-  const { data: notifications } = useQuery({
+  const { data: notifications, isLoading: notificationsLoading } = useQuery({
     queryKey: ["notifications", user?.id],
     queryFn: async () => {
+      console.log("Fetching notifications...");
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
@@ -71,6 +78,7 @@ const Index = () => {
         .eq("read", false);
 
       if (error) {
+        console.error("Error fetching notifications:", error);
         toast({
           variant: "destructive",
           title: "שגיאה בטעינת ההתראות",
@@ -79,16 +87,28 @@ const Index = () => {
         throw error;
       }
 
+      console.log("Notifications fetched successfully:", data);
       return data;
     },
     enabled: !!user,
   });
+
+  const isAllDataLoaded = !eventsLoading && !assignmentsLoading && !notificationsLoading;
 
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navigation />
       
       <main className="container mx-auto px-4 pt-24 pb-12">
+        {isAllDataLoaded && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 text-right">
+            <div className="flex items-center justify-end gap-2">
+              <span>כל המערכות פועלות כראוי</span>
+              <CheckCircle className="h-5 w-5" />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Quick Action Cards */}
           <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow animate-fade-in">
@@ -96,7 +116,7 @@ const Index = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-1">אירועים קרובים</h3>
                 <p className="text-sm text-gray-600">
-                  {events?.length || 0} אירועים קרובים
+                  {eventsLoading ? "טוען..." : `${events?.length || 0} אירועים קרובים`}
                 </p>
               </div>
               <div className="bg-primary/10 p-3 rounded-full">
@@ -110,7 +130,7 @@ const Index = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-1">השיבוצים שלי</h3>
                 <p className="text-sm text-gray-600">
-                  {assignments?.length || 0} שיבוצים
+                  {assignmentsLoading ? "טוען..." : `${assignments?.length || 0} שיבוצים`}
                 </p>
               </div>
               <div className="bg-accent/10 p-3 rounded-full">
@@ -136,7 +156,7 @@ const Index = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-1">התראות</h3>
                 <p className="text-sm text-gray-600">
-                  {notifications?.length || 0} התראות חדשות
+                  {notificationsLoading ? "טוען..." : `${notifications?.length || 0} התראות חדשות`}
                 </p>
               </div>
               <div className="bg-accent/10 p-3 rounded-full">
@@ -157,7 +177,7 @@ const Index = () => {
                 <div key={event.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow animate-fade-in">
                   <div className="text-right">
                     <div className="text-sm text-accent font-medium mb-2">
-                      {format(new Date(event.date), "EEEE, d בMMMM", { locale: he })}
+                      {format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he })}
                     </div>
                     <h3 className="text-lg font-semibold mb-2">{event.title}</h3>
                     <p className="text-sm text-gray-600 mb-4">{event.location_name}</p>
