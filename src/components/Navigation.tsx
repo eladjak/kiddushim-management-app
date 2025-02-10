@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -24,6 +24,9 @@ export const Navigation = () => {
       });
     }
   };
+
+  const isAdmin = profile?.role === "admin";
+  const isCoordinator = profile?.role === "coordinator";
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
@@ -45,6 +48,7 @@ export const Navigation = () => {
                 >
                   <Link to="/">דף הבית</Link>
                 </Button>
+                
                 <Button
                   variant="ghost"
                   className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
@@ -52,13 +56,27 @@ export const Navigation = () => {
                 >
                   <Link to="/events">אירועים</Link>
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
-                  asChild
-                >
-                  <Link to="/volunteers">מתנדבים</Link>
-                </Button>
+
+                {(isAdmin || isCoordinator) && (
+                  <Button
+                    variant="ghost"
+                    className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
+                    asChild
+                  >
+                    <Link to="/volunteers">מתנדבים</Link>
+                  </Button>
+                )}
+
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
+                    asChild
+                  >
+                    <Link to="/users">ניהול משתמשים</Link>
+                  </Button>
+                )}
+
                 <Button
                   variant="ghost"
                   className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
@@ -66,6 +84,7 @@ export const Navigation = () => {
                 >
                   <Link to="/reports">דיווחים</Link>
                 </Button>
+
                 <Button
                   variant="ghost"
                   className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors flex items-center gap-2"
@@ -109,6 +128,7 @@ export const Navigation = () => {
                 >
                   <Link to="/">דף הבית</Link>
                 </Button>
+                
                 <Button
                   variant="ghost"
                   className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors"
@@ -116,13 +136,27 @@ export const Navigation = () => {
                 >
                   <Link to="/events">אירועים</Link>
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors"
-                  asChild
-                >
-                  <Link to="/volunteers">מתנדבים</Link>
-                </Button>
+
+                {(isAdmin || isCoordinator) && (
+                  <Button
+                    variant="ghost"
+                    className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors"
+                    asChild
+                  >
+                    <Link to="/volunteers">מתנדבים</Link>
+                  </Button>
+                )}
+
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors"
+                    asChild
+                  >
+                    <Link to="/users">ניהול משתמשים</Link>
+                  </Button>
+                )}
+
                 <Button
                   variant="ghost"
                   className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors"
@@ -130,6 +164,7 @@ export const Navigation = () => {
                 >
                   <Link to="/reports">דיווחים</Link>
                 </Button>
+
                 <Button
                   variant="ghost"
                   className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors flex items-center justify-end gap-2"
