@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const { user } = useAuth();
@@ -94,6 +96,25 @@ const Index = () => {
   });
 
   const isAllDataLoaded = !eventsLoading && !assignmentsLoading && !notificationsLoading;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-secondary/30">
+        <Navigation />
+        <main className="container mx-auto px-4 pt-24 pb-12">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-4xl font-bold mb-6">ברוכים הבאים לקידושישי</h1>
+            <p className="text-lg mb-8">
+              המערכת לניהול האירועים והמתנדבים של הקהילה
+            </p>
+            <Button asChild size="lg" className="w-full md:w-auto">
+              <Link to="/auth">התחבר למערכת</Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/30">
