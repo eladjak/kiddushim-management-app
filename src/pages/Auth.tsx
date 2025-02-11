@@ -129,27 +129,28 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary/30 p-4">
-      <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="text-right">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg">
+        <CardHeader className="text-right space-y-4 relative">
           {isForgotPassword && (
             <Button
               variant="ghost"
-              className="absolute left-4 top-4"
+              size="sm"
+              className="absolute left-4 top-4 transition-transform hover:scale-105"
               onClick={() => setIsForgotPassword(false)}
             >
               <ArrowLeft className="h-4 w-4 ml-2" />
               חזרה
             </Button>
           )}
-          <CardTitle className="text-2xl font-bold text-primary">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {isForgotPassword
               ? "שחזור סיסמה"
               : isSignUp
               ? "הרשמה"
               : "התחברות"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             {isForgotPassword
               ? "הזן את כתובת האימייל שלך לקבלת קישור לאיפוס סיסמה"
               : isSignUp
@@ -248,11 +249,11 @@ const Auth = () => {
                   )}
                 />
               )}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <Button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full transition-all duration-200 hover:bg-primary/90"
+                  className="w-full transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {isLoading 
                     ? "טוען..." 
@@ -267,7 +268,7 @@ const Auth = () => {
                     type="button"
                     variant="outline"
                     onClick={signInWithGoogle}
-                    className="w-full hover:bg-secondary/50"
+                    className="w-full hover:bg-secondary/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <img
                       src="https://www.google.com/favicon.ico"
@@ -282,7 +283,7 @@ const Auth = () => {
                     type="button"
                     variant="ghost"
                     onClick={() => setIsForgotPassword(true)}
-                    className="w-full hover:bg-secondary/50"
+                    className="w-full hover:bg-secondary/50 transition-all duration-200"
                   >
                     שכחת סיסמה?
                   </Button>
@@ -294,7 +295,7 @@ const Auth = () => {
                     setIsSignUp(!isSignUp);
                     setIsForgotPassword(false);
                   }}
-                  className="w-full hover:bg-secondary/50"
+                  className="w-full hover:bg-secondary/50 transition-all duration-200"
                 >
                   {isSignUp
                     ? "כבר יש לך חשבון? התחבר"
@@ -310,3 +311,4 @@ const Auth = () => {
 };
 
 export default Auth;
+
