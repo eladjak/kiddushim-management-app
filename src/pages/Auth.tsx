@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Mail, Phone, UserPlus } from "lucide-react";
+import { Lock, Mail, Phone, UserPlus, ArrowLeft } from "lucide-react";
 
 // Regex for Israeli phone numbers
 const ISRAELI_PHONE_REGEX = /^(?:\+972|0)(?:[23489]|5[0-689]|7[246789])\d{7}$/;
@@ -44,6 +44,7 @@ const formSchema = z.object({
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -68,7 +69,16 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        });
+        if (error) throw error;
+        toast({
+          description: "נשלח אימייל לאיפוס סיסמה. נא לבדוק את תיבת הדואר.",
+        });
+        setIsForgotPassword(false);
+      } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
@@ -101,15 +111,48 @@ const Auth = () => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/30 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-right">
+          {isForgotPassword && (
+            <Button
+              variant="ghost"
+              className="absolute left-4 top-4"
+              onClick={() => setIsForgotPassword(false)}
+            >
+              <ArrowLeft className="h-4 w-4 ml-2" />
+              חזרה
+            </Button>
+          )}
           <CardTitle className="text-2xl font-bold text-primary">
-            {isSignUp ? "הרשמה" : "התחברות"}
+            {isForgotPassword
+              ? "שחזור סיסמה"
+              : isSignUp
+              ? "הרשמה"
+              : "התחברות"}
           </CardTitle>
           <CardDescription>
-            {isSignUp
+            {isForgotPassword
+              ? "הזן את כתובת האימייל שלך לקבלת קישור לאיפוס סיסמה"
+              : isSignUp
               ? "צור חשבון חדש כדי להתחיל"
               : "התחבר כדי לנהל את האירועים שלך"}
           </CardDescription>
@@ -117,7 +160,7 @@ const Auth = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {isSignUp && (
+              {isSignUp && !isForgotPassword && (
                 <>
                   <FormField
                     control={form.control}
@@ -183,26 +226,28 @@ const Auth = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-right block">סיסמה</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="password"
-                          className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-                          {...field}
-                        />
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-right" />
-                  </FormItem>
-                )}
-              />
+              {!isForgotPassword && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-right block">סיסמה</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="password"
+                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
+                            {...field}
+                          />
+                          <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-right" />
+                    </FormItem>
+                  )}
+                />
+              )}
               <div className="flex flex-col gap-2">
                 <Button 
                   type="submit" 
@@ -211,14 +256,44 @@ const Auth = () => {
                 >
                   {isLoading 
                     ? "טוען..." 
+                    : isForgotPassword
+                    ? "שלח קישור לאיפוס סיסמה"
                     : isSignUp 
                       ? "הרשמה" 
                       : "התחברות"}
                 </Button>
+                {!isForgotPassword && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={signInWithGoogle}
+                    className="w-full hover:bg-secondary/50"
+                  >
+                    <img
+                      src="https://www.google.com/favicon.ico"
+                      alt="Google"
+                      className="w-4 h-4 ml-2"
+                    />
+                    התחבר עם Google
+                  </Button>
+                )}
+                {!isSignUp && !isForgotPassword && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="w-full hover:bg-secondary/50"
+                  >
+                    שכחת סיסמה?
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setIsSignUp(!isSignUp)}
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setIsForgotPassword(false);
+                  }}
                   className="w-full hover:bg-secondary/50"
                 >
                   {isSignUp
