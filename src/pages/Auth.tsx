@@ -25,13 +25,20 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Mail, Phone, UserPlus } from "lucide-react";
 
+// Regex for Israeli phone numbers
+const ISRAELI_PHONE_REGEX = /^(?:\+972|0)(?:[23489]|5[0-689]|7[246789])\d{7}$/;
+
 const formSchema = z.object({
   email: z.string().email("נא להזין כתובת אימייל תקינה"),
   password: z
     .string()
-    .min(6, "הסיסמה חייבת להכיל לפחות 6 תווים"),
+    .min(6, "הסיסמה חייבת להכיל לפחות 6 תווים")
+    .max(100, "הסיסמה ארוכה מדי"),
   name: z.string().min(2, "השם חייב להכיל לפחות 2 תווים").optional(),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .regex(ISRAELI_PHONE_REGEX, "נא להזין מספר טלפון ישראלי תקין")
+    .optional(),
 });
 
 const Auth = () => {
@@ -51,6 +58,14 @@ const Auth = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (isSignUp && (!values.name || !values.phone)) {
+      toast({
+        variant: "destructive",
+        description: "נא למלא את כל השדות הנדרשים",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (isSignUp) {
@@ -90,7 +105,9 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-secondary/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-right">
-          <CardTitle>{isSignUp ? "הרשמה" : "התחברות"}</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">
+            {isSignUp ? "הרשמה" : "התחברות"}
+          </CardTitle>
           <CardDescription>
             {isSignUp
               ? "צור חשבון חדש כדי להתחיל"
@@ -112,7 +129,7 @@ const Auth = () => {
                           <div className="relative">
                             <Input
                               placeholder="ישראל ישראלי"
-                              className="pl-10"
+                              className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
                               {...field}
                             />
                             <UserPlus className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -133,7 +150,7 @@ const Auth = () => {
                             <Input
                               type="tel"
                               placeholder="050-0000000"
-                              className="pl-10"
+                              className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
                               {...field}
                             />
                             <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -156,7 +173,7 @@ const Auth = () => {
                         <Input
                           type="email"
                           placeholder="your@email.com"
-                          className="pl-10"
+                          className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
                           {...field}
                         />
                         <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -176,7 +193,7 @@ const Auth = () => {
                       <div className="relative">
                         <Input
                           type="password"
-                          className="pl-10"
+                          className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
                           {...field}
                         />
                         <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -187,14 +204,22 @@ const Auth = () => {
                 )}
               />
               <div className="flex flex-col gap-2">
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isSignUp ? "הרשמה" : "התחברות"}
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full transition-all duration-200 hover:bg-primary/90"
+                >
+                  {isLoading 
+                    ? "טוען..." 
+                    : isSignUp 
+                      ? "הרשמה" 
+                      : "התחברות"}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setIsSignUp(!isSignUp)}
-                  className="w-full"
+                  className="w-full hover:bg-secondary/50"
                 >
                   {isSignUp
                     ? "כבר יש לך חשבון? התחבר"
