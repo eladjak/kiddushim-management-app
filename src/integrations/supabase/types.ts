@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      equipment: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          quantity: number | null
+          status: Database["public"]["Enums"]["equipment_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          quantity?: number | null
+          status?: Database["public"]["Enums"]["equipment_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          quantity?: number | null
+          status?: Database["public"]["Enums"]["equipment_status"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_assignments: {
         Row: {
           created_at: string
@@ -40,6 +73,58 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "event_assignments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_equipment: {
+        Row: {
+          created_at: string
+          created_by: string
+          equipment_id: string | null
+          event_id: string | null
+          id: string
+          notes: string | null
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          equipment_id?: string | null
+          event_id?: string | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          equipment_id?: string | null
+          event_id?: string | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_equipment_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_equipment_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
@@ -103,6 +188,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      feedback: {
+        Row: {
+          anonymous: boolean | null
+          content: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          rating: number | null
+          submitted_by: string | null
+        }
+        Insert: {
+          anonymous?: boolean | null
+          content?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          rating?: number | null
+          submitted_by?: string | null
+        }
+        Update: {
+          anonymous?: boolean | null
+          content?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          rating?: number | null
+          submitted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -246,6 +376,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      equipment_status: "available" | "in_use" | "maintenance" | "lost"
       user_role:
         | "admin"
         | "coordinator"
