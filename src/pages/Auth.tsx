@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Mail, UserPlus } from "lucide-react";
+import { Lock, Mail, Phone, UserPlus } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email("נא להזין כתובת אימייל תקינה"),
@@ -31,6 +31,7 @@ const formSchema = z.object({
     .string()
     .min(6, "הסיסמה חייבת להכיל לפחות 6 תווים"),
   name: z.string().min(2, "השם חייב להכיל לפחות 2 תווים").optional(),
+  phone: z.string().optional(),
 });
 
 const Auth = () => {
@@ -45,6 +46,7 @@ const Auth = () => {
       email: "",
       password: "",
       name: "",
+      phone: "",
     },
   });
 
@@ -58,6 +60,7 @@ const Auth = () => {
           options: {
             data: {
               name: values.name,
+              phone: values.phone,
             },
           },
         });
@@ -98,26 +101,49 @@ const Auth = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {isSignUp && (
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-right block">שם מלא</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            placeholder="ישראל ישראלי"
-                            className="pl-10"
-                            {...field}
-                          />
-                          <UserPlus className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-right" />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block">שם מלא</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              placeholder="ישראל ישראלי"
+                              className="pl-10"
+                              {...field}
+                            />
+                            <UserPlus className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block">טלפון</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type="tel"
+                              placeholder="050-0000000"
+                              className="pl-10"
+                              {...field}
+                            />
+                            <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right" />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
               <FormField
                 control={form.control}
