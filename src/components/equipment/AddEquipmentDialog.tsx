@@ -21,12 +21,16 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Database } from "@/integrations/supabase/types";
+
+type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
 
 const formSchema = z.object({
   name: z.string().min(1, "נדרש למלא שם"),
   description: z.string().optional(),
   quantity: z.number().min(0).default(1),
   location: z.string().optional(),
+  status: z.enum(["available", "in_use", "maintenance", "lost"]).default("available"),
 });
 
 interface AddEquipmentDialogProps {
@@ -45,6 +49,7 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
       description: "",
       quantity: 1,
       location: "",
+      status: "available",
     },
   });
 
@@ -52,7 +57,13 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
     try {
       const { error } = await supabase
         .from("equipment")
-        .insert([values]);
+        .insert({
+          name: values.name,
+          description: values.description || null,
+          quantity: values.quantity,
+          location: values.location || null,
+          status: values.status,
+        });
 
       if (error) throw error;
 
@@ -130,6 +141,27 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
                   <FormLabel>מיקום</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>סטטוס</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
+                      <option value="available">זמין</option>
+                      <option value="in_use">בשימוש</option>
+                      <option value="maintenance">בתחזוקה</option>
+                      <option value="lost">אבד</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
