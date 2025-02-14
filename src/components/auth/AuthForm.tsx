@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -66,7 +67,7 @@ export const AuthForm = ({
     try {
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-          redirectTo: `${window.location.origin}/auth/reset-password`,
+          redirectTo: window.location.origin + "/auth/reset-password",
         });
         if (error) throw error;
         toast({
@@ -82,6 +83,7 @@ export const AuthForm = ({
               name: values.name,
               phone: values.phone,
             },
+            emailRedirectTo: window.location.origin + "/auth/callback",
           },
         });
         if (error) throw error;
@@ -97,6 +99,7 @@ export const AuthForm = ({
         navigate("/");
       }
     } catch (error: any) {
+      console.error("Auth error:", error);
       toast({
         variant: "destructive",
         description: error.message,
@@ -111,11 +114,16 @@ export const AuthForm = ({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: window.location.origin + "/auth/callback",
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
       if (error) throw error;
     } catch (error: any) {
+      console.error("Google auth error:", error);
       toast({
         variant: "destructive",
         description: error.message,
