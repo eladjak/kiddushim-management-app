@@ -11,6 +11,7 @@ import Events from "./pages/Events";
 import Volunteers from "./pages/Volunteers";
 import Users from "./pages/Users";
 import Reports from "./pages/Reports";
+import Equipment from "./pages/Equipment";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,14 @@ const App = () => (
               }
             />
             <Route
+              path="/equipment"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <Equipment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/reports"
               element={
                 <ProtectedRoute>
@@ -92,4 +101,3 @@ const App = () => (
 );
 
 export default App;
-
