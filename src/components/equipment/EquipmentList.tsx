@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useState } from "react";
 import { EditEquipmentDialog } from "./EditEquipmentDialog";
+import { RequestEquipmentChangeDialog } from "./RequestEquipmentChangeDialog";
+import { useAuth } from "@/context/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
@@ -20,7 +22,11 @@ interface EquipmentListProps {
 }
 
 export function EquipmentList({ equipment }: EquipmentListProps) {
+  const { profile } = useAuth();
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
+  const [requestChangeEquipment, setRequestChangeEquipment] = useState<Equipment | null>(null);
+
+  const isAdmin = profile?.role === 'admin';
 
   return (
     <>
@@ -48,7 +54,11 @@ export function EquipmentList({ equipment }: EquipmentListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setEditingEquipment(item)}
+                    onClick={() => 
+                      isAdmin 
+                        ? setEditingEquipment(item)
+                        : setRequestChangeEquipment(item)
+                    }
                   >
                     <Settings className="h-4 w-4" />
                   </Button>
@@ -59,11 +69,19 @@ export function EquipmentList({ equipment }: EquipmentListProps) {
         </Table>
       </div>
 
-      <EditEquipmentDialog
-        equipment={editingEquipment}
-        open={!!editingEquipment}
-        onOpenChange={(open) => !open && setEditingEquipment(null)}
-      />
+      {isAdmin ? (
+        <EditEquipmentDialog
+          equipment={editingEquipment}
+          open={!!editingEquipment}
+          onOpenChange={(open) => !open && setEditingEquipment(null)}
+        />
+      ) : (
+        <RequestEquipmentChangeDialog
+          equipment={requestChangeEquipment}
+          open={!!requestChangeEquipment}
+          onOpenChange={(open) => !open && setRequestChangeEquipment(null)}
+        />
+      )}
     </>
   );
 }

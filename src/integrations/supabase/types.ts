@@ -42,6 +42,53 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_changes: {
+        Row: {
+          approved_by: string | null
+          change_type: Database["public"]["Enums"]["equipment_change_type"]
+          changes: Json
+          created_at: string
+          equipment_id: string | null
+          id: string
+          notes: string | null
+          requested_by: string
+          status: Database["public"]["Enums"]["change_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          change_type: Database["public"]["Enums"]["equipment_change_type"]
+          changes: Json
+          created_at?: string
+          equipment_id?: string | null
+          id?: string
+          notes?: string | null
+          requested_by: string
+          status?: Database["public"]["Enums"]["change_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          change_type?: Database["public"]["Enums"]["equipment_change_type"]
+          changes?: Json
+          created_at?: string
+          equipment_id?: string | null
+          id?: string
+          notes?: string | null
+          requested_by?: string
+          status?: Database["public"]["Enums"]["change_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_changes_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_assignments: {
         Row: {
           created_at: string
@@ -376,6 +423,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      change_status: "pending" | "approved" | "rejected"
+      equipment_change_type: "create" | "update" | "delete"
       equipment_status: "available" | "in_use" | "maintenance" | "lost"
       user_role:
         | "admin"
