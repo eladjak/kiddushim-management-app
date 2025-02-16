@@ -111,6 +111,9 @@ export const AuthForm = ({
   const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
+      console.log("Starting Google sign in process...");
+      console.log("Current origin:", window.location.origin);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -122,16 +125,25 @@ export const AuthForm = ({
         },
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase OAuth error:", error);
+        throw error;
+      }
       
+      console.log("OAuth initialization successful:", data);
       toast({
         description: "מועבר להתחברות עם Google...",
       });
     } catch (error: any) {
       console.error("Google auth error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        status: error.status,
+        name: error.name,
+      });
       toast({
         variant: "destructive",
-        description: error.message,
+        description: `שגיאה בהתחברות עם Google: ${error.message}`,
       });
     } finally {
       setIsLoading(false);
