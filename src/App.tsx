@@ -35,6 +35,16 @@ const ProtectedRoute = ({ children, roles }: { children: React.ReactNode; roles?
   return <>{children}</>;
 };
 
+const AuthCallback = () => {
+  const { isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">מאמת...</div>;
+  }
+  
+  return <Navigate to="/" replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -44,6 +54,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route
               path="/"
               element={
