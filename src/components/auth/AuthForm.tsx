@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -111,23 +110,31 @@ export const AuthForm = ({
 
   const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin + "/auth/callback",
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
         },
       });
+      
       if (error) throw error;
+      
+      toast({
+        description: "מועבר להתחברות עם Google...",
+      });
     } catch (error: any) {
       console.error("Google auth error:", error);
       toast({
         variant: "destructive",
         description: error.message,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
