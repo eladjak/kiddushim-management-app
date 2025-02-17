@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 export type Notification = {
   id: string;
   user_id: string;
-  title: string;
-  message: string;
+  type: string;
+  content: string;
   read: boolean;
   created_at: string;
 };
@@ -54,4 +54,3 @@ export const markNotificationAsRead = async (notificationId: string) => {
     throw error;
   }
 };
-
