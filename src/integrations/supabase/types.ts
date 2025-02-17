@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           created_at: string
@@ -340,38 +370,47 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string | null
           id: string
           language: string | null
+          last_active: string | null
           name: string
           notification_settings: Json | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          settings: Json | null
           shabbat_mode: boolean | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           id: string
           language?: string | null
+          last_active?: string | null
           name: string
           notification_settings?: Json | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          settings?: Json | null
           shabbat_mode?: boolean | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           id?: string
           language?: string | null
+          last_active?: string | null
           name?: string
           notification_settings?: Json | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          settings?: Json | null
           shabbat_mode?: boolean | null
           updated_at?: string
         }
