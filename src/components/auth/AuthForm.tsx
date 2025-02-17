@@ -111,10 +111,15 @@ export const AuthForm = ({
   const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
-      console.log("Starting Google sign in process...");
       
+      // Get the full URL that we're using
       const redirectUrl = `${window.location.origin}/auth/callback`;
-      console.log("Redirect URL:", redirectUrl);
+      console.log("Full redirect URL being used:", redirectUrl);
+      console.log("Current window.location:", {
+        origin: window.location.origin,
+        pathname: window.location.pathname,
+        href: window.location.href
+      });
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
