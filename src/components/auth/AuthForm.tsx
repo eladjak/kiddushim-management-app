@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -112,15 +113,28 @@ export const AuthForm = ({
     try {
       setIsLoading(true);
       
-      // Get the full URL that we're using
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      console.log("Full redirect URL being used:", redirectUrl);
-      console.log("Current window.location:", {
-        origin: window.location.origin,
+      // Detailed logging of the environment
+      console.log("==================== GOOGLE AUTH DEBUG ====================");
+      console.log("Current URL details:");
+      console.log({
+        protocol: window.location.protocol,
+        host: window.location.host,
+        hostname: window.location.hostname,
         pathname: window.location.pathname,
+        origin: window.location.origin,
         href: window.location.href
       });
       
+      // Format the redirect URL exactly as Google expects it
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      console.log("Redirect URL being used:", redirectUrl);
+      
+      // Log the Supabase project details (without exposing keys)
+      console.log("Supabase client info:", {
+        supabaseUrl: supabase.supabaseUrl
+      });
+      
+      console.log("Starting Google OAuth flow...");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -134,10 +148,17 @@ export const AuthForm = ({
       
       if (error) {
         console.error("Supabase OAuth error:", error);
+        console.error("Error details:", {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+        });
         throw error;
       }
       
       console.log("OAuth initialization successful:", data);
+      console.log("==========================================================");
+      
       toast({
         description: "מועבר להתחברות עם Google...",
       });
