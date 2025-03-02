@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-// Regex for Israeli phone numbers
 const ISRAELI_PHONE_REGEX = /^(?:\+972|0)(?:[23489]|5[0-689]|7[246789])\d{7}$/;
 
 const formSchema = z.object({
@@ -113,7 +111,6 @@ export const AuthForm = ({
     try {
       setIsLoading(true);
       
-      // Detailed logging of the environment
       console.log("==================== GOOGLE AUTH DEBUG ====================");
       console.log("Current URL details:");
       console.log({
@@ -125,16 +122,18 @@ export const AuthForm = ({
         href: window.location.href
       });
       
-      // Format the redirect URL exactly as Google expects it
+      const domain = window.location.hostname;
+      console.log("Domain being used:", domain);
+      
       const redirectUrl = `${window.location.origin}/auth/callback`;
       console.log("Redirect URL being used:", redirectUrl);
       
-      // Log Supabase project details without accessing protected properties
       console.log("Supabase client info:", {
-        url: "https://uqumzjmyejlhoyliyesu.supabase.co" // Using the URL directly from our client.ts file
+        url: "https://uqumzjmyejlhoyliyesu.supabase.co"
       });
       
       console.log("Starting Google OAuth flow...");
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -169,9 +168,16 @@ export const AuthForm = ({
         status: error.status,
         name: error.name,
       });
+      
+      let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
+      
+      if (error.message && error.message.includes("redirect_uri_mismatch")) {
+        errorMessage = `שגיאה: כתובת ההפניה (${window.location.origin}/auth/callback) לא מאושרת בהגדרות Google. אנא וודא שהכתובת מוגדרת בקונסולת Google Cloud.`;
+      }
+      
       toast({
         variant: "destructive",
-        description: `שגיאה בהתחברות עם Google: ${error.message}`,
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
