@@ -111,26 +111,7 @@ export const AuthForm = ({
     try {
       setIsLoading(true);
       
-      console.log("==================== GOOGLE AUTH DEBUG ====================");
-      console.log("Current URL details:");
-      console.log({
-        protocol: window.location.protocol,
-        host: window.location.host,
-        hostname: window.location.hostname,
-        pathname: window.location.pathname,
-        origin: window.location.origin,
-        href: window.location.href
-      });
-      
-      const SUPABASE_URL = "https://uqumzjmyejlhoyliyesu.supabase.co";
-      const redirectUrl = `${SUPABASE_URL}/auth/v1/callback`;
-      
-      console.log("Using Supabase redirect URL directly:", redirectUrl);
-      console.log("Full redirect URL with flow parameter:", `${redirectUrl}?flowName=GeneralOAuthFlow`);
-      
-      console.log("Starting Google OAuth flow with direct Supabase URL...");
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           queryParams: {
@@ -141,33 +122,24 @@ export const AuthForm = ({
       });
       
       if (error) {
-        console.error("Supabase OAuth error:", error);
-        console.error("Error details:", {
-          message: error.message,
-          status: error.status,
-          name: error.name,
-        });
+        console.error("Google auth error:", error);
         throw error;
       }
-      
-      console.log("OAuth initialization successful:", data);
-      console.log("==========================================================");
       
       toast({
         description: "מועבר להתחברות עם Google...",
       });
     } catch (error: any) {
       console.error("Google auth error:", error);
-      console.error("Error details:", {
-        message: error.message,
-        status: error.status,
-        name: error.name,
-      });
       
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       
       if (error.message && error.message.includes("redirect_uri_mismatch")) {
-        errorMessage = `שגיאה: כתובת ההפניה לא מאושרת בהגדרות Google. אנא וודא שהכתובת הבאה מוגדרת בקונסולת Google Cloud: https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback?flowName=GeneralOAuthFlow`;
+        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת הבאה מוגדרת ב-Google Cloud Console: ${
+          window.location.origin.includes("localhost") 
+            ? "https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback" 
+            : "https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback"
+        }`;
       }
       
       toast({
