@@ -129,9 +129,9 @@ export const AuthForm = ({
       const redirectUrl = `${window.location.origin}/auth/callback`;
       console.log("Redirect URL being used:", redirectUrl);
       
-      // Log the Supabase project details (without exposing keys)
+      // Log Supabase project details without accessing protected properties
       console.log("Supabase client info:", {
-        supabaseUrl: supabase.supabaseUrl
+        url: "https://uqumzjmyejlhoyliyesu.supabase.co" // Using the URL directly from our client.ts file
       });
       
       console.log("Starting Google OAuth flow...");
