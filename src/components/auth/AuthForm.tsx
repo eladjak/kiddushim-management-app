@@ -122,22 +122,17 @@ export const AuthForm = ({
         href: window.location.href
       });
       
-      const domain = window.location.hostname;
-      console.log("Domain being used:", domain);
+      const SUPABASE_URL = "https://uqumzjmyejlhoyliyesu.supabase.co";
+      const redirectUrl = `${SUPABASE_URL}/auth/v1/callback`;
       
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      console.log("Redirect URL being used:", redirectUrl);
+      console.log("Using Supabase redirect URL directly:", redirectUrl);
+      console.log("Full redirect URL with flow parameter:", `${redirectUrl}?flowName=GeneralOAuthFlow`);
       
-      console.log("Supabase client info:", {
-        url: "https://uqumzjmyejlhoyliyesu.supabase.co"
-      });
-      
-      console.log("Starting Google OAuth flow...");
+      console.log("Starting Google OAuth flow with direct Supabase URL...");
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -172,7 +167,7 @@ export const AuthForm = ({
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       
       if (error.message && error.message.includes("redirect_uri_mismatch")) {
-        errorMessage = `שגיאה: כתובת ההפניה (${window.location.origin}/auth/callback) לא מאושרת בהגדרות Google. אנא וודא שהכתובת מוגדרת בקונסולת Google Cloud.`;
+        errorMessage = `שגיאה: כתובת ההפניה לא מאושרת בהגדרות Google. אנא וודא שהכתובת הבאה מוגדרת בקונסולת Google Cloud: https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback?flowName=GeneralOAuthFlow`;
       }
       
       toast({
