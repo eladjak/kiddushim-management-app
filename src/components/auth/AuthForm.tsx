@@ -94,11 +94,6 @@ export const AuthForm = ({
         const { error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
-          options: {
-            session: {
-              persistSession: values.rememberMe
-            }
-          }
         });
         if (error) throw error;
         navigate("/");
