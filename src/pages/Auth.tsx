@@ -5,6 +5,7 @@ import { AuthHeader } from "@/components/auth/AuthHeader";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Image } from "@/components/ui/image";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -50,6 +51,9 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
+        <div className="flex justify-center py-6">
+          <img src="/kidushishi-logo.png" alt="קידושישי" className="h-24" />
+        </div>
         <AuthHeader
           isSignUp={isSignUp}
           isForgotPassword={isForgotPassword}

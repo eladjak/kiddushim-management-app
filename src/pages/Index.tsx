@@ -8,6 +8,7 @@ import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { useEvents } from "@/hooks/dashboard/useEvents";
 import { useAssignments } from "@/hooks/dashboard/useAssignments";
 import { useNotifications } from "@/hooks/dashboard/useNotifications";
+import { Image } from "@/components/ui/image";
 
 const Index = () => {
   const { user } = useAuth();
@@ -17,7 +18,14 @@ const Index = () => {
   const { data: notifications, isLoading: notificationsLoading } = useNotifications(user?.id);
 
   if (!user) {
-    return <WelcomeScreen />;
+    return (
+      <div className="min-h-screen bg-secondary/5 flex flex-col items-center justify-center p-4">
+        <div className="mb-8">
+          <img src="/kidushishi-logo.png" alt="קידושישי" className="h-40 mx-auto" />
+        </div>
+        <WelcomeScreen />
+      </div>
+    );
   }
 
   const isAllDataLoaded = !eventsLoading && !assignmentsLoading && !notificationsLoading;

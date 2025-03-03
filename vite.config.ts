@@ -20,4 +20,8 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    'import.meta.env.VITE_APP_NAME': JSON.stringify('קידושישי'),
+    'import.meta.env.VITE_APP_DESCRIPTION': JSON.stringify('חוויה ישראלית לקראת שבת'),
+  }
 }));
