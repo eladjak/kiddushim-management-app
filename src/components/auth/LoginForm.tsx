@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { GoogleAuthButton } from "./GoogleAuthButton";
 
 /**
  * Schema for login form validation
@@ -26,11 +27,9 @@ const loginFormSchema = z.object({
 export const LoginForm = ({
   setIsSignUp,
   setIsForgotPassword,
-  onGoogleSignIn,
 }: {
   setIsSignUp: (value: boolean) => void;
   setIsForgotPassword: (value: boolean) => void;
-  onGoogleSignIn: () => Promise<void>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -150,19 +149,7 @@ export const LoginForm = ({
             {isLoading ? "טוען..." : "התחברות"}
           </Button>
           
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onGoogleSignIn}
-            className="w-full hover:bg-secondary/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google"
-              className="w-4 h-4 ml-2"
-            />
-            התחבר עם Google
-          </Button>
+          <GoogleAuthButton />
           
           <Button
             type="button"

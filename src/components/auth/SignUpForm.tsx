@@ -9,6 +9,7 @@ import { Lock, Mail, Phone, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { GoogleAuthButton } from "./GoogleAuthButton";
 
 const ISRAELI_PHONE_REGEX = /^(?:\+972|0)(?:[23489]|5[0-689]|7[246789])\d{7}$/;
 
@@ -32,10 +33,8 @@ const signUpFormSchema = z.object({
  */
 export const SignUpForm = ({
   setIsSignUp,
-  onGoogleSignIn,
 }: {
   setIsSignUp: (value: boolean) => void;
-  onGoogleSignIn: () => Promise<void>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -189,19 +188,7 @@ export const SignUpForm = ({
             {isLoading ? "טוען..." : "הרשמה"}
           </Button>
           
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onGoogleSignIn}
-            className="w-full hover:bg-secondary/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google"
-              className="w-4 h-4 ml-2"
-            />
-            התחבר עם Google
-          </Button>
+          <GoogleAuthButton />
           
           <Button
             type="button"
