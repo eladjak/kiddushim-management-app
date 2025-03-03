@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -96,7 +95,9 @@ export const AuthForm = ({
           email: values.email,
           password: values.password,
           options: {
-            persistSession: values.rememberMe
+            session: {
+              persistSession: values.rememberMe
+            }
           }
         });
         if (error) throw error;
