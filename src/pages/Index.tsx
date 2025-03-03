@@ -38,10 +38,17 @@ const Index = () => {
         notifications: notificationsLoading
       }
     });
+    
+    // נוסיף לוג נוסף לבדיקת הרינדור
+    console.log('Index page rendering', {
+      user: user ? 'Authenticated' : 'Not authenticated',
+      rendering: 'In progress'
+    });
   }, [user, eventsLoading, assignmentsLoading, notificationsLoading]);
 
   // Render welcome screen for unauthenticated users
   if (!user) {
+    console.log('Rendering welcome screen for unauthenticated user');
     return (
       <div className="min-h-screen bg-secondary/5 flex flex-col items-center justify-center p-4">
         <div className="mb-8">
@@ -66,6 +73,7 @@ const Index = () => {
     );
   }
 
+  console.log('Rendering dashboard for authenticated user');
   const isAllDataLoaded = !eventsLoading && !assignmentsLoading && !notificationsLoading;
 
   return (
