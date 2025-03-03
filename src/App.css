@@ -9,8 +9,69 @@
 }
 
 body {
+  font-family: 'Rubik', sans-serif;
   direction: rtl;
   text-align: right;
+}
+
+/* Fix alignment for RTL */
+.card {
+  text-align: right;
+}
+
+.read-the-docs {
+  text-align: right;
+}
+
+/* Fix button icon alignment */
+button svg {
+  margin-left: 8px;
+  margin-right: 0;
+}
+
+/* RTL adjustments for forms */
+input, textarea, select {
+  text-align: right;
+}
+
+label {
+  display: block;
+  text-align: right;
+}
+
+/* Fix for navigation */
+.flex {
+  direction: rtl;
+}
+
+/* Mobile nav alignment */
+.md\\:flex {
+  direction: rtl;
+}
+
+/* Animation adjustments for RTL */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
 }
 
 .logo {
@@ -19,9 +80,11 @@ body {
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -39,12 +102,4 @@ body {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

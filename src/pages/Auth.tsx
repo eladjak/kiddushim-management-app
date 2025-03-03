@@ -52,7 +52,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <div className="flex justify-center py-6">
-          <img src="/kidushishi-logo.png" alt="קידושישי" className="h-24" />
+          <Image src="/kidushishi-logo.png" alt="קידושישי" className="h-24" fallback="/placeholder.svg" />
         </div>
         <AuthHeader
           isSignUp={isSignUp}

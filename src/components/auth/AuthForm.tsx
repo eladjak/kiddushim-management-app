@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,6 +24,7 @@ const formSchema = z.object({
     .string()
     .regex(ISRAELI_PHONE_REGEX, "נא להזין מספר טלפון ישראלי תקין")
     .optional(),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 type AuthFormProps = {
@@ -49,6 +51,7 @@ export const AuthForm = ({
       password: "",
       name: "",
       phone: "",
+      rememberMe: true,
     },
   });
 
@@ -92,6 +95,9 @@ export const AuthForm = ({
         const { error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
+          options: {
+            persistSession: values.rememberMe
+          }
         });
         if (error) throw error;
         navigate("/");
@@ -135,11 +141,7 @@ export const AuthForm = ({
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       
       if (error.message && error.message.includes("redirect_uri_mismatch")) {
-        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת הבאה מוגדרת ב-Google Cloud Console: ${
-          window.location.origin.includes("localhost") 
-            ? "https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback" 
-            : "https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback"
-        }`;
+        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת הבאה מוגדרת ב-Google Cloud Console: https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback`;
       }
       
       toast({
@@ -242,6 +244,27 @@ export const AuthForm = ({
             )}
           />
         )}
+        
+        {!isForgotPassword && !isSignUp && (
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center gap-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-4 w-4 text-primary rounded focus:ring-2 focus:ring-primary"
+                    checked={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="text-right">זכור אותי</FormLabel>
+              </FormItem>
+            )}
+          />
+        )}
+        
         <div className="flex flex-col gap-2 pt-2">
           <Button 
             type="submit" 

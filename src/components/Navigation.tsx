@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Image } from "./ui/image";
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +18,9 @@ export const Navigation = () => {
     try {
       await supabase.auth.signOut();
       navigate("/auth");
+      toast({
+        description: "התנתקת בהצלחה",
+      });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -29,12 +33,13 @@ export const Navigation = () => {
   const isCoordinator = profile?.role === "coordinator";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+    <nav className="fixed top-0 right-0 left-0 bg-white shadow-sm z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-semibold text-primary">
-              קידושישי
+            <Link to="/" className="flex items-center">
+              <Image src="/kidushishi-logo.png" alt="קידושישי" className="h-12 ml-2" />
+              <span className="text-xl font-semibold text-primary">קידושישי</span>
             </Link>
           </div>
           
@@ -90,7 +95,7 @@ export const Navigation = () => {
                   className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors flex items-center gap-2"
                   onClick={handleLogout}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 ml-1" />
                   התנתק
                 </Button>
               </>
@@ -170,7 +175,7 @@ export const Navigation = () => {
                   className="block w-full px-4 py-2 text-right text-sm rounded-md hover:bg-secondary transition-colors flex items-center justify-end gap-2"
                   onClick={handleLogout}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 ml-1" />
                   התנתק
                 </Button>
               </>

@@ -21,7 +21,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-secondary/5 flex flex-col items-center justify-center p-4">
         <div className="mb-8">
-          <img src="/kidushishi-logo.png" alt="קידושישי" className="h-40 mx-auto" />
+          <Image src="/kidushishi-logo.png" alt="קידושישי" className="h-40 mx-auto" fallback="/placeholder.svg" />
         </div>
         <WelcomeScreen />
       </div>
