@@ -11,7 +11,7 @@ export const useAssignments = (userId?: string) => {
       
       try {
         const { data, error } = await supabase
-          .from('assignments')
+          .from('event_assignments') // Changed from 'assignments' to 'event_assignments'
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false });

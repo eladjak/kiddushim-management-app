@@ -29,8 +29,7 @@ export const GoogleAuthButton = () => {
             prompt: 'consent',
           },
           redirectTo: window.location.origin + '/auth/callback',
-          // Setting a better display name for the auth page
-          emailRedirectTo: window.location.origin + '/auth/callback',
+          // Using only the redirectTo property, not emailRedirectTo which doesn't exist
         },
       });
       
