@@ -20,7 +20,7 @@ import { Image } from "@/components/ui/image";
  * or welcome screen for unauthenticated users
  */
 const Index = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth(); // Update to properly destructure profile from useAuth hook
   const log = logger.createLogger({ component: 'IndexPage' });
 
   // Fetch data for authenticated users
