@@ -28,7 +28,7 @@ body {
   text-align: right;
 }
 
-/* Fix button icon alignment */
+/* Fix button icon alignment for RTL */
 button svg {
   margin-left: 8px;
   margin-right: 0;
@@ -44,17 +44,12 @@ label {
   text-align: right;
 }
 
-/* Fix for navigation */
-.flex {
-  direction: rtl;
+/* Direction fixes for flex containers */
+.flex, .md\\:flex, .lg\\:flex {
+  direction: inherit;
 }
 
-/* Fix RTL alignment across all screen sizes */
-.md\\:flex, .lg\\:flex {
-  direction: rtl;
-}
-
-/* Make all container elements respect RTL */
+/* Make container elements respect RTL */
 .container {
   direction: rtl;
   text-align: right;
@@ -94,6 +89,21 @@ label {
 
 .animate-slide-in {
   animation: slide-in-rtl 0.3s ease-out;
+}
+
+/* Tables for RTL */
+table {
+  direction: rtl;
+  text-align: right;
+}
+
+th, td {
+  text-align: right;
+}
+
+/* Fix dialog positioning for RTL */
+.dialog-content {
+  text-align: right;
 }
 
 /* Logo styling */

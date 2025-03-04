@@ -1,67 +1,134 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { Image } from "@/components/ui/image";
+import { Footer } from "@/components/layout/Footer";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  Form, 
+  FormControl, 
+  FormDescription, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { UserCog, Bell, Shield } from "lucide-react";
+import { User, Settings, Shield, Phone, Mail, AtSign } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+
+const profileFormSchema = z.object({
+  name: z.string().min(2, {
+    message: "השם חייב להיות לפחות 2 תווים.",
+  }),
+  email: z.string().email({
+    message: "כתובת האימייל אינה תקינה.",
+  }),
+  phone: z.string().optional(),
+  language: z.string().default("he"),
+  shabbat_mode: z.boolean().default(false),
+});
+
+type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl";
 
 const UserProfile = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: profile?.name || "",
-    phone: profile?.phone || "",
-    language: profile?.language || "he",
-    shabbatMode: profile?.shabbat_mode || false
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  
+  const form = useForm<z.infer<typeof profileFormSchema>>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      name: profile?.name || "",
+      email: profile?.email || "",
+      phone: profile?.phone || "",
+      language: profile?.language || "he",
+      shabbat_mode: profile?.shabbat_mode || false,
+    },
   });
 
   useEffect(() => {
     if (profile) {
-      setFormData({
+      form.reset({
         name: profile.name || "",
+        email: profile.email || "",
         phone: profile.phone || "",
         language: profile.language || "he",
-        shabbatMode: profile.shabbat_mode || false
+        shabbat_mode: profile.shabbat_mode || false,
       });
+    }
+  }, [profile, form]);
+
+  // Fetch users if the current user is an admin
+  useEffect(() => {
+    if (profile?.role === "admin") {
+      fetchUsers();
     }
   }, [profile]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value
-    });
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("name");
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: `שגיאה בטעינת המשתמשים: ${error.message}`,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) return;
-    
-    setIsLoading(true);
-    
+  const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
     try {
+      setLoading(true);
+      
       const { error } = await supabase
         .from("profiles")
         .update({
-          name: formData.name,
-          phone: formData.phone,
-          language: formData.language,
-          shabbat_mode: formData.shabbatMode,
-          updated_at: new Date().toISOString()
+          name: values.name,
+          phone: values.phone,
+          language: values.language,
+          shabbat_mode: values.shabbat_mode,
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", user.id);
-        
+        .eq("id", user?.id);
+
       if (error) throw error;
       
       toast({
@@ -70,222 +137,338 @@ const UserProfile = () => {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        description: error.message || "אירעה שגיאה בעדכון הפרופיל",
+        description: `שגיאה בעדכון הפרופיל: ${error.message}`,
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  if (!user || !profile) {
-    return (
-      <div className="min-h-screen bg-secondary/30">
-        <Navigation />
-        <div className="container mx-auto px-4 pt-24 pb-12 text-center">
-          <p>טוען נתונים...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleRoleChange = async (userId: string, newRole: RoleType) => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          role: newRole,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+      
+      toast({
+        description: "תפקיד המשתמש עודכן בהצלחה",
+      });
+      
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, role: newRole } : u
+      ));
+      
+      setRoleDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: `שגיאה בעדכון תפקיד המשתמש: ${error.message}`,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isAdmin = profile?.role === "admin";
 
   return (
-    <div className="min-h-screen bg-secondary/30" dir="rtl">
+    <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
       
-      <main className="container mx-auto px-4 pt-24 pb-12">
-        <h1 className="text-3xl font-bold mb-6 text-right">הפרופיל שלי</h1>
+      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
+        <h1 className="text-3xl font-bold mb-6 text-right">פרופיל משתמש</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center">
-                    {profile.avatar_url ? (
-                      <Image 
-                        src={profile.avatar_url} 
-                        alt={profile.name} 
-                        className="w-full h-full rounded-full object-cover" 
-                      />
-                    ) : (
-                      <UserCog size={48} className="text-primary" />
-                    )}
-                  </div>
-                </div>
-                <CardTitle>{profile.name}</CardTitle>
-                <p className="text-muted-foreground">{profile.email}</p>
-                <div className="mt-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                    {profile.role === "admin" ? "מנהל" : 
-                     profile.role === "coordinator" ? "רכז" : "מתנדב"}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium">טלפון:</h3>
-                    <p>{profile.phone || "לא הוזן"}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">הצטרף בתאריך:</h3>
-                    <p>{new Date(profile.created_at).toLocaleDateString('he-IL')}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="personal">
-              <TabsList className="w-full">
-                <TabsTrigger value="personal" className="flex-1">פרטים אישיים</TabsTrigger>
-                <TabsTrigger value="notifications" className="flex-1">הגדרות התראות</TabsTrigger>
-                <TabsTrigger value="security" className="flex-1">אבטחה</TabsTrigger>
-              </TabsList>
+        {user && profile ? (
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                פרטים אישיים
+              </TabsTrigger>
               
-              <TabsContent value="personal" className="pt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>עדכון פרטים אישיים</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">שם מלא</Label>
-                        <Input 
-                          id="name" 
-                          name="name" 
-                          value={formData.name} 
-                          onChange={handleInputChange} 
-                          required 
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">טלפון</Label>
-                        <Input 
-                          id="phone" 
-                          name="phone" 
-                          value={formData.phone} 
-                          onChange={handleInputChange} 
-                          dir="ltr"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="language">שפה מועדפת</Label>
-                        <select 
-                          id="language" 
-                          name="language" 
-                          value={formData.language} 
-                          onChange={(e) => setFormData({...formData, language: e.target.value})}
-                          className="w-full p-2 border border-input rounded-md"
-                        >
-                          <option value="he">עברית</option>
-                          <option value="en">אנגלית</option>
-                        </select>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <input 
-                          type="checkbox" 
-                          id="shabbatMode" 
-                          name="shabbatMode" 
-                          checked={formData.shabbatMode} 
-                          onChange={handleInputChange} 
-                          className="h-4 w-4 text-primary"
-                        />
-                        <Label htmlFor="shabbatMode" className="mr-2">מצב שבת (הסתרת תוכן בין כניסת השבת ליציאתה)</Label>
-                      </div>
-                      
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "מעדכן..." : "עדכן פרטים"}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                הגדרות
+              </TabsTrigger>
               
-              <TabsContent value="notifications" className="pt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Bell className="ml-2" size={20} />
-                      הגדרות התראות
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium">התראות על אירועים חדשים</h3>
-                          <p className="text-sm text-muted-foreground">קבל התראות כאשר נוספים אירועים חדשים</p>
+              {isAdmin && (
+                <TabsTrigger value="admin" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  ניהול משתמשים
+                </TabsTrigger>
+              )}
+            </TabsList>
+            
+            <TabsContent value="profile">
+              <Card className="p-6">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  <div className="w-full md:w-1/4 flex flex-col items-center">
+                    <div className="w-32 h-32 rounded-full bg-gray-200 mb-4 overflow-hidden">
+                      {profile.avatar_url ? (
+                        <Image 
+                          src={profile.avatar_url} 
+                          alt={profile.name || "Avatar"} 
+                          className="w-full h-full object-cover"
+                          fallback="/placeholder.svg"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl text-gray-400">
+                          <User size={48} />
                         </div>
-                        <input type="checkbox" className="h-5 w-5 text-primary" defaultChecked />
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium">התראות על שיבוצים</h3>
-                          <p className="text-sm text-muted-foreground">קבל התראות כאשר אתה משובץ לאירוע</p>
-                        </div>
-                        <input type="checkbox" className="h-5 w-5 text-primary" defaultChecked />
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium">תזכורות לאירועים</h3>
-                          <p className="text-sm text-muted-foreground">קבל תזכורות לפני אירועים שאתה משובץ אליהם</p>
-                        </div>
-                        <input type="checkbox" className="h-5 w-5 text-primary" defaultChecked />
-                      </div>
+                      )}
                     </div>
                     
-                    <Button className="mt-6">שמור הגדרות</Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="security" className="pt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Shield className="ml-2" size={20} />
-                      אבטחה
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-medium mb-2">שינוי סיסמה</h3>
-                        <div className="space-y-2">
-                          <Input type="password" placeholder="סיסמה נוכחית" />
-                          <Input type="password" placeholder="סיסמה חדשה" />
-                          <Input type="password" placeholder="אימות סיסמה חדשה" />
-                        </div>
-                        <Button className="mt-2">עדכן סיסמה</Button>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div>
-                        <h3 className="font-medium mb-2">אימות דו-שלבי</h3>
-                        <p className="text-sm text-muted-foreground mb-2">הפעל אימות דו-שלבי לאבטחה מוגברת</p>
-                        <Button variant="outline">הפעל אימות דו-שלבי</Button>
-                      </div>
+                    <p className="text-lg font-medium">{profile.name}</p>
+                    <p className="text-sm text-gray-500 mb-2">{profile.email}</p>
+                    
+                    <div className="py-2 px-3 bg-primary/10 rounded-md text-primary text-sm mb-4">
+                      {profile.role === "admin" && "מנהל"}
+                      {profile.role === "coordinator" && "רכז"}
+                      {profile.role === "youth_volunteer" && "מתנדב נוער"}
+                      {profile.role === "service_girl" && "נערת שירות"}
                     </div>
-                  </CardContent>
+                  </div>
+                  
+                  <div className="w-full md:w-3/4">
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>שם מלא</FormLabel>
+                              <FormControl>
+                                <Input placeholder="שם מלא" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>אימייל</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="your.email@example.com" 
+                                  {...field} 
+                                  disabled 
+                                  className="bg-gray-100"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                לא ניתן לשנות את כתובת האימייל
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>טלפון</FormLabel>
+                              <FormControl>
+                                <Input placeholder="מספר טלפון" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="language"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>שפה מועדפת</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="בחר שפה" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="he">עברית</SelectItem>
+                                  <SelectItem value="en">אנגלית</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "מעדכן..." : "שמור שינויים"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="settings">
+              <Card className="p-6">
+                <h2 className="text-xl font-bold mb-4">הגדרות מערכת</h2>
+                
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium">מצב שבת</h3>
+                      <p className="text-sm text-gray-500">
+                        מעבר למצב שבת יאפשר שימוש באפליקציה בשבת ללא חילול שבת
+                      </p>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="shabbat_mode"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
+                      {loading ? "מעדכן..." : "שמור הגדרות"}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
+            
+            {isAdmin && (
+              <TabsContent value="admin">
+                <Card className="p-6">
+                  <h2 className="text-xl font-bold mb-4">ניהול משתמשים</h2>
+                  
+                  {loading && <p>טוען משתמשים...</p>}
+                  
+                  {!loading && users.length === 0 && (
+                    <p>לא נמצאו משתמשים</p>
+                  )}
+                  
+                  {!loading && users.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-right p-2">שם</th>
+                            <th className="text-right p-2">אימייל</th>
+                            <th className="text-right p-2">טלפון</th>
+                            <th className="text-right p-2">תפקיד</th>
+                            <th className="text-right p-2">פעולות</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((user) => (
+                            <tr key={user.id} className="border-b hover:bg-gray-50">
+                              <td className="p-2">{user.name}</td>
+                              <td className="p-2">{user.email}</td>
+                              <td className="p-2">{user.phone || "-"}</td>
+                              <td className="p-2">
+                                <span className="py-1 px-2 bg-primary/10 rounded text-primary text-sm">
+                                  {user.role === "admin" && "מנהל"}
+                                  {user.role === "coordinator" && "רכז"}
+                                  {user.role === "youth_volunteer" && "מתנדב נוער"}
+                                  {user.role === "service_girl" && "נערת שירות"}
+                                </span>
+                              </td>
+                              <td className="p-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setRoleDialogOpen(true);
+                                  }}
+                                >
+                                  שנה תפקיד
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </Card>
               </TabsContent>
-            </Tabs>
+            )}
+          </Tabs>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-lg">יש להתחבר כדי לצפות בפרופיל</p>
           </div>
-        </div>
+        )}
       </main>
+      
+      <Footer />
+      
+      {/* Role Change Dialog */}
+      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>שינוי תפקיד משתמש</DialogTitle>
+            <DialogDescription>
+              {selectedUser?.name && `שינוי תפקיד עבור ${selectedUser.name}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Select
+              defaultValue={selectedUser?.role}
+              onValueChange={(value) => {
+                if (selectedUser && value) {
+                  handleRoleChange(selectedUser.id, value as RoleType);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="בחר תפקיד" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">מנהל</SelectItem>
+                <SelectItem value="coordinator">רכז</SelectItem>
+                <SelectItem value="youth_volunteer">מתנדב נוער</SelectItem>
+                <SelectItem value="service_girl">נערת שירות</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
+              בטל
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -8,12 +8,10 @@ import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { useEvents } from "@/hooks/dashboard/useEvents";
 import { useAssignments } from "@/hooks/dashboard/useAssignments";
 import { useNotifications } from "@/hooks/dashboard/useNotifications";
-import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
-import { Link } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { useEffect } from "react";
 import { Image } from "@/components/ui/image";
+import { Footer } from "@/components/layout/Footer";
 
 /**
  * Home page component showing dashboard data for authenticated users
@@ -56,13 +54,13 @@ const Index = () => {
   const isAllDataLoaded = !eventsLoading && !assignmentsLoading && !notificationsLoading;
 
   return (
-    <div className="min-h-screen bg-secondary/30" dir="rtl">
+    <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
       
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <div className="flex justify-center mb-8">
           <Image 
-            src="/lovable-uploads/81519ba6-1d74-4d3b-a6d3-2f6230834296.png" 
+            src="/lovable-uploads/d3702f47-5985-4b74-aea4-b1afd4a95588.png" 
             alt="קידושישי" 
             className="h-20" 
             fallback="/placeholder.svg"
@@ -92,6 +90,8 @@ const Index = () => {
           isLoading={eventsLoading}
         />
       </main>
+      
+      <Footer />
     </div>
   );
 };

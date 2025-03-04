@@ -1,5 +1,5 @@
 
-import { Menu, LogOut, FileText, User } from "lucide-react";
+import { Menu, LogOut, FileText, User, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -61,7 +61,7 @@ export const Navigation = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <Image 
-                src="/lovable-uploads/81519ba6-1d74-4d3b-a6d3-2f6230834296.png" 
+                src="/lovable-uploads/d3702f47-5985-4b74-aea4-b1afd4a95588.png" 
                 alt="קידושישי" 
                 className="h-12 ml-2" 
                 fallback="/placeholder.svg"

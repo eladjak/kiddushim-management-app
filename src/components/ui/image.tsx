@@ -24,11 +24,6 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
       }
     }
 
-    // Add more descriptive console logs for debugging
-    React.useEffect(() => {
-      console.log(`Image component rendering with src: ${src}`);
-    }, [src]);
-
     return (
       <img 
         ref={ref}
