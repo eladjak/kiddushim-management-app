@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
@@ -10,12 +10,14 @@ import { PendingChangesDialog } from "@/components/equipment/PendingChangesDialo
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { Footer } from "@/components/layout/Footer";
 
 const Equipment = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isPendingChangesOpen, setIsPendingChangesOpen] = useState(false);
+  const queryClient = useQueryClient();
   const isAdmin = profile?.role === 'admin';
 
   const { data: equipment, isLoading } = useQuery({
@@ -58,11 +60,37 @@ const Equipment = () => {
     enabled: isAdmin,
   });
 
+  const addEquipmentMutation = useMutation({
+    mutationFn: async (newEquipment: any) => {
+      const { data, error } = await supabase
+        .from("equipment")
+        .insert(newEquipment)
+        .select();
+        
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+      toast({
+        description: "הציוד נוסף בהצלחה",
+      });
+      setIsAddDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        description: `שגיאה בהוספת הציוד: ${error.message}`,
+      });
+    }
+  });
+
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">ציוד</h1>
           <div className="flex gap-2">
             <Button onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="ml-2" />
@@ -77,11 +105,10 @@ const Equipment = () => {
               </Button>
             )}
           </div>
-          <h1 className="text-3xl font-bold">ציוד</h1>
         </div>
 
         {isLoading ? (
-          <div className="text-center">טוען...</div>
+          <div className="text-center py-12">טוען...</div>
         ) : (
           <EquipmentList equipment={equipment || []} />
         )}
@@ -89,6 +116,8 @@ const Equipment = () => {
         <AddEquipmentDialog
           open={isAddDialogOpen}
           onOpenChange={setIsAddDialogOpen}
+          onSubmit={(formData) => addEquipmentMutation.mutate(formData)}
+          isSubmitting={addEquipmentMutation.isPending}
         />
 
         {isAdmin && (
@@ -98,6 +127,7 @@ const Equipment = () => {
           />
         )}
       </main>
+      <Footer />
     </div>
   );
 };

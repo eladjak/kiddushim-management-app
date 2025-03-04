@@ -66,6 +66,37 @@ label {
   margin-left: 0.5rem;
 }
 
+/* Dialog fixes for RTL */
+.dialog-content {
+  text-align: right;
+}
+
+/* Image styling and adjustments */
+img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.logo {
+  height: auto;
+  max-height: 6em;
+  width: auto;
+  padding: 1em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 1em #646cffaa);
+}
+
+/* Fix select and combobox direction */
+[role="combobox"],
+[role="listbox"] {
+  text-align: right;
+}
+
 /* Animation adjustments for RTL */
 @keyframes fade-in {
   from {
@@ -101,38 +132,40 @@ th, td {
   text-align: right;
 }
 
-/* Fix dialog positioning for RTL */
-.dialog-content {
-  text-align: right;
+/* Fix form layout in RTL */
+form {
+  width: 100%;
 }
 
-/* Logo styling */
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+/* Fix TabsTrigger spacing */
+.tabs-trigger svg {
+  margin-left: 0.5rem;
+  margin-right: 0;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Responsive image adjustments */
+@media (max-width: 768px) {
+  .h-48 {
+    height: 8rem !important;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .h-32 {
+    height: 6rem !important;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  
+  .h-24 {
+    height: 5rem !important;
+  }
+  
+  .h-16 {
+    height: 4rem !important;
+  }
+  
+  .h-12 {
+    height: 3rem !important;
+  }
+  
+  .h-8 {
+    height: 2rem !important;
   }
 }

@@ -18,7 +18,7 @@ import { Footer } from "@/components/layout/Footer";
  * or welcome screen for unauthenticated users
  */
 const Index = () => {
-  const { user, profile } = useAuth(); // Update to properly destructure profile from useAuth hook
+  const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'IndexPage' });
 
   // Fetch data for authenticated users
@@ -60,9 +60,9 @@ const Index = () => {
       <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <div className="flex justify-center mb-8">
           <Image 
-            src="/lovable-uploads/d3702f47-5985-4b74-aea4-b1afd4a95588.png" 
+            src="/lovable-uploads/a0a5beb0-b56a-44ad-900e-7dccede43ce0.png" 
             alt="קידושישי" 
-            className="h-20" 
+            className="h-24 w-auto" 
             fallback="/placeholder.svg"
           />
         </div>

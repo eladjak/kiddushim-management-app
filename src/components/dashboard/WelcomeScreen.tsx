@@ -14,9 +14,9 @@ export const WelcomeScreen = () => {
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col items-center mb-10">
             <Image 
-              src="/lovable-uploads/d3702f47-5985-4b74-aea4-b1afd4a95588.png" 
+              src="/lovable-uploads/a0a5beb0-b56a-44ad-900e-7dccede43ce0.png" 
               alt="קידושישי" 
-              className="h-48 mb-8" 
+              className="h-48 w-auto mb-8" 
               fallback="/placeholder.svg"
             />
             <h1 className="text-4xl font-bold mb-6 text-center">ברוכים הבאים לקידושישי</h1>
@@ -30,7 +30,7 @@ export const WelcomeScreen = () => {
               <Image 
                 src="/lovable-uploads/fa1e284c-6133-4f56-bf31-95b40beae661.png" 
                 alt="אורות יהודה" 
-                className="h-32 mx-auto mb-4" 
+                className="h-24 w-auto mx-auto mb-4" 
                 fallback="/placeholder.svg"
               />
               <h2 className="text-xl font-bold mb-2">גרעין תורני אורות יהודה</h2>
@@ -41,7 +41,7 @@ export const WelcomeScreen = () => {
               <Image 
                 src="/lovable-uploads/4da50744-935d-4fb8-9cf1-248d9f25c8c2.png" 
                 alt="ארגון רבני צהר" 
-                className="h-32 mx-auto mb-4" 
+                className="h-24 w-auto mx-auto mb-4" 
                 fallback="/placeholder.svg"
               />
               <h2 className="text-xl font-bold mb-2">ארגון רבני צהר</h2>

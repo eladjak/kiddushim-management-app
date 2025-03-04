@@ -31,7 +31,7 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
         alt={alt}
         src={error ? fallback : src}
         onError={handleError}
-        className={cn("max-w-full h-auto", className)}
+        className={cn("max-w-full h-auto object-contain", className)}
       />
     )
   }

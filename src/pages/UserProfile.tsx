@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Image } from "@/components/ui/image";
 import { Footer } from "@/components/layout/Footer";
@@ -115,6 +114,8 @@ const UserProfile = () => {
   };
 
   const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
+    if (!user?.id) return;
+    
     try {
       setLoading(true);
       
@@ -127,7 +128,7 @@ const UserProfile = () => {
           shabbat_mode: values.shabbat_mode,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", user?.id);
+        .eq("id", user.id);
 
       if (error) throw error;
       

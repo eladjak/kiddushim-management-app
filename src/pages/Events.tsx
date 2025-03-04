@@ -6,6 +6,7 @@ import { CreateEventForm } from "@/components/events/CreateEventForm";
 import { useAuth } from "@/context/AuthContext";
 import { Calendar, Plus } from "lucide-react";
 import { Image } from "@/components/ui/image";
+import { Footer } from "@/components/layout/Footer";
 
 const Events = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -16,9 +17,9 @@ const Events = () => {
   const canCreateEvents = isAdmin || isCoordinator;
   
   return (
-    <div className="min-h-screen bg-secondary/30" dir="rtl">
+    <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center">
             <Calendar className="h-6 w-6 text-primary ml-2" />
@@ -48,9 +49,9 @@ const Events = () => {
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <div className="flex flex-col items-center py-12">
                 <Image
-                  src="/lovable-uploads/81519ba6-1d74-4d3b-a6d3-2f6230834296.png"
+                  src="/lovable-uploads/a0a5beb0-b56a-44ad-900e-7dccede43ce0.png"
                   alt="קידושישי"
-                  className="h-24 mb-6"
+                  className="h-24 w-auto mb-6"
                   fallback="/placeholder.svg"
                 />
                 <h2 className="text-2xl font-semibold mb-4">עדיין אין אירועים</h2>
@@ -71,6 +72,7 @@ const Events = () => {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 };

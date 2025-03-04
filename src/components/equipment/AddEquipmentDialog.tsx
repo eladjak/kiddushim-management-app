@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -15,15 +16,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import type { Database } from "@/integrations/supabase/types";
-
-type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
 
 const formSchema = z.object({
   name: z.string().min(1, "נדרש למלא שם"),
@@ -36,12 +32,16 @@ const formSchema = z.object({
 interface AddEquipmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit: (data: z.infer<typeof formSchema>) => void;
+  isSubmitting: boolean;
 }
 
-export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
+export function AddEquipmentDialog({ 
+  open, 
+  onOpenChange, 
+  onSubmit, 
+  isSubmitting 
+}: AddEquipmentDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,43 +53,21 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const { error } = await supabase
-        .from("equipment")
-        .insert({
-          name: values.name,
-          description: values.description || null,
-          quantity: values.quantity,
-          location: values.location || null,
-          status: values.status,
-        });
-
-      if (error) throw error;
-
-      toast({
-        description: "הציוד נוסף בהצלחה",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["equipment"] });
-      form.reset();
-      onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        description: "שגיאה בהוספת הציוד",
-      });
-    }
-  }
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    onSubmit(values);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>הוספת ציוד חדש</DialogTitle>
+          <DialogDescription>
+            הוסף פריט ציוד חדש למערכת
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -110,7 +88,7 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
                 <FormItem>
                   <FormLabel>תיאור</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,7 +104,7 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
                     <Input
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -140,7 +118,7 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
                 <FormItem>
                   <FormLabel>מיקום</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,23 +130,33 @@ export function AddEquipmentDialog({ open, onOpenChange }: AddEquipmentDialogPro
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>סטטוס</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className="w-full px-3 py-2 border rounded-md"
-                    >
-                      <option value="available">זמין</option>
-                      <option value="in_use">בשימוש</option>
-                      <option value="maintenance">בתחזוקה</option>
-                      <option value="lost">אבד</option>
-                    </select>
-                  </FormControl>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר סטטוס" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="available">זמין</SelectItem>
+                      <SelectItem value="in_use">בשימוש</SelectItem>
+                      <SelectItem value="maintenance">בתחזוקה</SelectItem>
+                      <SelectItem value="lost">אבד</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <div className="flex justify-end gap-2">
-              <Button type="submit">הוסף</Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "מוסיף..." : "הוסף"}
+              </Button>
             </div>
           </form>
         </Form>
