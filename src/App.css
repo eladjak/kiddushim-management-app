@@ -1,9 +1,9 @@
 
 /* Set global RTL direction */
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: right;
   direction: rtl;
 }
@@ -49,9 +49,26 @@ label {
   direction: rtl;
 }
 
-/* Mobile nav alignment */
-.md\\:flex {
+/* Fix RTL alignment across all screen sizes */
+.md\\:flex, .lg\\:flex {
   direction: rtl;
+}
+
+/* Make all container elements respect RTL */
+.container {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Fix shadcn button icon alignment */
+.button-icon-left {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+.button-icon-right {
+  margin-right: 0;
+  margin-left: 0.5rem;
 }
 
 /* Animation adjustments for RTL */
@@ -66,9 +83,9 @@ label {
   }
 }
 
-@keyframes slide-in {
+@keyframes slide-in-rtl {
   from {
-    transform: translateX(100%);
+    transform: translateX(-100%);
   }
   to {
     transform: translateX(0);
@@ -76,9 +93,10 @@ label {
 }
 
 .animate-slide-in {
-  animation: slide-in 0.3s ease-out;
+  animation: slide-in-rtl 0.3s ease-out;
 }
 
+/* Logo styling */
 .logo {
   height: 6em;
   padding: 1.5em;

@@ -17,12 +17,17 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
     }, [props.src])
 
     const handleError = () => {
-      console.log(`Image failed to load: ${props.src}, using fallback: ${fallback}`);
+      console.log(`Image failed to load: ${src}, using fallback: ${fallback}`);
       if (!error) {
         setError(true)
         setSrc(fallback)
       }
     }
+
+    // Add more descriptive console logs for debugging
+    React.useEffect(() => {
+      console.log(`Image component rendering with src: ${src}`);
+    }, [src]);
 
     return (
       <img 

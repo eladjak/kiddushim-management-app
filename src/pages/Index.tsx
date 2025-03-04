@@ -8,12 +8,12 @@ import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { useEvents } from "@/hooks/dashboard/useEvents";
 import { useAssignments } from "@/hooks/dashboard/useAssignments";
 import { useNotifications } from "@/hooks/dashboard/useNotifications";
-import { Image } from "@/components/ui/image";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { useEffect } from "react";
+import { Image } from "@/components/ui/image";
 
 /**
  * Home page component showing dashboard data for authenticated users
@@ -49,28 +49,7 @@ const Index = () => {
   // Render welcome screen for unauthenticated users
   if (!user) {
     console.log('Rendering welcome screen for unauthenticated user');
-    return (
-      <div className="min-h-screen bg-secondary/5 flex flex-col items-center justify-center p-4">
-        <div className="mb-8">
-          <Image 
-            src="/kidushishi-logo.png" 
-            alt="קידושישי" 
-            className="h-40 mx-auto" 
-            fallback="/placeholder.svg" 
-          />
-        </div>
-        <WelcomeScreen />
-        
-        <div className="mt-8">
-          <Button asChild variant="outline">
-            <Link to="/documentation" className="flex items-center gap-2">
-              <FileText className="h-4 w-4 ml-1" />
-              לתיעוד הפרויקט
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
+    return <WelcomeScreen />;
   }
 
   console.log('Rendering dashboard for authenticated user');
@@ -81,7 +60,21 @@ const Index = () => {
       <Navigation />
       
       <main className="container mx-auto px-4 pt-24 pb-12">
+        <div className="flex justify-center mb-8">
+          <Image 
+            src="/lovable-uploads/81519ba6-1d74-4d3b-a6d3-2f6230834296.png" 
+            alt="קידושישי" 
+            className="h-20" 
+            fallback="/placeholder.svg"
+          />
+        </div>
+        
         <StatusBanner isAllDataLoaded={isAllDataLoaded} />
+
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-4 text-right">שלום, {profile?.name || "משתמש יקר"}</h1>
+          <p className="text-gray-600 mb-6">ברוכים הבאים למערכת ניהול האירועים והמתנדבים של קידושישי</p>
+        </div>
 
         <QuickActions
           eventsCount={events?.length}

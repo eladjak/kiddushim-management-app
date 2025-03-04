@@ -1,4 +1,5 @@
-import { Menu, LogOut, FileText } from "lucide-react";
+
+import { Menu, LogOut, FileText, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -54,13 +55,13 @@ export const Navigation = () => {
   const isActivePath = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed top-0 right-0 left-0 bg-white shadow-sm z-50">
+    <nav className="fixed top-0 right-0 left-0 bg-white shadow-sm z-50" dir="rtl">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <Image 
-                src="/kidushishi-logo.png" 
+                src="/lovable-uploads/81519ba6-1d74-4d3b-a6d3-2f6230834296.png" 
                 alt="קידושישי" 
                 className="h-12 ml-2" 
                 fallback="/placeholder.svg"
@@ -130,6 +131,17 @@ export const Navigation = () => {
                   asChild
                 >
                   <Link to="/equipment">ציוד</Link>
+                </Button>
+
+                <Button
+                  variant={isActivePath('/profile') ? "secondary" : "ghost"}
+                  className="px-4 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
+                  asChild
+                >
+                  <Link to="/profile" className="flex items-center">
+                    <User className="h-4 w-4 ml-1" />
+                    פרופיל
+                  </Link>
                 </Button>
 
                 <Button

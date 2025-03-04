@@ -12,6 +12,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Equipment from "./pages/Equipment";
 import Documentation from "./pages/Documentation";
+import UserProfile from "./pages/UserProfile";
 import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/equipment" element={<Equipment />} />
           <Route path="/documentation" element={<Documentation />} />
+          <Route path="/profile" element={<UserProfile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
