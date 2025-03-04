@@ -1,35 +1,30 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useEvents = (userId: string | undefined) => {
-  const { toast } = useToast();
-
+export const useEvents = (userId?: string) => {
   return useQuery({
-    queryKey: ["events"],
+    queryKey: ['events', userId],
     queryFn: async () => {
-      console.log("Fetching events...");
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .gte("main_time", new Date().toISOString())
-        .order("main_time", { ascending: true })
-        .limit(2);
-
-      if (error) {
-        console.error("Error fetching events:", error);
-        toast({
-          variant: "destructive",
-          title: "שגיאה בטעינת האירועים",
-          description: error.message,
-        });
-        throw error;
+      // Skip if there's no user ID
+      if (!userId) return [];
+      
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('main_time', { ascending: true })
+          .limit(6);
+        
+        if (error) throw error;
+        
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        return [];
       }
-
-      console.log("Events fetched successfully:", data);
-      return data;
     },
+    // Only run if we have a user ID
     enabled: !!userId,
   });
 };

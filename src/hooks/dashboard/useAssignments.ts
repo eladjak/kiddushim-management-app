@@ -1,33 +1,30 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useAssignments = (userId: string | undefined) => {
-  const { toast } = useToast();
-
+export const useAssignments = (userId?: string) => {
   return useQuery({
-    queryKey: ["assignments", userId],
+    queryKey: ['assignments', userId],
     queryFn: async () => {
-      console.log("Fetching assignments...");
-      const { data, error } = await supabase
-        .from("event_assignments")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (error) {
-        console.error("Error fetching assignments:", error);
-        toast({
-          variant: "destructive",
-          title: "שגיאה בטעינת השיבוצים",
-          description: error.message,
-        });
-        throw error;
+      // Skip if there's no user ID
+      if (!userId) return [];
+      
+      try {
+        const { data, error } = await supabase
+          .from('assignments')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        return [];
       }
-
-      console.log("Assignments fetched successfully:", data);
-      return data;
     },
+    // Only run if we have a user ID
     enabled: !!userId,
   });
 };

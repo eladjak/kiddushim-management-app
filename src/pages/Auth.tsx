@@ -48,11 +48,22 @@ const Auth = () => {
     );
   }
 
+  // Debug logo path
+  console.log("Logo path:", "/kidushishi-logo.png");
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <div className="flex justify-center py-6">
-          <Image src="/kidushishi-logo.png" alt="קידושישי" className="h-24" fallback="/placeholder.svg" />
+          <img 
+            src="/kidushishi-logo.png" 
+            alt="קידושישי" 
+            className="h-24" 
+            onError={(e) => {
+              console.error("Logo failed to load:", e);
+              e.currentTarget.src = "/placeholder.svg";
+            }} 
+          />
         </div>
         <AuthHeader
           isSignUp={isSignUp}

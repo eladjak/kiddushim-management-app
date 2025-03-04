@@ -6,7 +6,6 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Image } from "./ui/image";
 import { logger } from "@/utils/logger";
 
 /**
@@ -60,11 +59,14 @@ export const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <Image 
+              <img 
                 src="/kidushishi-logo.png" 
                 alt="קידושישי" 
                 className="h-12 ml-2" 
-                fallback="/placeholder.svg"
+                onError={(e) => {
+                  console.error("Logo failed to load in navigation:", e);
+                  e.currentTarget.src = "/placeholder.svg";
+                }}
               />
               <span className="text-xl font-semibold text-primary">קידושישי</span>
             </Link>

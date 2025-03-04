@@ -28,6 +28,9 @@ export const GoogleAuthButton = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
+          redirectTo: window.location.origin + '/auth/callback',
+          // Setting a better display name for the auth page
+          emailRedirectTo: window.location.origin + '/auth/callback',
         },
       });
       
@@ -46,7 +49,7 @@ export const GoogleAuthButton = () => {
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       
       if (error.message && error.message.includes("redirect_uri_mismatch")) {
-        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת הבאה מוגדרת ב-Google Cloud Console: https://uqumzjmyejlhoyliyesu.supabase.co/auth/v1/callback`;
+        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת הבאה מוגדרת ב-Google Cloud Console: ${window.location.origin}/auth/callback`;
       }
       
       toast({

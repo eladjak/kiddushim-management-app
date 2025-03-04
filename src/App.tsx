@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Events from "./pages/Events";
 import Volunteers from "./pages/Volunteers";
 import Users from "./pages/Users";
@@ -26,6 +27,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/events" element={<Events />} />
           <Route path="/volunteers" element={<Volunteers />} />
           <Route path="/users" element={<Users />} />
