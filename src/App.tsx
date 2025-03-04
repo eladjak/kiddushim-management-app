@@ -21,9 +21,13 @@ import "./styles/rtl.css"; // Import RTL styles
  * Sets up routing, authentication context, and global UI elements
  */
 function App() {
+  // Force RTL direction at the root level
+  document.documentElement.dir = "rtl";
+  document.body.dir = "rtl";
+  
   return (
     <AuthProvider>
-      <div dir="rtl"> {/* Set default direction to RTL for Hebrew */}
+      <div dir="rtl" className="rtl-app"> {/* Added rtl-app class for additional CSS targeting */}
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />

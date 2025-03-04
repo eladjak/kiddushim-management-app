@@ -106,3 +106,22 @@
 [dir="rtl"] .space-x-8 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 1;
 }
+
+/* Fix alignment of the shadcn components */
+[dir="rtl"] .inline-flex {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .items-center {
+  justify-content: flex-end;
+}
+
+/* Ensure all flex containers follow RTL direction */
+[dir="rtl"] .flex {
+  flex-direction: row-reverse;
+}
+
+/* Force correct direction for all flex layouts */
+[dir="rtl"] .md\:flex-row {
+  flex-direction: row-reverse !important;
+}

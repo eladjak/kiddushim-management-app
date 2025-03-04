@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthHeader } from "@/components/auth/AuthHeader";
@@ -55,14 +54,11 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <div className="flex justify-center py-6">
-          <img 
+          <Image 
             src="/kidushishi-logo.png" 
             alt="קידושישי" 
             className="h-24" 
-            onError={(e) => {
-              console.error("Logo failed to load:", e);
-              e.currentTarget.src = "/placeholder.svg";
-            }} 
+            fallback="/placeholder.svg"
           />
         </div>
         <AuthHeader

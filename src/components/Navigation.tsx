@@ -1,4 +1,3 @@
-
 import { Menu, LogOut, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -7,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
+import { Image } from "@/components/ui/image";
 
 /**
  * Main navigation component for the application
@@ -59,14 +59,11 @@ export const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <img 
+              <Image 
                 src="/kidushishi-logo.png" 
                 alt="קידושישי" 
                 className="h-12 ml-2" 
-                onError={(e) => {
-                  console.error("Logo failed to load in navigation:", e);
-                  e.currentTarget.src = "/placeholder.svg";
-                }}
+                fallback="/placeholder.svg"
               />
               <span className="text-xl font-semibold text-primary">קידושישי</span>
             </Link>

@@ -39,7 +39,7 @@ const Index = () => {
       }
     });
     
-    // נוסיף לוג נוסף לבדיקת הרינדור
+    // Add extra logging to check the rendering
     console.log('Index page rendering', {
       user: user ? 'Authenticated' : 'Not authenticated',
       rendering: 'In progress'

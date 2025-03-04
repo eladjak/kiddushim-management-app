@@ -14,6 +14,11 @@ body {
   text-align: right;
 }
 
+.rtl-app {
+  direction: rtl;
+  text-align: right;
+}
+
 /* Fix alignment for RTL */
 .card {
   text-align: right;

@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { Image } from "@/components/ui/image";
 
 export const WelcomeScreen = () => {
   return (
