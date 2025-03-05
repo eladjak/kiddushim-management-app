@@ -14,32 +14,39 @@ export const getNavItems = (isAdmin: boolean, isCoordinator: boolean): NavItem[]
     {
       path: "/",
       label: "דף הבית",
+      icon: <Calendar className="h-4 w-4 ml-1" />,
     },
     {
       path: "/events",
       label: "אירועים",
+      icon: <Calendar className="h-4 w-4 ml-1" />,
     },
     {
       path: "/documentation",
       label: "תיעוד",
+      icon: <FileText className="h-4 w-4 ml-1" />,
     },
     {
       path: "/volunteers",
       label: "מתנדבים",
+      icon: <Users className="h-4 w-4 ml-1" />,
       requiredRoles: ["admin", "coordinator"],
     },
     {
       path: "/users",
       label: "ניהול משתמשים",
+      icon: <Shield className="h-4 w-4 ml-1" />,
       requiredRoles: ["admin"],
     },
     {
       path: "/reports",
       label: "דיווחים",
+      icon: <FileSpreadsheet className="h-4 w-4 ml-1" />,
     },
     {
       path: "/equipment",
       label: "ציוד",
+      icon: <Package2 className="h-4 w-4 ml-1" />,
     },
     {
       path: "/profile",
