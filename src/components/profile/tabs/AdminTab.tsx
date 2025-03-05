@@ -1,0 +1,191 @@
+
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface AdminTabProps {
+  userId: string;
+}
+
+type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl";
+
+export const AdminTab = ({ userId }: AdminTabProps) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("name");
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: `שגיאה בטעינת המשתמשים: ${error.message}`,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: RoleType) => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          role: newRole,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+      
+      toast({
+        description: "תפקיד המשתמש עודכן בהצלחה",
+      });
+      
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, role: newRole } : u
+      ));
+      
+      setRoleDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: `שגיאה בעדכון תפקיד המשתמש: ${error.message}`,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Card className="p-6">
+        <h2 className="text-xl font-bold mb-4">ניהול משתמשים</h2>
+        
+        {loading && <p>טוען משתמשים...</p>}
+        
+        {!loading && users.length === 0 && (
+          <p>לא נמצאו משתמשים</p>
+        )}
+        
+        {!loading && users.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-right p-2">שם</th>
+                  <th className="text-right p-2">אימייל</th>
+                  <th className="text-right p-2">טלפון</th>
+                  <th className="text-right p-2">תפקיד</th>
+                  <th className="text-right p-2">פעולות</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id} className="border-b hover:bg-gray-50">
+                    <td className="p-2">{user.name}</td>
+                    <td className="p-2">{user.email}</td>
+                    <td className="p-2">{user.phone || "-"}</td>
+                    <td className="p-2">
+                      <span className="py-1 px-2 bg-primary/10 rounded text-primary text-sm">
+                        {user.role === "admin" && "מנהל"}
+                        {user.role === "coordinator" && "רכז"}
+                        {user.role === "youth_volunteer" && "מתנדב נוער"}
+                        {user.role === "service_girl" && "נערת שירות"}
+                      </span>
+                    </td>
+                    <td className="p-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setRoleDialogOpen(true);
+                        }}
+                      >
+                        שנה תפקיד
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Role Change Dialog */}
+      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>שינוי תפקיד משתמש</DialogTitle>
+            <DialogDescription>
+              {selectedUser?.name && `שינוי תפקיד עבור ${selectedUser.name}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Select
+              defaultValue={selectedUser?.role}
+              onValueChange={(value) => {
+                if (selectedUser && value) {
+                  handleRoleChange(selectedUser.id, value as RoleType);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="בחר תפקיד" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">מנהל</SelectItem>
+                <SelectItem value="coordinator">רכז</SelectItem>
+                <SelectItem value="youth_volunteer">מתנדב נוער</SelectItem>
+                <SelectItem value="service_girl">נערת שירות</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
+              בטל
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
