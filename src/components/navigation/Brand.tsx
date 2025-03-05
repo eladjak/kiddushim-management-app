@@ -6,12 +6,11 @@ export const Brand = () => {
   return (
     <Link to="/" className="flex items-center">
       <Image 
-        src="/lovable-uploads/d3702f47-5985-4b74-aea4-b1afd4a95588.png" 
+        src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
         alt="קידושישי" 
-        className="h-12 ml-2" 
+        className="h-12 w-auto" 
         fallback="/placeholder.svg"
       />
-      <span className="text-xl font-semibold text-primary">קידושישי</span>
     </Link>
   );
 };

@@ -37,7 +37,6 @@ const Index = () => {
       }
     });
     
-    // Add extra logging to check the rendering
     console.log('Index page rendering', {
       user: user ? 'Authenticated' : 'Not authenticated',
       rendering: 'In progress'
@@ -57,21 +56,21 @@ const Index = () => {
     <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
       
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
-        <div className="flex justify-center mb-8">
+      <main className="container mx-auto px-4 pt-16 md:pt-24 pb-8 md:pb-12 flex-grow">
+        <div className="flex justify-center mb-6 md:mb-8">
           <Image 
-            src="/lovable-uploads/a0a5beb0-b56a-44ad-900e-7dccede43ce0.png" 
+            src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
             alt="קידושישי" 
-            className="h-24 w-auto" 
+            className="h-20 md:h-24 w-auto" 
             fallback="/placeholder.svg"
           />
         </div>
         
         <StatusBanner isAllDataLoaded={isAllDataLoaded} />
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4 text-right">שלום, {profile?.name || "משתמש יקר"}</h1>
-          <p className="text-gray-600 mb-6">ברוכים הבאים למערכת ניהול האירועים והמתנדבים של קידושישי</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4 text-right">שלום, {profile?.name || "משתמש יקר"}</h1>
+          <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">ברוכים הבאים למערכת ניהול האירועים והמתנדבים של קידושישי</p>
         </div>
 
         <QuickActions

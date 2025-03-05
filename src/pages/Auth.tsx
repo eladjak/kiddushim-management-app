@@ -53,9 +53,9 @@ const Auth = () => {
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <div className="flex justify-center py-6">
           <Image 
-            src="/lovable-uploads/81519ba6-1d74-4d3b-a6d3-2f6230834296.png" 
+            src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
             alt="קידושישי" 
-            className="h-24" 
+            className="h-24 max-w-[90%] w-auto" 
             fallback="/placeholder.svg"
           />
         </div>
