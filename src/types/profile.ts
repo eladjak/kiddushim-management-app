@@ -1,5 +1,5 @@
 
-export type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl";
+export type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl" | "content_provider";
 
 export interface ProfileType {
   id: string;
