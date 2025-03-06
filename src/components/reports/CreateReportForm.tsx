@@ -91,15 +91,20 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     setIsLoading(true);
     
     try {
-      const reportData = {
+      // Create content object to store in the JSON field
+      const contentData = {
         title: formData.title,
         description: formData.description,
+        reporter_name: formData.reporter_name,
+        status: "new",
+        severity: reportType === "issue" ? formData.severity : null,
+      };
+      
+      const reportData = {
+        content: contentData,
         event_id: formData.event_id || null,
         reporter_id: user.id,
-        reporter_name: formData.reporter_name,
         type: reportType,
-        status: "new",
-        severity: formData.severity,
       };
       
       const { error } = await supabase

@@ -141,14 +141,14 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
             {filteredReports.map((report) => (
               <TableRow key={report.id}>
                 <TableCell>{formatReportType(report.type)}</TableCell>
-                <TableCell className="max-w-[200px] truncate">{report.title}</TableCell>
+                <TableCell className="max-w-[200px] truncate">{report.content.title}</TableCell>
                 <TableCell>
                   {report.events?.title || "—"}
                 </TableCell>
-                <TableCell>{report.reporter_name}</TableCell>
-                <TableCell>{getStatusBadge(report.status)}</TableCell>
+                <TableCell>{report.content.reporter_name}</TableCell>
+                <TableCell>{getStatusBadge(report.content.status)}</TableCell>
                 {activeTab === "issues" && (
-                  <TableCell>{getSeverityBadge(report.severity)}</TableCell>
+                  <TableCell>{getSeverityBadge(report.content.severity)}</TableCell>
                 )}
                 <TableCell>
                   {new Date(report.created_at).toLocaleDateString('he-IL')}

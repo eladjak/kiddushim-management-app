@@ -80,9 +80,17 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
     setIsUpdating(true);
     
     try {
+      // Update the status in the content JSON object
+      const updatedContent = {
+        ...report.content,
+        status: newStatus
+      };
+      
       const { error } = await supabase
         .from("reports")
-        .update({ status: newStatus })
+        .update({ 
+          content: updatedContent 
+        })
         .eq("id", report.id);
         
       if (error) throw error;
@@ -107,13 +115,13 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
   return (
     <DialogContent className="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle className="text-xl font-bold">{report.title}</DialogTitle>
+        <DialogTitle className="text-xl font-bold">{report.content.title}</DialogTitle>
         <div className="flex items-center gap-2 mt-1">
           <Badge variant="secondary">
             {formatReportType(report.type)}
           </Badge>
-          {getStatusBadge(report.status)}
-          {report.severity && getSeverityBadge(report.severity)}
+          {getStatusBadge(report.content.status)}
+          {report.content.severity && getSeverityBadge(report.content.severity)}
         </div>
       </DialogHeader>
       
@@ -126,7 +134,7 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
           
           <div className="flex items-center gap-2 text-muted-foreground">
             <User className="h-4 w-4" />
-            <span className="text-sm">על ידי {report.reporter_name}</span>
+            <span className="text-sm">על ידי {report.content.reporter_name}</span>
           </div>
           
           {report.events && (
@@ -142,7 +150,7 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
         <div>
           <h3 className="font-medium mb-2">תיאור הדיווח:</h3>
           <div className="bg-gray-50 p-3 rounded-md text-sm whitespace-pre-wrap">
-            {report.description || "אין תיאור לדיווח זה"}
+            {report.content.description || "אין תיאור לדיווח זה"}
           </div>
         </div>
         
@@ -156,7 +164,7 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  disabled={report.status === "new" || isUpdating}
+                  disabled={report.content.status === "new" || isUpdating}
                   onClick={() => updateReportStatus("new")}
                 >
                   חדש
@@ -164,7 +172,7 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  disabled={report.status === "in_progress" || isUpdating}
+                  disabled={report.content.status === "in_progress" || isUpdating}
                   onClick={() => updateReportStatus("in_progress")}
                 >
                   בטיפול
@@ -172,7 +180,7 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  disabled={report.status === "resolved" || isUpdating}
+                  disabled={report.content.status === "resolved" || isUpdating}
                   onClick={() => updateReportStatus("resolved")}
                 >
                   טופל
@@ -180,7 +188,7 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  disabled={report.status === "closed" || isUpdating}
+                  disabled={report.content.status === "closed" || isUpdating}
                   onClick={() => updateReportStatus("closed")}
                 >
                   סגור
