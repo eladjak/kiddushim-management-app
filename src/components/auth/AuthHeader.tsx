@@ -15,19 +15,19 @@ type AuthHeaderProps = {
 
 export const AuthHeader = ({ isSignUp, isForgotPassword, onBackClick }: AuthHeaderProps) => {
   return (
-    <CardHeader className="text-right space-y-2 relative pb-4">
+    <CardHeader className="text-center space-y-2 relative pt-2 pb-3 px-6">
       {isForgotPassword && (
         <Button
           variant="ghost"
           size="sm"
-          className="absolute left-4 top-4 transition-transform hover:scale-105"
+          className="absolute right-4 top-4 transition-transform hover:scale-105 h-8 w-8 p-0"
           onClick={onBackClick}
         >
-          <ArrowLeft className="h-4 w-4 ml-2" />
-          חזרה
+          <ArrowLeft className="h-4 w-4" />
+          <span className="sr-only">חזרה</span>
         </Button>
       )}
-      <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <CardTitle className="text-xl font-bold text-primary">
         {isForgotPassword
           ? "שחזור סיסמה"
           : isSignUp

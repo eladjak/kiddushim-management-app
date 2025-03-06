@@ -24,7 +24,7 @@
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 262 85% 74%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   * {
@@ -48,7 +48,7 @@
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;

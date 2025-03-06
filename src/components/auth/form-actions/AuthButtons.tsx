@@ -20,11 +20,11 @@ export const AuthButtons = ({
   forgotPasswordLabel
 }: AuthButtonsProps) => {
   return (
-    <div className="flex flex-col gap-2 pt-2">
+    <div className="flex flex-col gap-2 pt-4">
       <Button 
         type="submit" 
         disabled={isLoading}
-        className="w-full transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+        className="w-full h-10 transition-all duration-200 hover:bg-primary/90"
       >
         {isLoading ? "טוען..." : submitLabel}
       </Button>
@@ -34,9 +34,9 @@ export const AuthButtons = ({
       {onForgotPassword && forgotPasswordLabel && (
         <Button
           type="button"
-          variant="ghost"
+          variant="link"
           onClick={onForgotPassword}
-          className="w-full hover:bg-secondary/50 transition-all duration-200"
+          className="w-full text-sm text-gray-500 hover:text-primary hover:underline h-8 font-normal"
         >
           {forgotPasswordLabel}
         </Button>
@@ -44,9 +44,9 @@ export const AuthButtons = ({
       
       <Button
         type="button"
-        variant="ghost"
+        variant="link"
         onClick={() => onToggleMode(true)}
-        className="w-full hover:bg-secondary/50 transition-all duration-200"
+        className="w-full text-sm text-gray-500 hover:text-primary hover:underline h-8 font-normal"
       >
         {toggleModeLabel}
       </Button>

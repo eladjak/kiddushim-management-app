@@ -29,7 +29,6 @@ export const GoogleAuthButton = () => {
             prompt: 'consent',
           },
           redirectTo: window.location.origin + '/auth/callback',
-          // Using only the redirectTo property, not emailRedirectTo which doesn't exist
         },
       });
       
@@ -66,7 +65,7 @@ export const GoogleAuthButton = () => {
       variant="outline"
       onClick={signInWithGoogle}
       disabled={isLoading}
-      className="w-full hover:bg-secondary/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      className="w-full h-10 border border-gray-200 hover:bg-secondary/50 transition-all duration-200"
     >
       <img
         src="https://www.google.com/favicon.ico"

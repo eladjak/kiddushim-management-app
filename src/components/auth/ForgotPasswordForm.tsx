@@ -85,31 +85,33 @@ export const ForgotPasswordForm = ({
           <Button 
             type="submit" 
             disabled={isLoading}
-            className="w-full transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full h-10"
           >
             {isLoading ? "טוען..." : "שלח קישור לאיפוס סיסמה"}
           </Button>
           
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setIsForgotPassword(false)}
-            className="w-full hover:bg-secondary/50 transition-all duration-200"
-          >
-            חזרה להתחברות
-          </Button>
-          
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setIsSignUp(true);
-              setIsForgotPassword(false);
-            }}
-            className="w-full hover:bg-secondary/50 transition-all duration-200"
-          >
-            אין לך חשבון? הירשם עכשיו
-          </Button>
+          <div className="flex flex-col gap-1 mt-1">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setIsForgotPassword(false)}
+              className="text-sm text-gray-500 hover:text-primary hover:underline h-8 font-normal"
+            >
+              חזרה להתחברות
+            </Button>
+            
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => {
+                setIsSignUp(true);
+                setIsForgotPassword(false);
+              }}
+              className="text-sm text-gray-500 hover:text-primary hover:underline h-8 font-normal"
+            >
+              אין לך חשבון? הירשם עכשיו
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

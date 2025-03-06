@@ -1,31 +1,27 @@
 
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { UseFormReturn } from "react-hook-form";
 
 interface RememberMeFieldProps {
   form: UseFormReturn<any>;
-  label?: string;
 }
 
-export const RememberMeField = ({ 
-  form, 
-  label = "זכור אותי" 
-}: RememberMeFieldProps) => {
+export const RememberMeField = ({ form }: RememberMeFieldProps) => {
   return (
     <FormField
       control={form.control}
       name="rememberMe"
       render={({ field }) => (
-        <FormItem className="flex flex-row items-center gap-2">
+        <FormItem className="flex flex-row-reverse items-center justify-end space-x-2 space-x-reverse mb-2">
+          <FormLabel className="text-sm text-gray-600 font-normal cursor-pointer">זכור אותי</FormLabel>
           <FormControl>
-            <input
-              type="checkbox"
-              className="form-checkbox h-4 w-4 text-primary rounded focus:ring-2 focus:ring-primary"
-              checked={field.value}
-              onChange={field.onChange}
+            <Checkbox 
+              checked={field.value} 
+              onCheckedChange={field.onChange} 
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" 
             />
           </FormControl>
-          <FormLabel className="text-right">{label}</FormLabel>
         </FormItem>
       )}
     />

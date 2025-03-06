@@ -50,14 +50,14 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50" dir="rtl">
-      <main className="flex-grow flex items-center justify-center p-4">
-        <Card className="w-full max-w-md animate-fade-in shadow-lg border-0">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <main className="flex-grow flex items-center justify-center p-4 md:p-6">
+        <Card className="w-full max-w-md shadow-md border border-gray-100 animate-fade-in">
           <div className="flex justify-center pt-6 pb-2">
             <Image 
               src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
               alt="קידושישי" 
-              className="h-20 max-w-[90%] w-auto" 
+              className="h-16 md:h-20 max-w-[85%] w-auto" 
               fallback="/placeholder.svg"
             />
           </div>
