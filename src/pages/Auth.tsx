@@ -50,9 +50,9 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 to-secondary/10" dir="rtl">
+    <div className="min-h-screen flex flex-col bg-gray-50" dir="rtl">
       <main className="flex-grow flex items-center justify-center p-4">
-        <Card className="w-full max-w-md animate-fade-in shadow-lg">
+        <Card className="w-full max-w-md animate-fade-in shadow-lg border-0">
           <div className="flex justify-center pt-6 pb-2">
             <Image 
               src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 

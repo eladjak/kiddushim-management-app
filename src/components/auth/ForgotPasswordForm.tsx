@@ -3,12 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Mail } from "lucide-react";
+import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { EmailField } from "./form-fields/EmailField";
 
 /**
  * Schema for forgot password form validation
@@ -16,6 +15,8 @@ import { useState } from "react";
 const forgotPasswordSchema = z.object({
   email: z.string().email("נא להזין כתובת אימייל תקינה"),
 });
+
+type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 /**
  * Form component for password reset requests
@@ -31,7 +32,7 @@ export const ForgotPasswordForm = ({
   const { toast } = useToast();
 
   // Initialize form with React Hook Form and zod validation
-  const form = useForm<z.infer<typeof forgotPasswordSchema>>({
+  const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
@@ -41,7 +42,7 @@ export const ForgotPasswordForm = ({
   /**
    * Handle form submission for password reset
    */
-  const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
+  const onSubmit = async (values: ForgotPasswordValues) => {
     console.log('Attempting password reset for:', values.email);
     
     setIsLoading(true);
@@ -74,26 +75,10 @@ export const ForgotPasswordForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-right block">אימייל</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-                    {...field}
-                  />
-                  <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                </div>
-              </FormControl>
-              <FormMessage className="text-right" />
-            </FormItem>
-          )}
+        <EmailField 
+          form={form} 
+          label="אימייל" 
+          autoFocus={true}
         />
         
         <div className="flex flex-col gap-2 pt-2">

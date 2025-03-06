@@ -2,14 +2,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Lock, Mail, Phone, UserPlus } from "lucide-react";
+import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { GoogleAuthButton } from "./GoogleAuthButton";
+import { EmailField } from "./form-fields/EmailField";
+import { PasswordField } from "./form-fields/PasswordField";
+import { NameField } from "./form-fields/NameField";
+import { PhoneField } from "./form-fields/PhoneField";
+import { AuthButtons } from "./form-actions/AuthButtons";
 
 const ISRAELI_PHONE_REGEX = /^(?:\+972|0)(?:[23489]|5[0-689]|7[246789])\d{7}$/;
 
@@ -28,6 +29,8 @@ const signUpFormSchema = z.object({
     .regex(ISRAELI_PHONE_REGEX, "נא להזין מספר טלפון ישראלי תקין"),
 });
 
+type SignUpFormValues = z.infer<typeof signUpFormSchema>;
+
 /**
  * Form component for user registration
  */
@@ -40,7 +43,7 @@ export const SignUpForm = ({
   const { toast } = useToast();
 
   // Initialize form with React Hook Form and zod validation
-  const form = useForm<z.infer<typeof signUpFormSchema>>({
+  const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
       email: "",
@@ -53,7 +56,7 @@ export const SignUpForm = ({
   /**
    * Handle form submission for sign up
    */
-  const onSubmit = async (values: z.infer<typeof signUpFormSchema>) => {
+  const onSubmit = async (values: SignUpFormValues) => {
     console.log('Attempting sign up with:', { email: values.email, name: values.name });
     
     setIsLoading(true);
@@ -93,112 +96,17 @@ export const SignUpForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-right block">שם מלא</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    placeholder="ישראל ישראלי"
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-                    {...field}
-                  />
-                  <UserPlus className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                </div>
-              </FormControl>
-              <FormMessage className="text-right" />
-            </FormItem>
-          )}
-        />
+        <NameField form={form} />
+        <PhoneField form={form} />
+        <EmailField form={form} />
+        <PasswordField form={form} />
         
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-right block">טלפון</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="tel"
-                    placeholder="050-0000000"
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-                    {...field}
-                  />
-                  <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                </div>
-              </FormControl>
-              <FormMessage className="text-right" />
-            </FormItem>
-          )}
+        <AuthButtons 
+          isLoading={isLoading}
+          submitLabel="הרשמה"
+          onToggleMode={() => setIsSignUp(false)}
+          toggleModeLabel="כבר יש לך חשבון? התחבר"
         />
-        
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-right block">אימייל</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-                    {...field}
-                  />
-                  <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                </div>
-              </FormControl>
-              <FormMessage className="text-right" />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-right block">סיסמה</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="password"
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-                    {...field}
-                  />
-                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                </div>
-              </FormControl>
-              <FormMessage className="text-right" />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex flex-col gap-2 pt-2">
-          <Button 
-            type="submit" 
-            disabled={isLoading}
-            className="w-full transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            {isLoading ? "טוען..." : "הרשמה"}
-          </Button>
-          
-          <GoogleAuthButton />
-          
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setIsSignUp(false)}
-            className="w-full hover:bg-secondary/50 transition-all duration-200"
-          >
-            כבר יש לך חשבון? התחבר
-          </Button>
-        </div>
       </form>
     </Form>
   );

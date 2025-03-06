@@ -1,13 +1,15 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { EventTitleField } from "./form-fields/EventTitleField";
+import { DateTimeFields } from "./form-fields/DateTimeFields";
+import { VolunteersFields } from "./form-fields/VolunteersFields";
+import { LocationFields } from "./form-fields/LocationFields";
+import { EventFormActions } from "./form-actions/EventFormActions";
 
 export const CreateEventForm = () => {
   const { user } = useAuth();
@@ -96,131 +98,30 @@ export const CreateEventForm = () => {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="title">כותרת האירוע</Label>
-          <Input 
-            id="title" 
-            name="title" 
-            value={formData.title} 
-            onChange={handleInputChange} 
-            required 
-            placeholder="הזן את כותרת האירוע"
-          />
-        </div>
+        <EventTitleField 
+          value={formData.title}
+          onChange={handleInputChange}
+        />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">תאריך</Label>
-            <Input 
-              id="date" 
-              name="date" 
-              type="date" 
-              value={formData.date} 
-              onChange={handleInputChange} 
-              required 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="setupTime">שעת הכנות</Label>
-            <Input 
-              id="setupTime" 
-              name="setupTime" 
-              type="time" 
-              value={formData.setupTime} 
-              onChange={handleInputChange} 
-              required 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="mainTime">שעת התחלה</Label>
-            <Input 
-              id="mainTime" 
-              name="mainTime" 
-              type="time" 
-              value={formData.mainTime} 
-              onChange={handleInputChange} 
-              required 
-            />
-          </div>
-        </div>
+        <DateTimeFields 
+          formData={formData}
+          onChange={handleInputChange}
+        />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="cleanupTime">שעת סיום</Label>
-            <Input 
-              id="cleanupTime" 
-              name="cleanupTime" 
-              type="time" 
-              value={formData.cleanupTime} 
-              onChange={handleInputChange} 
-              required 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="requiredServiceGirls">נערות שירות נדרשות</Label>
-            <Input 
-              id="requiredServiceGirls" 
-              name="requiredServiceGirls" 
-              type="number" 
-              min="0"
-              value={formData.requiredServiceGirls} 
-              onChange={handleInputChange} 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="requiredYouthVolunteers">מתנדבי נוער נדרשים</Label>
-            <Input 
-              id="requiredYouthVolunteers" 
-              name="requiredYouthVolunteers" 
-              type="number" 
-              min="0"
-              value={formData.requiredYouthVolunteers} 
-              onChange={handleInputChange} 
-            />
-          </div>
-        </div>
+        <VolunteersFields 
+          formData={formData}
+          onChange={handleInputChange}
+        />
         
-        <div className="space-y-2">
-          <Label htmlFor="locationName">שם המיקום</Label>
-          <Input 
-            id="locationName" 
-            name="locationName" 
-            value={formData.locationName} 
-            onChange={handleInputChange} 
-            required 
-            placeholder="לדוגמה: בית הכנסת המרכזי"
-          />
-        </div>
+        <LocationFields 
+          formData={formData}
+          onChange={handleInputChange}
+        />
         
-        <div className="space-y-2">
-          <Label htmlFor="locationAddress">כתובת מלאה</Label>
-          <Input 
-            id="locationAddress" 
-            name="locationAddress" 
-            value={formData.locationAddress} 
-            onChange={handleInputChange} 
-            required 
-            placeholder="הזן כתובת מלאה"
-          />
-        </div>
-        
-        <div className="flex justify-end pt-4">
-          <Button 
-            variant="outline" 
-            type="button" 
-            className="ml-2"
-            onClick={() => navigate("/events")}
-          >
-            ביטול
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "יוצר אירוע..." : "צור אירוע"}
-          </Button>
-        </div>
+        <EventFormActions 
+          isLoading={isLoading}
+          onCancel={() => navigate("/events")}
+        />
       </form>
     </div>
   );
