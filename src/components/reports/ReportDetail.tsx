@@ -13,32 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-
-// Define ReportContent interface
-interface ReportContent {
-  title: string;
-  description?: string;
-  reporter_name: string;
-  status: string;
-  severity?: string;
-  [key: string]: any; // For any other properties
-}
-
-// Define Report interface
-interface Report {
-  id: string;
-  type: string;
-  content: ReportContent;
-  event_id: string;
-  reporter_id: string;
-  created_at: string;
-  updated_at: string;
-  events?: {
-    id: string;
-    title: string;
-    date: string;
-  };
-}
+import { Report, ReportContent } from "./ReportsList";
 
 interface ReportDetailProps {
   report: Report;

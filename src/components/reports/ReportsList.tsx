@@ -21,9 +21,10 @@ import { ReportDetail } from "./ReportDetail";
 import { fetchReports } from "@/lib/reports";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 // Define Report interface to properly type the content field
-interface ReportContent {
+export interface ReportContent {
   title: string;
   reporter_name: string;
   status: string;
@@ -32,10 +33,26 @@ interface ReportContent {
   [key: string]: any; // For any other fields that might be in the content
 }
 
-interface Report {
+export interface Report {
   id: string;
   type: string;
   content: ReportContent;
+  event_id: string;
+  reporter_id: string;
+  created_at: string;
+  updated_at: string;
+  events?: {
+    id: string;
+    title: string;
+    date: string;
+  };
+}
+
+// Define a type for reports coming from Supabase
+interface SupabaseReport {
+  id: string;
+  type: string;
+  content: Json;
   event_id: string;
   reporter_id: string;
   created_at: string;
@@ -55,10 +72,16 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
   const { toast } = useToast();
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  // Fetch reports data
+  // Fetch reports data and convert to our Report type
   const { data: reports, isLoading, error } = useQuery({
     queryKey: ['reports'],
     queryFn: fetchReports(toast),
+    select: (data: SupabaseReport[]) => {
+      return data.map((report): Report => ({
+        ...report,
+        content: report.content as unknown as ReportContent
+      }));
+    }
   });
 
   // Filter reports based on active tab
