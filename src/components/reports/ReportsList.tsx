@@ -22,13 +22,38 @@ import { fetchReports } from "@/lib/reports";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 
+// Define Report interface to properly type the content field
+interface ReportContent {
+  title: string;
+  reporter_name: string;
+  status: string;
+  severity?: string;
+  description?: string;
+  [key: string]: any; // For any other fields that might be in the content
+}
+
+interface Report {
+  id: string;
+  type: string;
+  content: ReportContent;
+  event_id: string;
+  reporter_id: string;
+  created_at: string;
+  updated_at: string;
+  events?: {
+    id: string;
+    title: string;
+    date: string;
+  };
+}
+
 interface ReportsListProps {
   activeTab: string;
 }
 
 export const ReportsList = ({ activeTab }: ReportsListProps) => {
   const { toast } = useToast();
-  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   // Fetch reports data
   const { data: reports, isLoading, error } = useQuery({
@@ -138,7 +163,7 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredReports.map((report) => (
+            {filteredReports.map((report: Report) => (
               <TableRow key={report.id}>
                 <TableCell>{formatReportType(report.type)}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{report.content.title}</TableCell>
@@ -148,7 +173,7 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
                 <TableCell>{report.content.reporter_name}</TableCell>
                 <TableCell>{getStatusBadge(report.content.status)}</TableCell>
                 {activeTab === "issues" && (
-                  <TableCell>{getSeverityBadge(report.content.severity)}</TableCell>
+                  <TableCell>{report.content.severity ? getSeverityBadge(report.content.severity) : null}</TableCell>
                 )}
                 <TableCell>
                   {new Date(report.created_at).toLocaleDateString('he-IL')}
