@@ -58,6 +58,11 @@ export const LoginForm = ({
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
+      }, {
+        // Use the `rememberMe` flag to determine whether to persist the session
+        options: {
+          persistSession: values.rememberMe
+        }
       });
       
       if (error) {
@@ -89,7 +94,7 @@ export const LoginForm = ({
           isLoading={isLoading}
           submitLabel="התחברות"
           onForgotPassword={() => setIsForgotPassword(true)}
-          onToggleMode={setIsSignUp}
+          onToggleMode={() => setIsSignUp(true)}
           toggleModeLabel="אין לך חשבון? הירשם עכשיו"
           forgotPasswordLabel="שכחת סיסמה?"
         />

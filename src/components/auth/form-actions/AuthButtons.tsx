@@ -1,55 +1,80 @@
 
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { GoogleAuthButton } from "../GoogleAuthButton";
 
 interface AuthButtonsProps {
   isLoading: boolean;
   submitLabel: string;
-  onForgotPassword?: () => void;
   onToggleMode: (value: boolean) => void;
   toggleModeLabel: string;
+  onForgotPassword?: () => void;
   forgotPasswordLabel?: string;
 }
 
 export const AuthButtons = ({
   isLoading,
   submitLabel,
-  onForgotPassword,
   onToggleMode,
   toggleModeLabel,
-  forgotPasswordLabel
+  onForgotPassword,
+  forgotPasswordLabel,
 }: AuthButtonsProps) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 640;
+
   return (
-    <div className="flex flex-col gap-2 pt-4">
+    <div className="flex flex-col gap-4 pt-2">
       <Button 
         type="submit" 
         disabled={isLoading}
-        className="w-full h-10 transition-all duration-200 hover:bg-primary/90"
+        className="w-full h-10"
       >
         {isLoading ? "טוען..." : submitLabel}
       </Button>
       
+      <div className="relative my-2">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-gray-500">או</span>
+        </div>
+      </div>
+      
       <GoogleAuthButton />
       
-      {onForgotPassword && forgotPasswordLabel && (
+      <div className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-between'} gap-2 mt-2 items-center`}>
+        {onForgotPassword && forgotPasswordLabel && (
+          <Button
+            type="button"
+            variant="link"
+            onClick={onForgotPassword}
+            className="text-sm text-gray-500 hover:text-primary hover:underline h-8 p-0 font-normal"
+          >
+            {forgotPasswordLabel}
+          </Button>
+        )}
+        
         <Button
           type="button"
           variant="link"
-          onClick={onForgotPassword}
-          className="w-full text-sm text-gray-500 hover:text-primary hover:underline h-8 font-normal"
+          onClick={() => onToggleMode(true)}
+          className="text-sm text-gray-500 hover:text-primary hover:underline h-8 p-0 font-normal"
         >
-          {forgotPasswordLabel}
+          {toggleModeLabel}
         </Button>
-      )}
-      
-      <Button
-        type="button"
-        variant="link"
-        onClick={() => onToggleMode(true)}
-        className="w-full text-sm text-gray-500 hover:text-primary hover:underline h-8 font-normal"
-      >
-        {toggleModeLabel}
-      </Button>
+      </div>
     </div>
   );
 };

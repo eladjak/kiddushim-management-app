@@ -12,6 +12,12 @@ import { ReportEventField } from "./form-fields/ReportEventField";
 import { ReporterNameField } from "./form-fields/ReporterNameField";
 import { SeverityField } from "./form-fields/SeverityField";
 import { ReportFormActions } from "./form-actions/ReportFormActions";
+import { EventRatingField } from "./form-fields/EventRatingField";
+import { FeedbackField } from "./form-fields/FeedbackField";
+import { EventImagesUploadField } from "./form-fields/EventImagesUploadField";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useForm, FormProvider } from "react-hook-form";
 
 type CreateReportFormProps = {
   onCancel: () => void;
@@ -19,20 +25,47 @@ type CreateReportFormProps = {
   reportType: string;
 };
 
+// Schema for report form validation
+const reportFormSchema = z.object({
+  title: z.string().min(3, "יש להזין כותרת באורך של 3 תווים לפחות"),
+  description: z.string().min(10, "יש להזין תיאור באורך של 10 תווים לפחות"),
+  event_id: z.string().optional(),
+  reporter_name: z.string().min(2, "יש להזין שם בן 2 תווים לפחות"),
+  severity: z.string().optional(),
+  overall_rating: z.number().min(1).max(10).default(5),
+  audience_rating: z.number().min(1).max(10).default(5),
+  organization_rating: z.number().min(1).max(10).default(5),
+  logistics_rating: z.number().min(1).max(10).default(5),
+  what_was_good: z.string().optional(),
+  what_to_improve: z.string().optional(),
+});
+
+type ReportFormValues = z.infer<typeof reportFormSchema>;
+
 export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateReportFormProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    event_id: "",
-    reporter_name: profile?.name || "",
-    severity: "medium",
-  });
-
+  const [images, setImages] = useState<string[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+
+  const form = useForm<ReportFormValues>({
+    resolver: zodResolver(reportFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      event_id: "",
+      reporter_name: profile?.name || "",
+      severity: "medium",
+      overall_rating: 5,
+      audience_rating: 5,
+      organization_rating: 5,
+      logistics_rating: 5,
+      what_was_good: "",
+      what_to_improve: "",
+    }
+  });
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -49,20 +82,6 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     fetchEvents();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
   const getReportTypeName = () => {
     switch (reportType) {
       case "event_report": return "דיווח אירוע";
@@ -72,9 +91,7 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (values: ReportFormValues) => {
     if (!user) {
       toast({
         variant: "destructive",
@@ -88,16 +105,27 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     try {
       // Create content object to store in the JSON field
       const contentData = {
-        title: formData.title,
-        description: formData.description,
-        reporter_name: formData.reporter_name,
+        title: values.title,
+        description: values.description,
+        reporter_name: values.reporter_name,
         status: "new",
-        severity: reportType === "issue" ? formData.severity : null,
+        severity: reportType === "issue" ? values.severity : null,
+        images: images.length > 0 ? images : null,
+        ratings: reportType === "event_report" || reportType === "feedback" ? {
+          overall: values.overall_rating,
+          audience: values.audience_rating,
+          organization: values.organization_rating,
+          logistics: values.logistics_rating,
+        } : null,
+        feedback: {
+          positive: values.what_was_good || "",
+          improvement: values.what_to_improve || "",
+        },
       };
       
       const reportData = {
         content: contentData,
-        event_id: formData.event_id || null,
+        event_id: values.event_id || null,
         reporter_id: user.id,
         type: reportType,
       };
@@ -136,40 +164,95 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
         </Button>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <ReportTitleField 
-          value={formData.title}
-          onChange={handleInputChange}
-        />
-        
-        <ReportDescriptionField 
-          value={formData.description}
-          onChange={handleInputChange}
-        />
-        
-        <ReportEventField 
-          value={formData.event_id}
-          events={events}
-          onValueChange={(value) => handleSelectChange("event_id", value)}
-        />
-        
-        <ReporterNameField 
-          value={formData.reporter_name}
-          onChange={handleInputChange}
-        />
-
-        {reportType === "issue" && (
-          <SeverityField 
-            value={formData.severity}
-            onValueChange={(value) => handleSelectChange("severity", value)}
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <ReportTitleField 
+            value={form.watch("title")}
+            onChange={(e) => form.setValue("title", e.target.value)}
           />
-        )}
-        
-        <ReportFormActions 
-          isLoading={isLoading}
-          onCancel={onCancel}
-        />
-      </form>
+          
+          <ReportDescriptionField 
+            value={form.watch("description")}
+            onChange={(e) => form.setValue("description", e.target.value)}
+          />
+          
+          <ReportEventField 
+            value={form.watch("event_id")}
+            events={events}
+            onValueChange={(value) => form.setValue("event_id", value)}
+          />
+          
+          <ReporterNameField 
+            value={form.watch("reporter_name")}
+            onChange={(e) => form.setValue("reporter_name", e.target.value)}
+          />
+
+          {reportType === "issue" && (
+            <SeverityField 
+              value={form.watch("severity") || "medium"}
+              onValueChange={(value) => form.setValue("severity", value)}
+            />
+          )}
+
+          {(reportType === "event_report" || reportType === "feedback") && (
+            <>
+              <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
+                <h3 className="font-medium text-gray-700">דירוג האירוע</h3>
+                
+                <EventRatingField 
+                  form={form} 
+                  name="overall_rating" 
+                  label="דירוג כללי" 
+                />
+                
+                <EventRatingField 
+                  form={form} 
+                  name="audience_rating" 
+                  label="חווית הקהל" 
+                />
+                
+                <EventRatingField 
+                  form={form} 
+                  name="organization_rating" 
+                  label="רמת הארגון" 
+                />
+                
+                <EventRatingField 
+                  form={form} 
+                  name="logistics_rating" 
+                  label="לוגיסטיקה" 
+                />
+              </div>
+
+              <FeedbackField 
+                name="what_was_good"
+                label="מה היה טוב באירוע?"
+                placeholder="ספר לנו על הדברים שעבדו היטב באירוע"
+                value={form.watch("what_was_good") || ""}
+                onChange={(e) => form.setValue("what_was_good", e.target.value)}
+              />
+              
+              <FeedbackField 
+                name="what_to_improve"
+                label="מה ניתן לשפר להבא?"
+                placeholder="ספר לנו על דברים שאפשר לשפר בפעם הבאה"
+                value={form.watch("what_to_improve") || ""}
+                onChange={(e) => form.setValue("what_to_improve", e.target.value)}
+              />
+              
+              <EventImagesUploadField 
+                images={images}
+                onImagesChange={setImages}
+              />
+            </>
+          )}
+          
+          <ReportFormActions 
+            isLoading={isLoading}
+            onCancel={onCancel}
+          />
+        </form>
+      </FormProvider>
     </div>
   );
 };

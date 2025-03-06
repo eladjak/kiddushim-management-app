@@ -1,46 +1,43 @@
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 
-type AuthHeaderProps = {
+interface AuthHeaderProps {
   isSignUp: boolean;
   isForgotPassword: boolean;
-  onBackClick: () => void;
-};
+  onBackClick?: () => void;
+}
 
 export const AuthHeader = ({ isSignUp, isForgotPassword, onBackClick }: AuthHeaderProps) => {
   return (
-    <CardHeader className="text-center space-y-2 relative pt-2 pb-3 px-6">
-      {isForgotPassword && (
+    <CardHeader className="p-6 space-y-1 text-center">
+      {isForgotPassword && onBackClick && (
         <Button
+          onClick={onBackClick}
           variant="ghost"
           size="sm"
-          className="absolute right-4 top-4 transition-transform hover:scale-105 h-8 w-8 p-0"
-          onClick={onBackClick}
+          className="absolute top-4 right-4 p-0 w-8 h-8 flex items-center justify-center"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">חזרה</span>
+          <ArrowRight className="h-4 w-4" />
         </Button>
       )}
-      <CardTitle className="text-xl font-bold text-primary">
-        {isForgotPassword
-          ? "שחזור סיסמה"
-          : isSignUp
-          ? "הרשמה"
-          : "התחברות"}
-      </CardTitle>
-      <CardDescription className="text-muted-foreground text-sm">
-        {isForgotPassword
-          ? "הזן את כתובת האימייל שלך לקבלת קישור לאיפוס סיסמה"
-          : isSignUp
-          ? "צור חשבון חדש כדי להתחיל"
-          : "התחבר כדי לנהל את האירועים שלך"}
-      </CardDescription>
+      
+      <h2 className="text-2xl font-bold tracking-tight text-center">
+        {isForgotPassword 
+          ? "שחזור סיסמה" 
+          : isSignUp 
+            ? "הרשמה למערכת"
+            : "התחברות למערכת"}
+      </h2>
+      
+      <p className="text-sm text-muted-foreground text-center max-w-xs mx-auto">
+        {isForgotPassword 
+          ? "הזן את כתובת האימייל שלך ונשלח לך קישור לאיפוס הסיסמה" 
+          : isSignUp 
+            ? "צור חשבון חדש כדי להתחיל להשתמש במערכת"
+            : "הזן את פרטי ההתחברות שלך כדי להיכנס למערכת"}
+      </p>
     </CardHeader>
   );
 };

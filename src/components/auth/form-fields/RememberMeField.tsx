@@ -13,8 +13,7 @@ export const RememberMeField = ({ form }: RememberMeFieldProps) => {
       control={form.control}
       name="rememberMe"
       render={({ field }) => (
-        <FormItem className="flex flex-row-reverse items-center justify-end space-x-2 space-x-reverse mb-2">
-          <FormLabel className="text-sm text-gray-600 font-normal cursor-pointer">זכור אותי</FormLabel>
+        <FormItem className="flex flex-row items-center space-x-2 space-x-reverse mb-2">
           <FormControl>
             <Checkbox 
               checked={field.value} 
@@ -22,6 +21,7 @@ export const RememberMeField = ({ form }: RememberMeFieldProps) => {
               className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" 
             />
           </FormControl>
+          <FormLabel className="text-sm text-gray-600 font-normal cursor-pointer">זכור אותי</FormLabel>
         </FormItem>
       )}
     />

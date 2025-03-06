@@ -2,6 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
+import { useAdminCheck } from "./lib/admin-utils";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -17,9 +18,33 @@ import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 
 /**
+ * Main application component with admin check
+ */
+function AppWithAdminCheck() {
+  // Check if user should have admin permissions
+  useAdminCheck();
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/events" element={<Events />} />
+      <Route path="/volunteers" element={<Volunteers />} />
+      <Route path="/users" element={<Users />} />
+      <Route path="/reports" element={<Reports />} />
+      <Route path="/equipment" element={<Equipment />} />
+      <Route path="/documentation" element={<Documentation />} />
+      <Route path="/profile" element={<UserProfile />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
+/**
  * Main application component
  * 
- * Sets up routing, authentication context, and global UI elements
+ * Sets up routing, authentication context, admin check, and global UI elements
  */
 function App() {
   // Force RTL direction at the root level
@@ -29,19 +54,7 @@ function App() {
   return (
     <AuthProvider>
       <div dir="rtl" className="rtl-app"> {/* Added rtl-app class for additional CSS targeting */}
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/volunteers" element={<Volunteers />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/equipment" element={<Equipment />} />
-          <Route path="/documentation" element={<Documentation />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppWithAdminCheck />
         <Toaster />
       </div>
     </AuthProvider>

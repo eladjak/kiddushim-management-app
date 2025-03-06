@@ -90,7 +90,7 @@ export const ForgotPasswordForm = ({
             {isLoading ? "טוען..." : "שלח קישור לאיפוס סיסמה"}
           </Button>
           
-          <div className="flex flex-col gap-1 mt-1">
+          <div className="flex flex-col items-center gap-1 mt-4">
             <Button
               type="button"
               variant="link"

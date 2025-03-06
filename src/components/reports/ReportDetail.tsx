@@ -1,19 +1,15 @@
 
 import {
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, FileText, Flag, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Report, ReportContent } from "./ReportsList";
+import { Report } from "./ReportsList";
+import { Card } from "@/components/ui/card";
 
 interface ReportDetailProps {
   report: Report;
@@ -21,22 +17,6 @@ interface ReportDetailProps {
 }
 
 export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('he-IL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   // Format report status in Hebrew
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -69,136 +49,133 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
     }
   };
 
-  const updateReportStatus = async (newStatus: string) => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        description: "נדרש להתחבר כדי לעדכן סטטוס דיווח",
-      });
-      return;
-    }
-    
-    setIsUpdating(true);
-    
-    try {
-      // Update the status in the content JSON object
-      const updatedContent = {
-        ...report.content,
-        status: newStatus
-      };
-      
-      const { error } = await supabase
-        .from("reports")
-        .update({ 
-          content: updatedContent 
-        })
-        .eq("id", report.id);
-        
-      if (error) throw error;
-      
-      toast({
-        description: "סטטוס הדיווח עודכן בהצלחה",
-      });
-
-      // Refresh reports data
-      queryClient.invalidateQueries({ queryKey: ['reports'] });
-      
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        description: error.message || "אירעה שגיאה בעדכון סטטוס הדיווח",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
+  // Function to format rating as stars
+  const formatRating = (rating: number) => {
+    return (
+      <div className="flex items-center">
+        <span className="text-sm font-medium">{rating}/10</span>
+        <div className="ml-2 w-24 bg-gray-200 rounded-full h-2.5">
+          <div 
+            className="bg-primary h-2.5 rounded-full" 
+            style={{ width: `${(rating / 10) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <DialogContent className="sm:max-w-[500px]">
+    <DialogContent className="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle className="text-xl font-bold">{report.content.title}</DialogTitle>
-        <div className="flex items-center gap-2 mt-1">
-          <Badge variant="secondary">
-            {formatReportType(report.type)}
-          </Badge>
+        <DialogTitle className="text-xl">{report.content.title}</DialogTitle>
+        <DialogDescription className="flex flex-wrap gap-2 items-center">
+          <span>{formatReportType(report.type)}</span>
+          <span className="text-gray-400 mx-1">•</span>
+          <span>{new Date(report.created_at).toLocaleDateString('he-IL')}</span>
+          <span className="text-gray-400 mx-1">•</span>
           {getStatusBadge(report.content.status)}
-          {report.content.severity && getSeverityBadge(report.content.severity)}
-        </div>
-      </DialogHeader>
-      
-      <div className="space-y-4 mt-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span className="text-sm">דווח ב-{formatDate(report.created_at)}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span className="text-sm">על ידי {report.content.reporter_name}</span>
-          </div>
-          
-          {report.events && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm">אירוע: {report.events.title}</span>
-            </div>
+          {report.content.severity && (
+            <>
+              <span className="text-gray-400 mx-1">•</span>
+              {getSeverityBadge(report.content.severity)}
+            </>
           )}
-        </div>
-        
-        <Separator />
-        
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4">
         <div>
-          <h3 className="font-medium mb-2">תיאור הדיווח:</h3>
-          <div className="bg-gray-50 p-3 rounded-md text-sm whitespace-pre-wrap">
-            {report.content.description || "אין תיאור לדיווח זה"}
-          </div>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">מדווח על ידי</h3>
+          <p>{report.content.reporter_name}</p>
         </div>
-        
-        {user && (
-          <>
-            <Separator />
-            
-            <div>
-              <h3 className="font-medium mb-2">עדכון סטטוס:</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={report.content.status === "new" || isUpdating}
-                  onClick={() => updateReportStatus("new")}
-                >
-                  חדש
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={report.content.status === "in_progress" || isUpdating}
-                  onClick={() => updateReportStatus("in_progress")}
-                >
-                  בטיפול
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={report.content.status === "resolved" || isUpdating}
-                  onClick={() => updateReportStatus("resolved")}
-                >
-                  טופל
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={report.content.status === "closed" || isUpdating}
-                  onClick={() => updateReportStatus("closed")}
-                >
-                  סגור
-                </Button>
+
+        {report.events && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">אירוע קשור</h3>
+            <p>{report.events.title} ({new Date(report.events.date).toLocaleDateString('he-IL')})</p>
+          </div>
+        )}
+
+        <div>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">תיאור</h3>
+          <p className="whitespace-pre-wrap">{report.content.description}</p>
+        </div>
+
+        {report.content.ratings && (
+          <Card className="p-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">דירוגים</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">כללי:</span>
+                {formatRating(report.content.ratings.overall)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">חווית הקהל:</span>
+                {formatRating(report.content.ratings.audience)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">רמת הארגון:</span>
+                {formatRating(report.content.ratings.organization)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">לוגיסטיקה:</span>
+                {formatRating(report.content.ratings.logistics)}
               </div>
             </div>
+          </Card>
+        )}
+
+        {report.content.feedback && (
+          <>
+            {report.content.feedback.positive && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">מה היה טוב</h3>
+                <p className="whitespace-pre-wrap">{report.content.feedback.positive}</p>
+              </div>
+            )}
+            
+            {report.content.feedback.improvement && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">מה אפשר לשפר</h3>
+                <p className="whitespace-pre-wrap">{report.content.feedback.improvement}</p>
+              </div>
+            )}
           </>
         )}
+
+        {report.content.images && report.content.images.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">תמונות וסרטונים</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {report.content.images.map((image, index) => (
+                <div key={index} className="rounded-md overflow-hidden border">
+                  {image.toLowerCase().endsWith('.mp4') ? (
+                    <video 
+                      src={image} 
+                      controls 
+                      className="w-full h-auto"
+                    />
+                  ) : (
+                    <a href={image} target="_blank" rel="noopener noreferrer">
+                      <img 
+                        src={image} 
+                        alt={`תמונה ${index + 1}`}
+                        className="w-full h-auto" 
+                      />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      <DialogFooter>
+        <Button variant="outline" type="button">
+          סגור
+        </Button>
+      </DialogFooter>
     </DialogContent>
   );
 };

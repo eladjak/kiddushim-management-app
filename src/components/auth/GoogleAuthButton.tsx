@@ -24,11 +24,11 @@ export const GoogleAuthButton = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
-          redirectTo: window.location.origin + '/auth/callback',
         },
       });
       
@@ -65,12 +65,12 @@ export const GoogleAuthButton = () => {
       variant="outline"
       onClick={signInWithGoogle}
       disabled={isLoading}
-      className="w-full h-10 border border-gray-200 hover:bg-secondary/50 transition-all duration-200"
+      className="w-full h-10 border border-gray-200 hover:bg-secondary/50 transition-all duration-200 flex items-center justify-center gap-2"
     >
       <img
         src="https://www.google.com/favicon.ico"
         alt="Google"
-        className="w-4 h-4 ml-2"
+        className="w-4 h-4"
       />
       {isLoading ? "טוען..." : "התחבר עם Google"}
     </Button>

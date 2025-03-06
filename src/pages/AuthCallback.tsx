@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { checkAndSetAdminStatus } from "@/lib/admin-utils";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Auth callback page for handling redirects from OAuth providers
@@ -9,17 +11,36 @@ import { supabase } from "@/integrations/supabase/client";
 const AuthCallback = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Handle the OAuth callback
     const handleAuthCallback = async () => {
       try {
-        const { error } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Auth callback error:", error);
           setError(error.message);
           return;
+        }
+        
+        // If we have a session, check if user should be an admin
+        if (data.session?.user) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, role")
+            .eq("id", data.session.user.id)
+            .single();
+            
+          if (profileData) {
+            await checkAndSetAdminStatus(
+              data.session.user.email,
+              profileData.id,
+              profileData.role,
+              toast
+            );
+          }
         }
         
         // Successfully authenticated, redirect to home
@@ -31,7 +52,7 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   if (error) {
     return (
