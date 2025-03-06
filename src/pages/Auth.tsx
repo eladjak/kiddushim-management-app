@@ -6,6 +6,7 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Image } from "@/components/ui/image";
+import { Footer } from "@/components/layout/Footer";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -49,30 +50,33 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/10 p-4" dir="rtl">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg">
-        <div className="flex justify-center py-6">
-          <Image 
-            src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
-            alt="קידושישי" 
-            className="h-24 max-w-[90%] w-auto" 
-            fallback="/placeholder.svg"
-          />
-        </div>
-        <AuthHeader
-          isSignUp={isSignUp}
-          isForgotPassword={isForgotPassword}
-          onBackClick={() => setIsForgotPassword(false)}
-        />
-        <CardContent>
-          <AuthForm
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 to-secondary/10" dir="rtl">
+      <main className="flex-grow flex items-center justify-center p-4">
+        <Card className="w-full max-w-md animate-fade-in shadow-lg">
+          <div className="flex justify-center pt-6 pb-2">
+            <Image 
+              src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
+              alt="קידושישי" 
+              className="h-20 max-w-[90%] w-auto" 
+              fallback="/placeholder.svg"
+            />
+          </div>
+          <AuthHeader
             isSignUp={isSignUp}
             isForgotPassword={isForgotPassword}
-            setIsForgotPassword={setIsForgotPassword}
-            setIsSignUp={setIsSignUp}
+            onBackClick={() => setIsForgotPassword(false)}
           />
-        </CardContent>
-      </Card>
+          <CardContent className="pb-6">
+            <AuthForm
+              isSignUp={isSignUp}
+              isForgotPassword={isForgotPassword}
+              setIsForgotPassword={setIsForgotPassword}
+              setIsSignUp={setIsSignUp}
+            />
+          </CardContent>
+        </Card>
+      </main>
+      <Footer />
     </div>
   );
 };

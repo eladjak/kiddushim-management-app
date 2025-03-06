@@ -10,11 +10,17 @@ import {
   TableBody, 
   TableCell 
 } from "@/components/ui/table";
+import { 
+  Card,
+  CardContent
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ReportDetail } from "./ReportDetail";
 import { fetchReports } from "@/lib/reports";
+import { Badge } from "@/components/ui/badge";
+import { Eye } from "lucide-react";
 
 interface ReportsListProps {
   activeTab: string;
@@ -25,7 +31,7 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
 
   // Fetch reports data
-  const { data: reports, isLoading } = useQuery({
+  const { data: reports, isLoading, error } = useQuery({
     queryKey: ['reports'],
     queryFn: fetchReports(toast),
   });
@@ -48,61 +54,126 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center py-6">טוען דיווחים...</div>;
-  }
+  // Format report status in Hebrew
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "new":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">חדש</Badge>;
+      case "in_progress":
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">בטיפול</Badge>;
+      case "resolved":
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">טופל</Badge>;
+      case "closed":
+        return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">סגור</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
-  if (!filteredReports || filteredReports.length === 0) {
+  // Format severity in Hebrew
+  const getSeverityBadge = (severity: string) => {
+    switch (severity) {
+      case "low":
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">נמוכה</Badge>;
+      case "medium":
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">בינונית</Badge>;
+      case "high":
+        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">גבוהה</Badge>;
+      case "critical":
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">קריטית</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="text-center py-12 bg-white rounded-md shadow">
-        <p className="text-lg text-gray-500">לא נמצאו דיווחים מסוג זה</p>
+      <div className="text-center py-12 bg-white rounded-md shadow animate-pulse">
+        <p className="text-lg text-gray-500">טוען דיווחים...</p>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-12 bg-white rounded-md shadow">
+        <p className="text-lg text-red-500">שגיאה בטעינת הדיווחים</p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          נסה שוב
+        </Button>
+      </div>
+    );
+  }
+
+  if (!filteredReports || filteredReports.length === 0) {
+    return (
+      <Card className="border border-muted">
+        <CardContent className="text-center py-12">
+          <p className="text-lg text-muted-foreground">לא נמצאו דיווחים מסוג זה</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-md shadow overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-right">סוג דיווח</TableHead>
-            <TableHead className="text-right">אירוע</TableHead>
-            <TableHead className="text-right">מדווח</TableHead>
-            <TableHead className="text-right">תאריך</TableHead>
-            <TableHead className="text-right">פעולות</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredReports.map((report) => (
-            <TableRow key={report.id}>
-              <TableCell>{formatReportType(report.type)}</TableCell>
-              <TableCell>
-                {report.events?.title || "—"}
-              </TableCell>
-              <TableCell>{report.reporter_name}</TableCell>
-              <TableCell>
-                {new Date(report.created_at).toLocaleDateString('he-IL')}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2 justify-end">
+    <Card className="border border-muted overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-right">סוג דיווח</TableHead>
+              <TableHead className="text-right">כותרת</TableHead>
+              <TableHead className="text-right">אירוע</TableHead>
+              <TableHead className="text-right">מדווח</TableHead>
+              <TableHead className="text-right">סטטוס</TableHead>
+              {activeTab === "issues" && (
+                <TableHead className="text-right">חומרה</TableHead>
+              )}
+              <TableHead className="text-right">תאריך</TableHead>
+              <TableHead className="text-right">פעולות</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredReports.map((report) => (
+              <TableRow key={report.id}>
+                <TableCell>{formatReportType(report.type)}</TableCell>
+                <TableCell className="max-w-[200px] truncate">{report.title}</TableCell>
+                <TableCell>
+                  {report.events?.title || "—"}
+                </TableCell>
+                <TableCell>{report.reporter_name}</TableCell>
+                <TableCell>{getStatusBadge(report.status)}</TableCell>
+                {activeTab === "issues" && (
+                  <TableCell>{getSeverityBadge(report.severity)}</TableCell>
+                )}
+                <TableCell>
+                  {new Date(report.created_at).toLocaleDateString('he-IL')}
+                </TableCell>
+                <TableCell>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button 
-                        variant="outline" 
+                        variant="ghost" 
                         size="sm"
+                        className="flex items-center gap-1"
                         onClick={() => setSelectedReport(report)}
                       >
+                        <Eye className="h-4 w-4 ml-1" />
                         צפה בפרטים
                       </Button>
                     </DialogTrigger>
                     <ReportDetail report={report} formatReportType={formatReportType} />
                   </Dialog>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
   );
 };

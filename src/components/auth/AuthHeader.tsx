@@ -15,7 +15,7 @@ type AuthHeaderProps = {
 
 export const AuthHeader = ({ isSignUp, isForgotPassword, onBackClick }: AuthHeaderProps) => {
   return (
-    <CardHeader className="text-right space-y-4 relative">
+    <CardHeader className="text-right space-y-2 relative pb-4">
       {isForgotPassword && (
         <Button
           variant="ghost"
@@ -34,7 +34,7 @@ export const AuthHeader = ({ isSignUp, isForgotPassword, onBackClick }: AuthHead
           ? "הרשמה"
           : "התחברות"}
       </CardTitle>
-      <CardDescription className="text-muted-foreground">
+      <CardDescription className="text-muted-foreground text-sm">
         {isForgotPassword
           ? "הזן את כתובת האימייל שלך לקבלת קישור לאיפוס סיסמה"
           : isSignUp

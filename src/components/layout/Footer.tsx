@@ -3,40 +3,32 @@ import { Image } from "@/components/ui/image";
 
 export const Footer = () => {
   return (
-    <footer className="bg-white py-4 border-t">
+    <footer className="bg-white shadow-sm py-4 mt-auto">
       <div className="container mx-auto px-4">
-        <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
-          <a 
-            href="https://tzohar.org.il/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center"
-          >
-            <Image 
-              src="/lovable-uploads/a762c5ca-232e-44ef-a39c-d59a900550bd.png" 
-              alt="ארגון רבני צהר" 
-              className="h-8 w-auto md:h-10" 
-              fallback="/placeholder.svg"
-            />
-          </a>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-muted-foreground text-center md:text-right">
+            © {new Date().getFullYear()} כל הזכויות שמורות למערכת קידושישי
+          </div>
           
-          <a 
-            href="https://orotyehuda.org.il" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center"
-          >
-            <Image 
-              src="/lovable-uploads/bed6aebb-e440-45d6-8d39-a58ed7b49c49.png" 
-              alt="אורות יהודה" 
-              className="h-8 w-auto md:h-10" 
-              fallback="/placeholder.svg"
-            />
-          </a>
-        </div>
-        
-        <div className="text-center mt-4 text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} קידושישי - חוויה ישראלית לקראת שבת</p>
+          <div className="flex items-center justify-center gap-6">
+            <a href="https://orot-yehuda.co.il" target="_blank" rel="noopener noreferrer" className="opacity-70 hover:opacity-100 transition-opacity">
+              <Image 
+                src="/lovable-uploads/bed6aebb-e440-45d6-8d39-a58ed7b49c49.png" 
+                alt="גרעין תורני אורות יהודה" 
+                className="h-8 w-auto" 
+                fallback="/placeholder.svg"
+              />
+            </a>
+            
+            <a href="https://tzohar.org.il" target="_blank" rel="noopener noreferrer" className="opacity-70 hover:opacity-100 transition-opacity">
+              <Image 
+                src="/lovable-uploads/a762c5ca-232e-44ef-a39c-d59a900550bd.png" 
+                alt="ארגון רבני צהר" 
+                className="h-8 w-auto" 
+                fallback="/placeholder.svg"
+              />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

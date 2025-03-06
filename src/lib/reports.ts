@@ -3,49 +3,60 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const fetchReports = (toast: any) => async () => {
   try {
-    // First, fetch the basic reports data
+    // First, fetch the reports with events relation
     const { data: reportsData, error: reportsError } = await supabase
-      .from("reports")
+      .from('reports')
       .select(`
         *,
-        events (
+        events:event_id (
+          id,
           title,
-          main_time
+          date
         )
       `)
       .order('created_at', { ascending: false });
-      
+
     if (reportsError) {
-      toast({
-        variant: "destructive",
-        description: `שגיאה בטעינת הדיווחים: ${reportsError.message}`,
-      });
-      return [];
+      throw reportsError;
     }
-    
-    // For each report, fetch the profile info separately
-    const reportsWithProfiles = await Promise.all(
-      reportsData.map(async (report) => {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("name")
-          .eq("id", report.reporter_id)
-          .single();
-          
-        return {
-          ...report,
-          reporter_name: profileData?.name || "לא ידוע"
-        };
-      })
-    );
-    
-    return reportsWithProfiles || [];
-  } catch (error) {
-    console.error("Error fetching reports:", error);
+
+    // Return the combined data
+    return reportsData || [];
+  } catch (error: any) {
+    console.error('Error fetching reports:', error);
     toast({
       variant: "destructive",
-      description: "שגיאה בטעינת הדיווחים",
+      description: `שגיאה בטעינת הדיווחים: ${error.message}`,
     });
     return [];
+  }
+};
+
+export const getReportStatusText = (status: string) => {
+  switch (status) {
+    case "new": return "חדש";
+    case "in_progress": return "בטיפול";
+    case "resolved": return "טופל";
+    case "closed": return "סגור";
+    default: return status;
+  }
+};
+
+export const getReportTypeText = (type: string) => {
+  switch (type) {
+    case "event_report": return "דיווח אירוע";
+    case "feedback": return "משוב";
+    case "issue": return "תקלה";
+    default: return type;
+  }
+};
+
+export const getReportSeverityText = (severity: string) => {
+  switch (severity) {
+    case "low": return "נמוכה";
+    case "medium": return "בינונית";
+    case "high": return "גבוהה";
+    case "critical": return "קריטית";
+    default: return severity;
   }
 };

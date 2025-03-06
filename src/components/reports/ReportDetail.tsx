@@ -1,10 +1,18 @@
 
-import { 
+import {
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar, User, FileText, Flag, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ReportDetailProps {
   report: any;
@@ -12,29 +20,175 @@ interface ReportDetailProps {
 }
 
 export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Format report status in Hebrew
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "new":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">חדש</Badge>;
+      case "in_progress":
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">בטיפול</Badge>;
+      case "resolved":
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">טופל</Badge>;
+      case "closed":
+        return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">סגור</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  // Format severity in Hebrew
+  const getSeverityBadge = (severity: string) => {
+    switch (severity) {
+      case "low":
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">נמוכה</Badge>;
+      case "medium":
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">בינונית</Badge>;
+      case "high":
+        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">גבוהה</Badge>;
+      case "critical":
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">קריטית</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const updateReportStatus = async (newStatus: string) => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        description: "נדרש להתחבר כדי לעדכן סטטוס דיווח",
+      });
+      return;
+    }
+    
+    setIsUpdating(true);
+    
+    try {
+      const { error } = await supabase
+        .from("reports")
+        .update({ status: newStatus })
+        .eq("id", report.id);
+        
+      if (error) throw error;
+      
+      toast({
+        description: "סטטוס הדיווח עודכן בהצלחה",
+      });
+
+      // Refresh reports data
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: error.message || "אירעה שגיאה בעדכון סטטוס הדיווח",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle>{formatReportType(report.type)}</DialogTitle>
-        <DialogDescription>
-          {report.events?.title ? (
-            <span>אירוע: {report.events.title}</span>
-          ) : null}
-        </DialogDescription>
+        <DialogTitle className="text-xl font-bold">{report.title}</DialogTitle>
+        <div className="flex items-center gap-2 mt-1">
+          <Badge variant="secondary">
+            {formatReportType(report.type)}
+          </Badge>
+          {getStatusBadge(report.status)}
+          {report.severity && getSeverityBadge(report.severity)}
+        </div>
       </DialogHeader>
-      <div className="py-4 text-right">
-        <div className="mb-4">
-          <strong>מדווח על ידי:</strong> {report.reporter_name}
+      
+      <div className="space-y-4 mt-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            <span className="text-sm">דווח ב-{formatDate(report.created_at)}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <User className="h-4 w-4" />
+            <span className="text-sm">על ידי {report.reporter_name}</span>
+          </div>
+          
+          {report.events && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <FileText className="h-4 w-4" />
+              <span className="text-sm">אירוע: {report.events.title}</span>
+            </div>
+          )}
         </div>
-        <div className="mb-4">
-          <strong>תאריך:</strong> {new Date(report.created_at).toLocaleDateString('he-IL')}
-        </div>
-        <div className="mb-4">
-          <strong>תוכן:</strong>
-          <div className="mt-2 p-3 bg-muted rounded-md">
-            {JSON.stringify(report.content, null, 2)}
+        
+        <Separator />
+        
+        <div>
+          <h3 className="font-medium mb-2">תיאור הדיווח:</h3>
+          <div className="bg-gray-50 p-3 rounded-md text-sm whitespace-pre-wrap">
+            {report.description || "אין תיאור לדיווח זה"}
           </div>
         </div>
+        
+        {user && (
+          <>
+            <Separator />
+            
+            <div>
+              <h3 className="font-medium mb-2">עדכון סטטוס:</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={report.status === "new" || isUpdating}
+                  onClick={() => updateReportStatus("new")}
+                >
+                  חדש
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={report.status === "in_progress" || isUpdating}
+                  onClick={() => updateReportStatus("in_progress")}
+                >
+                  בטיפול
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={report.status === "resolved" || isUpdating}
+                  onClick={() => updateReportStatus("resolved")}
+                >
+                  טופל
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={report.status === "closed" || isUpdating}
+                  onClick={() => updateReportStatus("closed")}
+                >
+                  סגור
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </DialogContent>
   );
