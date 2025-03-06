@@ -1,6 +1,7 @@
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { FormItem } from "@/components/ui/form";
 
 interface VolunteersFieldsProps {
   formData: {
@@ -14,7 +15,7 @@ interface VolunteersFieldsProps {
 export const VolunteersFields = ({ formData, onChange }: VolunteersFieldsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="space-y-2">
+      <FormItem className="space-y-2">
         <Label htmlFor="cleanupTime">שעת סיום</Label>
         <Input 
           id="cleanupTime" 
@@ -24,10 +25,10 @@ export const VolunteersFields = ({ formData, onChange }: VolunteersFieldsProps) 
           onChange={onChange} 
           required 
         />
-      </div>
+      </FormItem>
       
-      <div className="space-y-2">
-        <Label htmlFor="requiredServiceGirls">נערות שירות נדרשות</Label>
+      <FormItem className="space-y-2">
+        <Label htmlFor="requiredServiceGirls">בנות שירות נדרשות</Label>
         <Input 
           id="requiredServiceGirls" 
           name="requiredServiceGirls" 
@@ -36,9 +37,9 @@ export const VolunteersFields = ({ formData, onChange }: VolunteersFieldsProps) 
           value={formData.requiredServiceGirls} 
           onChange={onChange} 
         />
-      </div>
+      </FormItem>
       
-      <div className="space-y-2">
+      <FormItem className="space-y-2">
         <Label htmlFor="requiredYouthVolunteers">מתנדבי נוער נדרשים</Label>
         <Input 
           id="requiredYouthVolunteers" 
@@ -48,7 +49,7 @@ export const VolunteersFields = ({ formData, onChange }: VolunteersFieldsProps) 
           value={formData.requiredYouthVolunteers} 
           onChange={onChange} 
         />
-      </div>
+      </FormItem>
     </div>
   );
 };

@@ -21,7 +21,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +37,7 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<RoleType | null>(null);
 
   // Redirect non-admin users
   useEffect(() => {
@@ -91,17 +91,19 @@ const Users = () => {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: RoleType) => {
+  const handleRoleChange = async () => {
+    if (!selectedUser || !selectedRole) return;
+    
     try {
       setLoading(true);
       
       const { error } = await supabase
         .from("profiles")
         .update({
-          role: newRole,
+          role: selectedRole,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", userId);
+        .eq("id", selectedUser.id);
 
       if (error) throw error;
       
@@ -111,7 +113,7 @@ const Users = () => {
       
       // Update local state
       const updatedUsers = users.map(u => 
-        u.id === userId ? { ...u, role: newRole } : u
+        u.id === selectedUser.id ? { ...u, role: selectedRole } : u
       );
       setUsers(updatedUsers);
       setFilteredUsers(
@@ -146,7 +148,7 @@ const Users = () => {
             <p className="text-lg">אין לך הרשאות לצפות בדף זה</p>
           </div>
         ) : (
-          <Card className="p-6">
+          <Card className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             <div className="mb-6">
               <Input
                 placeholder="חיפוש לפי שם, אימייל או טלפון..."
@@ -186,7 +188,7 @@ const Users = () => {
                             {user.role === "admin" && "מנהל"}
                             {user.role === "coordinator" && "רכז"}
                             {user.role === "youth_volunteer" && "מתנדב נוער"}
-                            {user.role === "service_girl" && "נערת שירות"}
+                            {user.role === "service_girl" && "בת שירות"}
                           </span>
                         </td>
                         <td className="p-2">
@@ -202,6 +204,7 @@ const Users = () => {
                             size="sm"
                             onClick={() => {
                               setSelectedUser(user);
+                              setSelectedRole(user.role);
                               setRoleDialogOpen(true);
                             }}
                           >
@@ -232,12 +235,8 @@ const Users = () => {
           
           <div className="py-4">
             <Select
-              defaultValue={selectedUser?.role}
-              onValueChange={(value) => {
-                if (selectedUser && value) {
-                  handleRoleChange(selectedUser.id, value as RoleType);
-                }
-              }}
+              value={selectedRole || undefined}
+              onValueChange={(value: RoleType) => setSelectedRole(value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="בחר תפקיד" />
@@ -246,14 +245,20 @@ const Users = () => {
                 <SelectItem value="admin">מנהל</SelectItem>
                 <SelectItem value="coordinator">רכז</SelectItem>
                 <SelectItem value="youth_volunteer">מתנדב נוער</SelectItem>
-                <SelectItem value="service_girl">נערת שירות</SelectItem>
+                <SelectItem value="service_girl">בת שירות</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex justify-between sm:justify-between">
             <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
               בטל
+            </Button>
+            <Button 
+              onClick={handleRoleChange} 
+              disabled={loading || !selectedRole}
+            >
+              {loading ? "מעדכן..." : "שמור שינויים"}
             </Button>
           </DialogFooter>
         </DialogContent>

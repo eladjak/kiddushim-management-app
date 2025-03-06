@@ -32,6 +32,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<RoleType | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -57,17 +58,19 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: RoleType) => {
+  const handleRoleChange = async () => {
+    if (!selectedUser || !selectedRole) return;
+    
     try {
       setLoading(true);
       
       const { error } = await supabase
         .from("profiles")
         .update({
-          role: newRole,
+          role: selectedRole,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", userId);
+        .eq("id", selectedUser.id);
 
       if (error) throw error;
       
@@ -77,7 +80,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
       
       // Update local state
       setUsers(users.map(u => 
-        u.id === userId ? { ...u, role: newRole } : u
+        u.id === selectedUser.id ? { ...u, role: selectedRole } : u
       ));
       
       setRoleDialogOpen(false);
@@ -125,7 +128,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
                         {user.role === "admin" && "מנהל"}
                         {user.role === "coordinator" && "רכז"}
                         {user.role === "youth_volunteer" && "מתנדב נוער"}
-                        {user.role === "service_girl" && "נערת שירות"}
+                        {user.role === "service_girl" && "בת שירות"}
                       </span>
                     </td>
                     <td className="p-2">
@@ -134,6 +137,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
                         size="sm"
                         onClick={() => {
                           setSelectedUser(user);
+                          setSelectedRole(user.role);
                           setRoleDialogOpen(true);
                         }}
                       >
@@ -160,12 +164,8 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
           
           <div className="py-4">
             <Select
-              defaultValue={selectedUser?.role}
-              onValueChange={(value) => {
-                if (selectedUser && value) {
-                  handleRoleChange(selectedUser.id, value as RoleType);
-                }
-              }}
+              value={selectedRole || undefined}
+              onValueChange={(value: RoleType) => setSelectedRole(value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="בחר תפקיד" />
@@ -174,14 +174,20 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
                 <SelectItem value="admin">מנהל</SelectItem>
                 <SelectItem value="coordinator">רכז</SelectItem>
                 <SelectItem value="youth_volunteer">מתנדב נוער</SelectItem>
-                <SelectItem value="service_girl">נערת שירות</SelectItem>
+                <SelectItem value="service_girl">בת שירות</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex justify-between sm:justify-between">
             <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
               בטל
+            </Button>
+            <Button 
+              onClick={handleRoleChange} 
+              disabled={loading || !selectedRole}
+            >
+              {loading ? "מעדכן..." : "שמור שינויים"}
             </Button>
           </DialogFooter>
         </DialogContent>

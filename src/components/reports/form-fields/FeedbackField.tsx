@@ -26,7 +26,7 @@ export const FeedbackField = ({
         value={value} 
         onChange={onChange} 
         placeholder={placeholder} 
-        className="min-h-[80px]"
+        className="min-h-[100px] resize-y"
       />
     </FormItem>
   );

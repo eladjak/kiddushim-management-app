@@ -18,6 +18,7 @@ import { EventImagesUploadField } from "./form-fields/EventImagesUploadField";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm, FormProvider } from "react-hook-form";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type CreateReportFormProps = {
   onCancel: () => void;
@@ -156,7 +157,7 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">{getReportTypeName()} חדש</h2>
         <Button variant="ghost" size="sm" onClick={onCancel}>
@@ -164,95 +165,99 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
         </Button>
       </div>
       
-      <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <ReportTitleField 
-            value={form.watch("title")}
-            onChange={(e) => form.setValue("title", e.target.value)}
-          />
-          
-          <ReportDescriptionField 
-            value={form.watch("description")}
-            onChange={(e) => form.setValue("description", e.target.value)}
-          />
-          
-          <ReportEventField 
-            value={form.watch("event_id")}
-            events={events}
-            onValueChange={(value) => form.setValue("event_id", value)}
-          />
-          
-          <ReporterNameField 
-            value={form.watch("reporter_name")}
-            onChange={(e) => form.setValue("reporter_name", e.target.value)}
-          />
-
-          {reportType === "issue" && (
-            <SeverityField 
-              value={form.watch("severity") || "medium"}
-              onValueChange={(value) => form.setValue("severity", value)}
-            />
-          )}
-
-          {(reportType === "event_report" || reportType === "feedback") && (
-            <>
-              <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
-                <h3 className="font-medium text-gray-700">דירוג האירוע</h3>
-                
-                <EventRatingField 
-                  form={form} 
-                  name="overall_rating" 
-                  label="דירוג כללי" 
-                />
-                
-                <EventRatingField 
-                  form={form} 
-                  name="audience_rating" 
-                  label="חווית הקהל" 
-                />
-                
-                <EventRatingField 
-                  form={form} 
-                  name="organization_rating" 
-                  label="רמת הארגון" 
-                />
-                
-                <EventRatingField 
-                  form={form} 
-                  name="logistics_rating" 
-                  label="לוגיסטיקה" 
-                />
-              </div>
-
-              <FeedbackField 
-                name="what_was_good"
-                label="מה היה טוב באירוע?"
-                placeholder="ספר לנו על הדברים שעבדו היטב באירוע"
-                value={form.watch("what_was_good") || ""}
-                onChange={(e) => form.setValue("what_was_good", e.target.value)}
+      <ScrollArea className="flex-1 h-[calc(100vh-200px)]">
+        <div className="pr-4">
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <ReportTitleField 
+                value={form.watch("title")}
+                onChange={(e) => form.setValue("title", e.target.value)}
               />
               
-              <FeedbackField 
-                name="what_to_improve"
-                label="מה ניתן לשפר להבא?"
-                placeholder="ספר לנו על דברים שאפשר לשפר בפעם הבאה"
-                value={form.watch("what_to_improve") || ""}
-                onChange={(e) => form.setValue("what_to_improve", e.target.value)}
+              <ReportDescriptionField 
+                value={form.watch("description")}
+                onChange={(e) => form.setValue("description", e.target.value)}
               />
               
-              <EventImagesUploadField 
-                images={images}
-                onImagesChange={setImages}
+              <ReportEventField 
+                value={form.watch("event_id")}
+                events={events}
+                onValueChange={(value) => form.setValue("event_id", value)}
               />
-            </>
-          )}
-          
-          <ReportFormActions 
-            isLoading={isLoading}
-            onCancel={onCancel}
-          />
-        </form>
-      </FormProvider>
+              
+              <ReporterNameField 
+                value={form.watch("reporter_name")}
+                onChange={(e) => form.setValue("reporter_name", e.target.value)}
+              />
+
+              {reportType === "issue" && (
+                <SeverityField 
+                  value={form.watch("severity") || "medium"}
+                  onValueChange={(value) => form.setValue("severity", value)}
+                />
+              )}
+
+              {(reportType === "event_report" || reportType === "feedback") && (
+                <>
+                  <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
+                    <h3 className="font-medium text-gray-700">דירוג האירוע</h3>
+                    
+                    <EventRatingField 
+                      form={form} 
+                      name="overall_rating" 
+                      label="דירוג כללי" 
+                    />
+                    
+                    <EventRatingField 
+                      form={form} 
+                      name="audience_rating" 
+                      label="חווית הקהל" 
+                    />
+                    
+                    <EventRatingField 
+                      form={form} 
+                      name="organization_rating" 
+                      label="רמת הארגון" 
+                    />
+                    
+                    <EventRatingField 
+                      form={form} 
+                      name="logistics_rating" 
+                      label="לוגיסטיקה" 
+                    />
+                  </div>
+
+                  <FeedbackField 
+                    name="what_was_good"
+                    label="מה היה טוב באירוע?"
+                    placeholder="ספר לנו על הדברים שעבדו היטב באירוע"
+                    value={form.watch("what_was_good") || ""}
+                    onChange={(e) => form.setValue("what_was_good", e.target.value)}
+                  />
+                  
+                  <FeedbackField 
+                    name="what_to_improve"
+                    label="מה ניתן לשפר להבא?"
+                    placeholder="ספר לנו על דברים שאפשר לשפר בפעם הבאה"
+                    value={form.watch("what_to_improve") || ""}
+                    onChange={(e) => form.setValue("what_to_improve", e.target.value)}
+                  />
+                  
+                  <EventImagesUploadField 
+                    images={images}
+                    onImagesChange={setImages}
+                  />
+                </>
+              )}
+              
+              <ReportFormActions 
+                isLoading={isLoading}
+                onCancel={onCancel}
+              />
+            </form>
+          </FormProvider>
+        </div>
+      </ScrollArea>
     </div>
   );
 };

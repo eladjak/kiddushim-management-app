@@ -1,5 +1,5 @@
 
-import { Label } from "@/components/ui/label";
+import { FormItem, FormLabel } from "@/components/ui/form";
 import { 
   Select,
   SelectContent,
@@ -15,14 +15,14 @@ interface SeverityFieldProps {
 
 export const SeverityField = ({ value, onValueChange }: SeverityFieldProps) => {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="severity">חומרת התקלה</Label>
+    <FormItem className="space-y-2">
+      <FormLabel>חומרת התקלה</FormLabel>
       <Select 
         value={value} 
-        onValueChange={(value) => onValueChange(value)}
+        onValueChange={onValueChange}
       >
-        <SelectTrigger>
-          <SelectValue />
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="בחר חומרת תקלה" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="low">נמוכה</SelectItem>
@@ -31,6 +31,6 @@ export const SeverityField = ({ value, onValueChange }: SeverityFieldProps) => {
           <SelectItem value="critical">קריטית</SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </FormItem>
   );
 };

@@ -1,5 +1,5 @@
 
-import { Label } from "@/components/ui/label";
+import { FormItem, FormLabel } from "@/components/ui/form";
 import { 
   Select,
   SelectContent,
@@ -16,13 +16,13 @@ interface ReportEventFieldProps {
 
 export const ReportEventField = ({ value, events, onValueChange }: ReportEventFieldProps) => {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="event_id">אירוע קשור (אופציונלי)</Label>
+    <FormItem className="space-y-2">
+      <FormLabel>אירוע קשור (אופציונלי)</FormLabel>
       <Select 
         value={value} 
-        onValueChange={(value) => onValueChange(value)}
+        onValueChange={onValueChange}
       >
-        <SelectTrigger>
+        <SelectTrigger className="w-full">
           <SelectValue placeholder="בחר אירוע" />
         </SelectTrigger>
         <SelectContent>
@@ -33,6 +33,6 @@ export const ReportEventField = ({ value, events, onValueChange }: ReportEventFi
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </FormItem>
   );
 };
