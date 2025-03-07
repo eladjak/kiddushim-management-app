@@ -2,11 +2,11 @@
 import React, { useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Camera, Trash, Upload } from "lucide-react";
+import { Camera, Trash } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { safeEncodeHebrew } from "@/utils/rtl";
+import { v4 as uuidv4 } from "uuid";
 
 interface AvatarUploadProps {
   onAvatarChange?: (url: string) => void;
@@ -29,7 +29,8 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
 
       const file = event.target.files[0];
       const fileExt = file.name.split(".").pop();
-      const filePath = `${profile?.id}-${Math.random()}.${fileExt}`;
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${profile?.id}/${fileName}`;
 
       // Create URL preview
       const objectUrl = URL.createObjectURL(file);

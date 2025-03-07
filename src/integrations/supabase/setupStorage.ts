@@ -10,38 +10,36 @@ export const setupStorage = async () => {
 
     if (bucketsError) {
       console.error("Error listing buckets:", bucketsError);
-      throw bucketsError;
+      return false;
     }
 
-    const avatarsBucketExists = buckets.some(bucket => bucket.name === 'avatars');
+    // Check which buckets we need to create
+    const requiredBuckets = ['avatars', 'event_posters', 'report_images'];
+    const existingBuckets = buckets.map(bucket => bucket.name);
+    
+    // Create any missing buckets
+    for (const bucketName of requiredBuckets) {
+      if (!existingBuckets.includes(bucketName)) {
+        console.log(`Creating bucket: ${bucketName}`);
+        try {
+          const { error: createError } = await supabase
+            .storage
+            .createBucket(bucketName, {
+              public: true,
+              fileSizeLimit: 5 * 1024 * 1024, // 5MB
+            });
 
-    if (!avatarsBucketExists) {
-      // Create the avatars bucket if it doesn't exist
-      const { error: createError } = await supabase
-        .storage
-        .createBucket('avatars', {
-          public: true,
-          fileSizeLimit: 1024 * 1024 * 2, // 2MB
-        });
-
-      if (createError) {
-        console.error("Error creating bucket:", createError);
-        throw createError;
+          if (createError) {
+            console.error(`Error creating bucket ${bucketName}:`, createError);
+          } else {
+            console.log(`${bucketName} bucket created successfully`);
+          }
+        } catch (err) {
+          console.error(`Failed to create bucket ${bucketName}:`, err);
+        }
+      } else {
+        console.log(`${bucketName} bucket already exists`);
       }
-      
-      console.log("Avatars bucket created successfully");
-      
-      // Ensure public access for the bucket
-      const { error: policyError } = await supabase
-        .storage
-        .from('avatars')
-        .createSignedUrl('dummy.txt', 1); // This is just to trigger policy check
-        
-      if (policyError && !policyError.message.includes('not found')) {
-        console.error("Warning: You may need to set up storage policies for the avatars bucket");
-      }
-    } else {
-      console.log("Avatars bucket already exists");
     }
 
     return true;

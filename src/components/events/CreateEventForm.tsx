@@ -10,12 +10,17 @@ import { DateTimeFields } from "./form-fields/DateTimeFields";
 import { VolunteersFields } from "./form-fields/VolunteersFields";
 import { LocationFields } from "./form-fields/LocationFields";
 import { EventFormActions } from "./form-actions/EventFormActions";
+import { PosterUploadField } from "./form-fields/PosterUploadField";
+import { ParashaField } from "./form-fields/ParashaField";
+import { EventContentField } from "./form-fields/EventContentField";
+import { v4 as uuidv4 } from "uuid";
 
 export const CreateEventForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [posterUrl, setPosterUrl] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -26,10 +31,14 @@ export const CreateEventForm = () => {
     locationAddress: "",
     requiredServiceGirls: 0,
     requiredYouthVolunteers: 0,
+    parasha: "",
+    facilitator: "",
+    workshopContent: "",
+    eventContent: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement;
     setFormData({
       ...formData,
       [name]: type === "number" ? parseInt(value) || 0 : value,
@@ -68,6 +77,11 @@ export const CreateEventForm = () => {
           location_address: formData.locationAddress,
           required_service_girls: formData.requiredServiceGirls,
           required_youth_volunteers: formData.requiredYouthVolunteers,
+          poster_url: posterUrl,
+          parasha: formData.parasha,
+          facilitator: formData.facilitator,
+          workshop_content: formData.workshopContent,
+          event_content: formData.eventContent,
           created_by: user.id,
           status: "draft",
         });
@@ -92,31 +106,77 @@ export const CreateEventForm = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-2 mb-6">
+      <div className="flex items-center space-x-2 rtl:space-x-reverse mb-6">
         <Calendar className="h-6 w-6 text-primary ml-2" />
         <h2 className="text-2xl font-bold">יצירת אירוע חדש</h2>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        <EventTitleField 
-          value={formData.title}
-          onChange={handleInputChange}
-        />
-        
-        <DateTimeFields 
-          formData={formData}
-          onChange={handleInputChange}
-        />
-        
-        <VolunteersFields 
-          formData={formData}
-          onChange={handleInputChange}
-        />
-        
-        <LocationFields 
-          formData={formData}
-          onChange={handleInputChange}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <EventTitleField 
+              value={formData.title}
+              onChange={handleInputChange}
+            />
+            
+            <ParashaField
+              value={formData.parasha}
+              onChange={handleInputChange}
+            />
+            
+            <EventContentField
+              value={formData.eventContent}
+              onChange={handleInputChange}
+              label="תוכן האירוע"
+              name="eventContent"
+              placeholder="פרטים על האירוע והפעילויות המתוכננות"
+            />
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="facilitator" className="text-sm font-medium">מפעיל האירוע</label>
+              </div>
+              <input
+                id="facilitator"
+                name="facilitator"
+                value={formData.facilitator}
+                onChange={handleInputChange}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="שם המפעיל/ה של האירוע"
+              />
+            </div>
+            
+            <EventContentField
+              value={formData.workshopContent}
+              onChange={handleInputChange}
+              label="תוכן הסדנה"
+              name="workshopContent"
+              placeholder="תיאור הסדנה והפעילות"
+            />
+          </div>
+          
+          <div className="space-y-6">
+            <PosterUploadField 
+              posterUrl={posterUrl}
+              onPosterChange={setPosterUrl}
+            />
+            
+            <DateTimeFields 
+              formData={formData}
+              onChange={handleInputChange}
+            />
+            
+            <VolunteersFields 
+              formData={formData}
+              onChange={handleInputChange}
+            />
+            
+            <LocationFields 
+              formData={formData}
+              onChange={handleInputChange}
+            />
+          </div>
+        </div>
         
         <EventFormActions 
           isLoading={isLoading}

@@ -29,15 +29,15 @@ export const EventImagesUploadField = ({ images, onImagesChange }: EventImagesUp
         const file = files[i];
         const fileExt = file.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `event-reports/${fileName}`;
+        const filePath = `report-images/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('event-media')
+          .from('report_images')
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
-        const { data } = supabase.storage.from('event-media').getPublicUrl(filePath);
+        const { data } = supabase.storage.from('report_images').getPublicUrl(filePath);
         newImages.push(data.publicUrl);
       }
 
