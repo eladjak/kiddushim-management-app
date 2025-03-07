@@ -62,12 +62,7 @@ export const Navigation = () => {
             <Brand />
           </div>
           
-          <DesktopNav 
-            isLoggedIn={isLoggedIn}
-            isAdmin={isAdmin}
-            isCoordinator={isCoordinator}
-            onLogout={handleLogout}
-          />
+          <DesktopNav />
 
           <div className="md:hidden">
             <button

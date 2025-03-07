@@ -58,7 +58,7 @@ export const ProfileTab = ({ profile, loading, onSaveProfile }: ProfileTabProps)
     <Card className="p-6">
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div className="w-full md:w-1/4 flex flex-col items-center">
-          <AvatarUpload avatarUrl={profile.avatar_url || null} />
+          <AvatarUpload />
           
           <p className="text-lg font-medium mt-4">{profile.name}</p>
           <p className="text-sm text-gray-500 mb-2">{profile.email}</p>
