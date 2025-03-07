@@ -373,6 +373,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
+          encoding_support: boolean | null
           id: string
           language: string | null
           last_active: string | null
@@ -388,6 +389,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          encoding_support?: boolean | null
           id: string
           language?: string | null
           last_active?: string | null
@@ -403,6 +405,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          encoding_support?: boolean | null
           id?: string
           language?: string | null
           last_active?: string | null

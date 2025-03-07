@@ -18,7 +18,7 @@ export const FeedbackField = ({
   placeholder 
 }: FeedbackFieldProps) => {
   return (
-    <FormItem className="space-y-2">
+    <FormItem className="space-y-2" dir="rtl">
       <FormLabel htmlFor={name} className="text-right block">{label}</FormLabel>
       <Textarea 
         id={name} 
@@ -27,7 +27,7 @@ export const FeedbackField = ({
         onChange={onChange} 
         placeholder={placeholder} 
         className="min-h-[100px] resize-y text-right w-full"
-        style={{ direction: "rtl" }}
+        dir="rtl"
       />
     </FormItem>
   );

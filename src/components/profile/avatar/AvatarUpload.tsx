@@ -75,6 +75,10 @@ export const AvatarUpload = ({ avatarUrl }: AvatarUploadProps) => {
       // Update profile
       await updateAvatar(urlData.publicUrl);
       
+      toast({
+        description: "תמונת הפרופיל עודכנה בהצלחה",
+      });
+      
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
       toast({
@@ -96,6 +100,9 @@ export const AvatarUpload = ({ avatarUrl }: AvatarUploadProps) => {
       // For images from Google, we just remove the URL from the profile
       if (avatarUrl.includes('googleusercontent.com')) {
         await updateAvatar('');
+        toast({
+          description: "תמונת הפרופיל הוסרה בהצלחה",
+        });
         return;
       }
       
@@ -109,6 +116,10 @@ export const AvatarUpload = ({ avatarUrl }: AvatarUploadProps) => {
       }
       
       await updateAvatar('');
+      
+      toast({
+        description: "תמונת הפרופיל הוסרה בהצלחה",
+      });
       
     } catch (error: any) {
       console.error('Error deleting avatar:', error);

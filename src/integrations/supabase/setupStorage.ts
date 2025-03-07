@@ -9,6 +9,7 @@ export const setupStorage = async () => {
       .listBuckets();
 
     if (bucketsError) {
+      console.error("Error listing buckets:", bucketsError);
       throw bucketsError;
     }
 
@@ -27,11 +28,34 @@ export const setupStorage = async () => {
         console.error("Error creating bucket:", createError);
         throw createError;
       }
+      
+      console.log("Avatars bucket created successfully");
+    } else {
+      console.log("Avatars bucket already exists");
     }
 
     return true;
   } catch (error) {
     console.error("Error setting up storage:", error);
     return false;
+  }
+};
+
+// Helper function to safely encode Hebrew text for storage
+export const safeEncodeHebrew = (text: string): string => {
+  // Instead of using btoa which fails with non-Latin characters,
+  // we use encodeURIComponent which handles Unicode characters properly
+  if (!text) return '';
+  return encodeURIComponent(text);
+};
+
+// Helper function to decode safely encoded Hebrew text
+export const safeDecodeHebrew = (encodedText: string): string => {
+  if (!encodedText) return '';
+  try {
+    return decodeURIComponent(encodedText);
+  } catch (e) {
+    console.error("Error decoding text:", e);
+    return encodedText; // Return as-is if decoding fails
   }
 };
