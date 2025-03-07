@@ -17,17 +17,21 @@ interface ReportEventFieldProps {
 export const ReportEventField = ({ value, events, onValueChange }: ReportEventFieldProps) => {
   return (
     <FormItem className="space-y-2">
-      <FormLabel>אירוע קשור (אופציונלי)</FormLabel>
+      <FormLabel className="text-right block">אירוע קשור (אופציונלי)</FormLabel>
       <Select 
         value={value} 
         onValueChange={onValueChange}
+        dir="rtl"
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full text-right">
           <SelectValue placeholder="בחר אירוע" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="" className="text-right">
+            ללא אירוע קשור
+          </SelectItem>
           {events.map((event) => (
-            <SelectItem key={event.id} value={event.id}>
+            <SelectItem key={event.id} value={event.id} className="text-right">
               {event.title}
             </SelectItem>
           ))}

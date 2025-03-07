@@ -71,6 +71,16 @@ label {
   text-align: right;
 }
 
+/* Fix Radix Dialog RTL issues */
+[data-radix-popper-content-wrapper] {
+  direction: rtl !important;
+}
+
+/* Fix Select component in RTL */
+.select-content {
+  text-align: right !important;
+}
+
 /* Image styling and adjustments */
 img {
   max-width: 100%;
@@ -122,6 +132,33 @@ img {
   animation: slide-in-rtl 0.3s ease-out;
 }
 
+/* Improved scrolling for long forms */
+.scrollable-form {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-right: -0.5rem;
+}
+
+/* Custom scrollbar for better RTL support */
+.scrollable-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.scrollable-form::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.scrollable-form::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 /* Tables for RTL */
 table {
   direction: rtl;
@@ -168,4 +205,26 @@ form {
   .h-8 {
     height: 2rem !important;
   }
+}
+
+/* Fix encoding for Hebrew text in inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+textarea,
+select {
+  font-family: 'Rubik', sans-serif !important;
+}
+
+/* Ensure Radix dialog elements respect RTL */
+[role="dialog"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Fix scroll area for long forms */
+[data-radix-scroll-area-viewport] {
+  direction: rtl !important;
 }

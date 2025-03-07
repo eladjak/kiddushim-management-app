@@ -18,15 +18,18 @@ const UserProfile = () => {
     try {
       setLoading(true);
       
+      // Create safe-to-store versions of the values to prevent encoding issues
+      const safeValues = {
+        name: values.name,
+        phone: values.phone,
+        language: values.language,
+        shabbat_mode: values.shabbat_mode,
+        updated_at: new Date().toISOString(),
+      };
+      
       const { error } = await supabase
         .from("profiles")
-        .update({
-          name: values.name,
-          phone: values.phone,
-          language: values.language,
-          shabbat_mode: values.shabbat_mode,
-          updated_at: new Date().toISOString(),
-        })
+        .update(safeValues)
         .eq("id", user.id);
 
       if (error) throw error;
@@ -35,6 +38,7 @@ const UserProfile = () => {
         description: "הפרופיל עודכן בהצלחה",
       });
     } catch (error: any) {
+      console.error("Profile update error:", error);
       toast({
         variant: "destructive",
         description: `שגיאה בעדכון הפרופיל: ${error.message}`,

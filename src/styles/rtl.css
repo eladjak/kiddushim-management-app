@@ -1,25 +1,41 @@
 
 /**
  * RTL (Right-to-Left) specific styles
- * These styles ensure proper RTL layout throughout the application
+ * Enhanced version with better support for Hebrew text
  */
 
 /* Set default direction for RTL elements */
 [dir="rtl"] {
   text-align: right;
+  direction: rtl;
 }
 
 /* Fix input alignment in RTL */
 [dir="rtl"] input,
-[dir="rtl"] textarea {
+[dir="rtl"] textarea,
+[dir="rtl"] select {
   text-align: right;
+  direction: rtl;
+}
+
+/* Fix placeholder text alignment */
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  text-align: right;
+  direction: rtl;
 }
 
 /* Fix button icons in RTL context */
 [dir="rtl"] button svg + span,
 [dir="rtl"] a svg + span {
   margin-right: 0.5rem;
-  margin-left: 0;
+  margin-left: 0 !important;
+}
+
+[dir="rtl"] button span + svg,
+[dir="rtl"] a span + svg {
+  margin-left: 0.5rem;
+  margin-right: 0 !important;
 }
 
 /* Fix list bullets in RTL */
@@ -29,36 +45,64 @@
 }
 
 /* Fix margin/padding in RTL context */
-[dir="rtl"] .ml-1, 
-[dir="rtl"] .mr-1 {
+[dir="rtl"] .ml-1 {
   margin-right: 0.25rem !important;
   margin-left: 0 !important;
 }
 
-[dir="rtl"] .ml-2, 
-[dir="rtl"] .mr-2 {
+[dir="rtl"] .mr-1 {
+  margin-left: 0.25rem !important;
+  margin-right: 0 !important;
+}
+
+[dir="rtl"] .ml-2 {
   margin-right: 0.5rem !important;
   margin-left: 0 !important;
 }
 
-[dir="rtl"] .ml-3, 
-[dir="rtl"] .mr-3 {
+[dir="rtl"] .mr-2 {
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
+}
+
+[dir="rtl"] .ml-3 {
   margin-right: 0.75rem !important;
   margin-left: 0 !important;
 }
 
-[dir="rtl"] .ml-4, 
-[dir="rtl"] .mr-4 {
+[dir="rtl"] .mr-3 {
+  margin-left: 0.75rem !important;
+  margin-right: 0 !important;
+}
+
+[dir="rtl"] .ml-4 {
   margin-right: 1rem !important;
   margin-left: 0 !important;
 }
 
-/* Fix form control layouts */
-[dir="rtl"] .form-control {
+[dir="rtl"] .mr-4 {
+  margin-left: 1rem !important;
+  margin-right: 0 !important;
+}
+
+/* Form and Dialog Improvements */
+[dir="rtl"] .form-control,
+[dir="rtl"] .dialog-content,
+[dir="rtl"] [role="dialog"] {
+  text-align: right;
+  direction: rtl;
+}
+
+/* ShadCN Dialog components */
+[dir="rtl"] [role="dialog"] {
   text-align: right;
 }
 
-/* Fix tooltip positioning */
+[dir="rtl"] [data-radix-popper-content-wrapper] {
+  direction: rtl !important;
+}
+
+/* Tooltip positioning */
 [dir="rtl"] [data-tooltip]::before {
   right: auto;
   left: 0;
@@ -78,50 +122,154 @@
   animation: slide-in-rtl 0.3s ease-out;
 }
 
-/* Fix flexbox ordering in RTL contexts */
+/* Flexbox improvements for RTL */
 [dir="rtl"] .flex-row {
   flex-direction: row-reverse;
 }
 
+[dir="rtl"] .md\:flex-row {
+  flex-direction: row-reverse !important;
+}
+
+/* Fix spacing utilities */
 [dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+  --tw-space-x-reverse: 1 !important;
 }
 
 [dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+  --tw-space-x-reverse: 1 !important;
 }
 
 [dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+  --tw-space-x-reverse: 1 !important;
 }
 
 [dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+  --tw-space-x-reverse: 1 !important;
 }
 
 [dir="rtl"] .space-x-6 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+  --tw-space-x-reverse: 1 !important;
 }
 
 [dir="rtl"] .space-x-8 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+  --tw-space-x-reverse: 1 !important;
 }
 
-/* Fix alignment of the shadcn components */
+/* ShadCN Components RTL fixes */
+
+/* Select components */
+[dir="rtl"] .select-content {
+  text-align: right;
+}
+
+[dir="rtl"] .select-trigger .select-value {
+  text-align: right;
+}
+
+/* Dialog components */
+[dir="rtl"] .dialog-title,
+[dir="rtl"] .dialog-description {
+  text-align: right;
+}
+
+/* Card components */
+[dir="rtl"] .card-header,
+[dir="rtl"] .card-title,
+[dir="rtl"] .card-description,
+[dir="rtl"] .card-content,
+[dir="rtl"] .card-footer {
+  text-align: right;
+}
+
+/* Fix all inline-flex to respect RTL */
 [dir="rtl"] .inline-flex {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .items-center {
-  justify-content: flex-end;
+/* Fix icon placement in buttons and inputs */
+[dir="rtl"] .button-icon-left {
+  margin-left: 0;
+  margin-right: 0.5rem;
 }
 
-/* Ensure all flex containers follow RTL direction */
-[dir="rtl"] .flex {
-  flex-direction: row-reverse;
+[dir="rtl"] .button-icon-right {
+  margin-right: 0;
+  margin-left: 0.5rem;
 }
 
-/* Force correct direction for all flex layouts */
-[dir="rtl"] .md\:flex-row {
-  flex-direction: row-reverse !important;
+/* Input groups */
+[dir="rtl"] .input-group-prepend {
+  margin-left: 0;
+  margin-right: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+[dir="rtl"] .input-group-append {
+  margin-right: 0;
+  margin-left: -1px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+/* Tables for RTL */
+[dir="rtl"] table,
+[dir="rtl"] th, 
+[dir="rtl"] td {
+  text-align: right;
+}
+
+/* Ensure combobox/dropdown menus show correctly in RTL */
+[dir="rtl"] [role="combobox"],
+[dir="rtl"] [role="listbox"] {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Fix dropdown positioning */
+[dir="rtl"] .dropdown-menu {
+  right: 0 !important;
+  left: auto !important;
+}
+
+/* Make form elements properly align for RTL */
+[dir="rtl"] form label {
+  text-align: right;
+  display: block;
+}
+
+/* Fix dialog alignment */
+[dir="rtl"] .dialog-content {
+  direction: rtl;
+}
+
+/* Fix input groups with icons */
+[dir="rtl"] .input-with-leading-icon svg {
+  left: auto;
+  right: 0.75rem;
+}
+
+[dir="rtl"] .input-with-leading-icon input {
+  padding-left: 0.75rem;
+  padding-right: 2.5rem;
+}
+
+[dir="rtl"] .input-with-trailing-icon svg {
+  right: auto;
+  left: 0.75rem;
+}
+
+[dir="rtl"] .input-with-trailing-icon input {
+  padding-right: 0.75rem;
+  padding-left: 2.5rem;
+}
+
+/* Radix dialog fixes */
+[dir="rtl"] [data-radix-popper-content-wrapper] {
+  text-align: right !important;
 }

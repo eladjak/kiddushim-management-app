@@ -1,9 +1,7 @@
 
 import { Card } from "@/components/ui/card";
-import { Image } from "@/components/ui/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ProfileType } from "@/types/profile";
+import { AvatarUpload } from "../avatar/AvatarUpload";
 
 interface ProfileTabProps {
   profile: ProfileType;
@@ -59,29 +58,16 @@ export const ProfileTab = ({ profile, loading, onSaveProfile }: ProfileTabProps)
     <Card className="p-6">
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div className="w-full md:w-1/4 flex flex-col items-center">
-          <div className="w-32 h-32 rounded-full bg-gray-200 mb-4 overflow-hidden">
-            {profile.avatar_url ? (
-              <Image 
-                src={profile.avatar_url} 
-                alt={profile.name || "Avatar"} 
-                className="w-full h-full object-cover"
-                fallback="/placeholder.svg"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-400">
-                <User size={48} />
-              </div>
-            )}
-          </div>
+          <AvatarUpload avatarUrl={profile.avatar_url || null} />
           
-          <p className="text-lg font-medium">{profile.name}</p>
+          <p className="text-lg font-medium mt-4">{profile.name}</p>
           <p className="text-sm text-gray-500 mb-2">{profile.email}</p>
           
           <div className="py-2 px-3 bg-primary/10 rounded-md text-primary text-sm mb-4">
             {profile.role === "admin" && "מנהל"}
             {profile.role === "coordinator" && "רכז"}
             {profile.role === "youth_volunteer" && "מתנדב נוער"}
-            {profile.role === "service_girl" && "נערת שירות"}
+            {profile.role === "service_girl" && "בת שירות"}
           </div>
         </div>
         

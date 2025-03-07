@@ -19,14 +19,15 @@ export const FeedbackField = ({
 }: FeedbackFieldProps) => {
   return (
     <FormItem className="space-y-2">
-      <FormLabel htmlFor={name}>{label}</FormLabel>
+      <FormLabel htmlFor={name} className="text-right block">{label}</FormLabel>
       <Textarea 
         id={name} 
         name={name} 
         value={value} 
         onChange={onChange} 
         placeholder={placeholder} 
-        className="min-h-[100px] resize-y"
+        className="min-h-[100px] resize-y text-right w-full"
+        style={{ direction: "rtl" }}
       />
     </FormItem>
   );

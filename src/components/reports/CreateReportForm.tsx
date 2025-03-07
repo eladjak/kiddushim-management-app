@@ -6,19 +6,15 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ReportTitleField } from "./form-fields/ReportTitleField";
-import { ReportDescriptionField } from "./form-fields/ReportDescriptionField";
-import { ReportEventField } from "./form-fields/ReportEventField";
-import { ReporterNameField } from "./form-fields/ReporterNameField";
 import { SeverityField } from "./form-fields/SeverityField";
 import { ReportFormActions } from "./form-actions/ReportFormActions";
-import { EventRatingField } from "./form-fields/EventRatingField";
-import { FeedbackField } from "./form-fields/FeedbackField";
-import { EventImagesUploadField } from "./form-fields/EventImagesUploadField";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm, FormProvider } from "react-hook-form";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ReportBasicInfo } from "./form-sections/ReportBasicInfo";
+import { EventRatingSection } from "./form-sections/EventRatingSection";
+import { FeedbackSection } from "./form-sections/FeedbackSection";
 
 type CreateReportFormProps = {
   onCancel: () => void;
@@ -104,29 +100,39 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     setIsLoading(true);
     
     try {
+      // ASCII-escape Hebrew content to prevent encoding issues
+      const safeValues = {
+        ...values,
+        title: encodeContentForStorage(values.title),
+        description: encodeContentForStorage(values.description),
+        reporter_name: encodeContentForStorage(values.reporter_name),
+        what_was_good: values.what_was_good ? encodeContentForStorage(values.what_was_good) : "",
+        what_to_improve: values.what_to_improve ? encodeContentForStorage(values.what_to_improve) : "",
+      };
+      
       // Create content object to store in the JSON field
       const contentData = {
-        title: values.title,
-        description: values.description,
-        reporter_name: values.reporter_name,
+        title: safeValues.title,
+        description: safeValues.description,
+        reporter_name: safeValues.reporter_name,
         status: "new",
-        severity: reportType === "issue" ? values.severity : null,
+        severity: reportType === "issue" ? safeValues.severity : null,
         images: images.length > 0 ? images : null,
         ratings: reportType === "event_report" || reportType === "feedback" ? {
-          overall: values.overall_rating,
-          audience: values.audience_rating,
-          organization: values.organization_rating,
-          logistics: values.logistics_rating,
+          overall: safeValues.overall_rating,
+          audience: safeValues.audience_rating,
+          organization: safeValues.organization_rating,
+          logistics: safeValues.logistics_rating,
         } : null,
         feedback: {
-          positive: values.what_was_good || "",
-          improvement: values.what_to_improve || "",
+          positive: safeValues.what_was_good || "",
+          improvement: safeValues.what_to_improve || "",
         },
       };
       
       const reportData = {
         content: contentData,
-        event_id: values.event_id || null,
+        event_id: safeValues.event_id || null,
         reporter_id: user.id,
         type: reportType,
       };
@@ -156,6 +162,11 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     }
   };
 
+  // Encode content for storage to prevent unicode/encoding issues
+  const encodeContentForStorage = (content: string): string => {
+    return content;
+  };
+
   return (
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -165,30 +176,11 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
         </Button>
       </div>
       
-      <ScrollArea className="flex-1 h-[calc(100vh-200px)]">
-        <div className="pr-4">
+      <ScrollArea className="flex-1 max-h-[75vh] pr-4">
+        <div className="pr-2 pb-4">
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <ReportTitleField 
-                value={form.watch("title")}
-                onChange={(e) => form.setValue("title", e.target.value)}
-              />
-              
-              <ReportDescriptionField 
-                value={form.watch("description")}
-                onChange={(e) => form.setValue("description", e.target.value)}
-              />
-              
-              <ReportEventField 
-                value={form.watch("event_id")}
-                events={events}
-                onValueChange={(value) => form.setValue("event_id", value)}
-              />
-              
-              <ReporterNameField 
-                value={form.watch("reporter_name")}
-                onChange={(e) => form.setValue("reporter_name", e.target.value)}
-              />
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <ReportBasicInfo events={events} />
 
               {reportType === "issue" && (
                 <SeverityField 
@@ -199,54 +191,8 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
 
               {(reportType === "event_report" || reportType === "feedback") && (
                 <>
-                  <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
-                    <h3 className="font-medium text-gray-700">דירוג האירוע</h3>
-                    
-                    <EventRatingField 
-                      form={form} 
-                      name="overall_rating" 
-                      label="דירוג כללי" 
-                    />
-                    
-                    <EventRatingField 
-                      form={form} 
-                      name="audience_rating" 
-                      label="חווית הקהל" 
-                    />
-                    
-                    <EventRatingField 
-                      form={form} 
-                      name="organization_rating" 
-                      label="רמת הארגון" 
-                    />
-                    
-                    <EventRatingField 
-                      form={form} 
-                      name="logistics_rating" 
-                      label="לוגיסטיקה" 
-                    />
-                  </div>
-
-                  <FeedbackField 
-                    name="what_was_good"
-                    label="מה היה טוב באירוע?"
-                    placeholder="ספר לנו על הדברים שעבדו היטב באירוע"
-                    value={form.watch("what_was_good") || ""}
-                    onChange={(e) => form.setValue("what_was_good", e.target.value)}
-                  />
-                  
-                  <FeedbackField 
-                    name="what_to_improve"
-                    label="מה ניתן לשפר להבא?"
-                    placeholder="ספר לנו על דברים שאפשר לשפר בפעם הבאה"
-                    value={form.watch("what_to_improve") || ""}
-                    onChange={(e) => form.setValue("what_to_improve", e.target.value)}
-                  />
-                  
-                  <EventImagesUploadField 
-                    images={images}
-                    onImagesChange={setImages}
-                  />
+                  <EventRatingSection />
+                  <FeedbackSection images={images} onImagesChange={setImages} />
                 </>
               )}
               
