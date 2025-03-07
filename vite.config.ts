@@ -23,5 +23,6 @@ export default defineConfig(({ mode }) => ({
   define: {
     'import.meta.env.VITE_APP_NAME': JSON.stringify('קידושישי'),
     'import.meta.env.VITE_APP_DESCRIPTION': JSON.stringify('חוויה ישראלית לקראת שבת'),
+    'import.meta.env.VITE_APP_DIR': JSON.stringify('rtl'),
   }
 }));

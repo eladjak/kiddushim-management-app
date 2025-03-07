@@ -15,6 +15,8 @@ import { EventRatingSection } from "./form-sections/EventRatingSection";
 import { FeedbackSection } from "./form-sections/FeedbackSection";
 import { ReportFormActions } from "./form-actions/ReportFormActions";
 import { SeverityField } from "./form-fields/SeverityField";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type CreateReportFormProps = {
   onCancel: () => void;
@@ -30,6 +32,23 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
   const [images, setImages] = useState<string[]>([]);
   
   const { reportFormSchema, defaultValues, getReportTypeName, submitReport } = useReportForm();
+  
+  // Fetch events for the report form
+  const { data: events = [] } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('id, title, main_time, location_name')
+        .order('main_time', { ascending: true });
+      
+      if (error) {
+        throw error;
+      }
+      
+      return data || [];
+    },
+  });
   
   const form = useForm<z.infer<typeof reportFormSchema>>({
     resolver: zodResolver(reportFormSchema),
@@ -90,7 +109,7 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
         <div className="pr-2 pb-4">
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              <ReportBasicInfo />
+              <ReportBasicInfo events={events} />
 
               {reportType === "issue" && (
                 <SeverityField 
