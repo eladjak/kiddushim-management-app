@@ -1,146 +1,143 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { CheckCircle2, Loader2, UserRound, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { ProfileType } from "@/types/profile";
+import { Badge } from "@/components/ui/badge";
 
 interface AssignUsersDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
   eventId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
 }
 
-export const AssignUsersDialog = ({
-  eventId,
-  open,
-  onOpenChange,
-}: AssignUsersDialogProps) => {
-  const [users, setUsers] = useState<ProfileType[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<ProfileType[]>([]);
+export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialogProps) {
+  const [users, setUsers] = useState<any[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
+  // Fetch users
   useEffect(() => {
-    if (open) {
-      fetchUsers();
-      fetchEventAssignments();
-    }
-  }, [open, eventId]);
-
-  useEffect(() => {
-    const filtered = users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredUsers(filtered);
-  }, [users, searchTerm]);
-
-  const fetchEventAssignments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .single();
-
-      if (error) throw error;
-
-      // Use the assigned_users field if it exists, otherwise initialize empty array
-      if (data && data.assigned_users) {
-        setSelectedUsers(data.assigned_users);
-      } else {
-        setSelectedUsers([]);
+    const fetchUsers = async () => {
+      if (!isOpen) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, name, role, avatar_url')
+          .order('name');
+          
+        if (error) throw error;
+        setUsers(data || []);
+      } catch (error: any) {
+        console.error("Error fetching users:", error.message);
+        toast({
+          variant: "destructive",
+          description: `שגיאה בטעינת המשתמשים: ${error.message}`,
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching event assignments:", error);
-      setSelectedUsers([]);
-    }
-  };
+    };
+    
+    // Fetch event assignments
+    const fetchAssignments = async () => {
+      if (!isOpen || !eventId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('event_assignments')
+          .select('user_id')
+          .eq('event_id', eventId);
+          
+        if (error) throw error;
+        
+        if (data) {
+          setSelectedUsers(data.map(assignment => assignment.user_id));
+        }
+      } catch (error: any) {
+        console.error("Error fetching assignments:", error.message);
+      }
+    };
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-
-      setUsers(data || []);
-      setFilteredUsers(data || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast({
-        variant: "destructive",
-        description: "שגיאה בטעינת משתמשים. אנא נסה שנית מאוחר יותר.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchUsers();
+    fetchAssignments();
+  }, [isOpen, eventId, toast]);
 
   const handleUserSelect = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId) 
         : [...prev, userId]
     );
   };
 
-  const saveAssignments = async () => {
+  const handleSave = async () => {
+    if (!eventId) return;
+    
+    setIsSaving(true);
     try {
-      setLoading(true);
+      // First, remove all existing assignments
+      const { error: deleteError } = await supabase
+        .from('event_assignments')
+        .delete()
+        .eq('event_id', eventId);
+        
+      if (deleteError) throw deleteError;
       
-      // Update the event with assigned users
-      const { error } = await supabase
-        .from("events")
-        .update({ assigned_users: selectedUsers })
-        .eq("id", eventId);
-
-      if (error) throw error;
-
+      // Then add new assignments
+      if (selectedUsers.length > 0) {
+        const assignments = selectedUsers.map(userId => ({
+          event_id: eventId,
+          user_id: userId,
+          role: 'volunteer',
+          status: 'assigned'
+        }));
+        
+        const { error: insertError } = await supabase
+          .from('event_assignments')
+          .insert(assignments);
+          
+        if (insertError) throw insertError;
+      }
+      
       toast({
-        description: "השיוך נשמר בהצלחה",
+        description: "המשתמשים הוקצו לאירוע בהצלחה",
       });
       
-      onOpenChange(false);
+      onClose();
     } catch (error: any) {
-      console.error("Error saving assignments:", error);
+      console.error("Error saving assignments:", error.message);
       toast({
         variant: "destructive",
-        description: `שגיאה בשמירת השיוך: ${error.message}`,
+        description: `שגיאה בשמירת השיוכים: ${error.message}`,
       });
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
+  const getRoleName = (role: string) => {
+    switch (role) {
+      case 'admin': return 'מנהל';
+      case 'coordinator': return 'רכז';
+      case 'service_girl': return 'בת שירות';
+      case 'youth_volunteer': return 'מתנדב נוער';
+      case 'content_provider': return 'ספק תוכן';
+      default: return role;
+    }
+  };
+
+  // Get initials for avatar fallback
   const getInitials = (name: string): string => {
-    if (!name) return "U";
+    if (!name) return "?";
+    
     const nameParts = name.split(" ");
     if (nameParts.length >= 2) {
       return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`;
@@ -149,77 +146,77 @@ export const AssignUsersDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-2xl">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>שיוך משתמשים לאירוע</DialogTitle>
-          <DialogDescription>
-            בחר משתמשים לשיוך לאירוע זה
-          </DialogDescription>
+          <DialogTitle className="text-xl font-bold">צוות משתמשים לאירוע</DialogTitle>
         </DialogHeader>
-
+        
         <div className="py-4">
-          <Input
-            placeholder="חיפוש לפי שם או אימייל..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="mb-4"
-          />
-
-          <div className="max-h-[60vh] overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]"></TableHead>
-                  <TableHead>שם</TableHead>
-                  <TableHead>תפקיד</TableHead>
-                  <TableHead>אימייל</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="cursor-pointer hover:bg-gray-50">
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedUsers.includes(user.id)}
-                        onCheckedChange={() => handleUserSelect(user.id)}
-                      />
-                    </TableCell>
-                    <TableCell
-                      className="flex items-center gap-2"
-                      onClick={() => handleUserSelect(user.id)}
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar_url || ""} />
+          {isLoading ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  בחר משתמשים לצוות לאירוע זה
+                </p>
+                <div className="text-sm text-muted-foreground">
+                  {selectedUsers.length} נבחרו
+                </div>
+              </div>
+              
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2">
+                {users.map((user) => (
+                  <div 
+                    key={user.id}
+                    className={`p-3 rounded-lg flex items-center justify-between cursor-pointer hover:bg-secondary/50 ${
+                      selectedUsers.includes(user.id) ? 'bg-secondary/50' : ''
+                    }`}
+                    onClick={() => handleUserSelect(user.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.avatar_url || ""} alt={user.name} />
                         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                       </Avatar>
-                      {user.name}
-                    </TableCell>
-                    <TableCell onClick={() => handleUserSelect(user.id)}>
-                      {user.role === "admin" && "מנהל"}
-                      {user.role === "coordinator" && "רכז"}
-                      {user.role === "youth_volunteer" && "מתנדב נוער"}
-                      {user.role === "service_girl" && "בת שירות"}
-                    </TableCell>
-                    <TableCell onClick={() => handleUserSelect(user.id)}>
-                      {user.email}
-                    </TableCell>
-                  </TableRow>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <Badge variant="outline" className="mt-1">
+                          {getRoleName(user.role)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      {selectedUsers.includes(user.id) ? (
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <UserRound className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
+              </div>
+            </>
+          )}
         </div>
-
-        <DialogFooter className="flex justify-between sm:justify-between">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={onClose}>
+            <X className="h-4 w-4 ml-1" />
             ביטול
           </Button>
-          <Button onClick={saveAssignments} disabled={loading}>
-            {loading ? "שומר..." : "שמור"}
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving && <Loader2 className="h-4 w-4 ml-1 animate-spin" />}
+            שמור שינויים
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
