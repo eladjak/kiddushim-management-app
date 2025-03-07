@@ -1,69 +1,96 @@
-# Welcome to your Lovable project
 
-## Project info
+# קידושישי - מערכת ניהול לארגון
 
-**URL**: https://lovable.dev/projects/d95e5909-8b2f-449f-95f0-7f8787132a8b
+## מידע על הפרויקט
 
-## How can I edit this code?
+מערכת קידושישי היא פלטפורמה לניהול ארגון התנדבותי שמאפשרת:
+- ניהול משתמשים ותפקידים (מנהלים, רכזים, מתנדבי נוער, בנות שירות)
+- ניהול אירועים וציוד
+- מערכת דיווחים ומשובים
+- עבודה מלאה בעברית עם תמיכה בכיוון RTL
 
-There are several ways of editing your application.
+**URL**: https://kidushishi-menegment-app.co.il
 
-**Use Lovable**
+## תכונות מרכזיות
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d95e5909-8b2f-449f-95f0-7f8787132a8b) and start prompting.
+- **מערכת הרשאות**: מנהלים, רכזים ומתנדבים עם הרשאות שונות
+- **ניהול אירועים**: יצירה, עריכה ומעקב אחר אירועים
+- **ניהול ציוד**: מעקב אחר ציוד, סטטוס ובקשות שינוי
+- **מערכת דיווחים**: דיווחי אירועים, תקלות ומשובים
+- **פרופיל משתמש**: עם תמיכה בהעלאת תמונת פרופיל
+- **תצוגה מותאמת לניידים**: ממשק משתמש רספונסיבי
 
-Changes made via Lovable will be committed automatically to this repo.
+## טכנולוגיות
 
-**Use your preferred IDE**
+הפרויקט נבנה באמצעות:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- React ו-TypeScript
+- Vite כסביבת פיתוח
+- Tailwind CSS לעיצוב
+- shadcn-ui לקומפוננטים
+- Supabase לאחסון נתונים, אימות ואחסון קבצים
+- React Query לניהול מצב הנתונים
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## התקנה והרצה מקומית
 
-Follow these steps:
+כדי להפעיל את הפרויקט באופן מקומי, בצע את הצעדים הבאים:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# שלב 1: שכפל את מאגר הקוד
+git clone https://github.com/eladjak/kidushishi-menegment-app.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# שלב 2: עבור לתיקיית הפרויקט
+cd kidushishi-menegment-app
 
-# Step 3: Install the necessary dependencies.
-npm i
+# שלב 3: התקן את הספריות הנדרשות
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# שלב 4: הפעל את שרת הפיתוח
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## פיתוח ותחזוקה
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### מבנה הפרויקט
 
-**Use GitHub Codespaces**
+- `src/components` - קומפוננטי React
+- `src/pages` - דפי האפליקציה
+- `src/hooks` - React Hooks מותאמים אישית
+- `src/context` - קונטקסט React (כולל ניהול אימות)
+- `src/lib` - פונקציות שירות
+- `src/integrations` - אינטגרציה עם Supabase
+- `src/utils` - פונקציות עזר
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### מאפיינים עיקריים
 
-## What technologies are used for this project?
+#### מערכת אימות
 
-This project is built with .
+מערכת האימות מבוססת על Supabase Auth ותומכת ב:
+- הרשמה וכניסה באמצעות אימייל וסיסמה
+- כניסה באמצעות Google
+- ניהול פרופיל משתמש
+- הרשאות מבוססות תפקידים
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+#### דיווחים ומשובים
 
-## How can I deploy this project?
+המערכת מאפשרת למשתמשים ליצור:
+- דיווחי אירועים עם דירוגים ותמונות
+- דיווחי תקלות עם רמות חומרה
+- משובים כלליים
 
-Simply open [Lovable](https://lovable.dev/projects/d95e5909-8b2f-449f-95f0-7f8787132a8b) and click on Share -> Publish.
+#### ניהול משתמשים
 
-## I want to use a custom domain - is that possible?
+מנהלי המערכת יכולים:
+- לראות את כל המשתמשים במערכת
+- לשנות תפקידים והרשאות
+- לעקוב אחר פעילות משתמשים
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## דרישות סביבה
+
+- Node.js (גרסה 14 ומעלה)
+- npm (גרסה 6 ומעלה)
+- דפדפן מודרני עם תמיכה ב-JavaScript
+
+## קרדיטים
+
+פותח על ידי ארגון קידושישי ©️ 2024

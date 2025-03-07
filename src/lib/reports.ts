@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
+import { Json } from "@/integrations/supabase/types";
 
 export const fetchReports = (toast: any) => async () => {
   try {
@@ -25,26 +25,28 @@ export const fetchReports = (toast: any) => async () => {
     const processedReports = reportsData?.map(report => {
       if (report.content && typeof report.content === 'object') {
         // Decode any encoded strings in the content
-        const decodedContent = { ...report.content };
+        const decodedContent: Record<string, any> = { ...report.content as Record<string, any> };
         
+        // Type-safe way to access content properties
         if (decodedContent.title) {
-          decodedContent.title = safeDecodeHebrew(decodedContent.title);
+          decodedContent.title = safeDecodeHebrew(String(decodedContent.title));
         }
         
         if (decodedContent.description) {
-          decodedContent.description = safeDecodeHebrew(decodedContent.description);
+          decodedContent.description = safeDecodeHebrew(String(decodedContent.description));
         }
         
         if (decodedContent.reporter_name) {
-          decodedContent.reporter_name = safeDecodeHebrew(decodedContent.reporter_name);
+          decodedContent.reporter_name = safeDecodeHebrew(String(decodedContent.reporter_name));
         }
         
-        if (decodedContent.feedback) {
-          if (decodedContent.feedback.positive) {
-            decodedContent.feedback.positive = safeDecodeHebrew(decodedContent.feedback.positive);
+        if (decodedContent.feedback && typeof decodedContent.feedback === 'object') {
+          const feedback = decodedContent.feedback as Record<string, any>;
+          if (feedback.positive) {
+            feedback.positive = safeDecodeHebrew(String(feedback.positive));
           }
-          if (decodedContent.feedback.improvement) {
-            decodedContent.feedback.improvement = safeDecodeHebrew(decodedContent.feedback.improvement);
+          if (feedback.improvement) {
+            feedback.improvement = safeDecodeHebrew(String(feedback.improvement));
           }
         }
         

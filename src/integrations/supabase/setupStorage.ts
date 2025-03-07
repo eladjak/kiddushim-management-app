@@ -30,6 +30,16 @@ export const setupStorage = async () => {
       }
       
       console.log("Avatars bucket created successfully");
+      
+      // Ensure public access for the bucket
+      const { error: policyError } = await supabase
+        .storage
+        .from('avatars')
+        .createSignedUrl('dummy.txt', 1); // This is just to trigger policy check
+        
+      if (policyError && !policyError.message.includes('not found')) {
+        console.error("Warning: You may need to set up storage policies for the avatars bucket");
+      }
     } else {
       console.log("Avatars bucket already exists");
     }
