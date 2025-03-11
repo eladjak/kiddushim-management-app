@@ -74,11 +74,17 @@ label {
 /* Fix Radix Dialog RTL issues */
 [data-radix-popper-content-wrapper] {
   direction: rtl !important;
+  background-color: white !important;
 }
 
 /* Fix Select component in RTL */
 .select-content {
   text-align: right !important;
+}
+
+/* Select dropdown background fix */
+[data-radix-select-content] {
+  background-color: white !important;
 }
 
 /* Image styling and adjustments */
@@ -105,6 +111,7 @@ img {
 [role="combobox"],
 [role="listbox"] {
   text-align: right;
+  background-color: white !important;
 }
 
 /* Animation adjustments for RTL */
