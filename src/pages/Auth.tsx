@@ -34,10 +34,11 @@ const Auth = () => {
         if (data.session) {
           // User is logged in, redirect to home
           navigate("/");
+        } else {
+          setIsLoading(false);
         }
       } catch (err) {
         console.error("Unexpected error checking user:", err);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -48,7 +49,7 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth page auth state changed:", event);
       
-      if (session && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
+      if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
         console.log("User signed in, redirecting to home");
         navigate("/");
       }

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
  */
 const AuthCallback = () => {
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -17,77 +18,60 @@ const AuthCallback = () => {
     // Handle the OAuth callback
     const handleAuthCallback = async () => {
       try {
-        console.log("Auth callback page loaded, checking session...");
+        console.log("Auth callback page loaded, extracting session from URL...");
         
-        // Get the current session
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        // The URL includes the access token and refresh token as hash parameters
+        // Supabase Auth will automatically extract these and establish the session
+        const { data, error } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Auth session error:", sessionError);
-          setError(sessionError.message);
+        if (error) {
+          console.error("Error getting session from URL:", error);
+          setError(error.message);
+          setIsProcessing(false);
           return;
         }
         
-        if (!sessionData.session) {
-          console.log("No session found, attempting to exchange code for session...");
-          
-          // Exchange auth code for session if needed (this step is usually handled automatically)
-          const { data: authData, error: authError } = await supabase.auth.getUser();
-          
-          if (authError) {
-            console.error("Auth data error:", authError);
-            setError(authError.message);
-            return;
-          }
-          
-          if (!authData.user) {
-            console.error("Auth callback completed but no user found");
-            setError("לא ניתן לאמת את ההתחברות. אנא נסה שוב.");
-            return;
-          }
-        }
-        
-        // Recheck session after exchange
-        const { data: finalSessionData, error: finalSessionError } = await supabase.auth.getSession();
-        
-        if (finalSessionError) {
-          console.error("Final session error:", finalSessionError);
-          setError(finalSessionError.message);
+        if (!data.session) {
+          console.error("No session found in callback URL");
+          setError("לא ניתן למצוא פרטי משתמש בקישור. אנא נסה להתחבר שוב.");
+          setIsProcessing(false);
           return;
         }
         
-        // If we have a session, check if user should be an admin
-        if (finalSessionData.session?.user) {
-          console.log("User authenticated:", finalSessionData.session.user.email);
-          toast({
-            description: "התחברת בהצלחה!",
-          });
+        console.log("Successfully established session for user:", data.session.user.email);
+        
+        // Get user profile
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, role")
+          .eq("id", data.session.user.id)
+          .single();
           
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("id, role")
-            .eq("id", finalSessionData.session.user.id)
-            .single();
-            
-          if (profileData) {
-            await checkAndSetAdminStatus(
-              finalSessionData.session.user.email || "",
-              profileData.id,
-              profileData.role,
-              toast
-            );
-          }
-        } else {
-          console.error("Auth callback completed but session is missing");
-          setError("ההתחברות הושלמה, אך לא ניתן למצוא את נתוני המשתמש. אנא נסה שוב.");
-          return;
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error fetching profile:", profileError);
+          // Continue anyway - the trigger should create the profile
+        }
+        
+        // Check admin status if we have a profile
+        if (profileData) {
+          await checkAndSetAdminStatus(
+            data.session.user.email || "",
+            profileData.id,
+            profileData.role,
+            toast
+          );
         }
         
         // Successfully authenticated, redirect to home
+        toast({
+          description: "התחברת בהצלחה!",
+        });
+        
         navigate("/");
       } catch (err: any) {
         console.error("Unexpected auth callback error:", err);
         setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
+        setIsProcessing(false);
       }
     };
 

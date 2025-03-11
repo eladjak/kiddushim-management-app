@@ -21,13 +21,14 @@ export const GoogleAuthButton = () => {
     try {
       setIsLoading(true);
       
-      // Store the current URL to return after authentication
-      const currentUrl = window.location.origin;
-      const redirectUrl = `${currentUrl}/auth/callback`;
+      // Create full app URL for redirect
+      const origin = window.location.origin;
+      const callbackPath = "/auth/callback";
+      const redirectUrl = `${origin}${callbackPath}`;
       
       console.log('Redirect URL:', redirectUrl);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
@@ -35,6 +36,7 @@ export const GoogleAuthButton = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
+          skipBrowserRedirect: false, // Ensure browser redirects properly
         },
       });
       
@@ -43,7 +45,7 @@ export const GoogleAuthButton = () => {
         throw error;
       }
       
-      console.log('Google auth initiated');
+      console.log('Google auth initiated successfully:', data);
       toast({
         description: "מועבר להתחברות עם Google...",
       });
@@ -53,7 +55,7 @@ export const GoogleAuthButton = () => {
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       
       if (error.message && error.message.includes("redirect_uri_mismatch")) {
-        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת הבאה מוגדרת ב-Google Cloud Console: ${window.location.origin}/auth/callback`;
+        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת ${window.location.origin}/auth/callback מוגדרת ב-Google Cloud Console`;
       }
       
       toast({

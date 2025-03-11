@@ -55,12 +55,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         console.log("Session check result:", data.session ? "Session found" : "No session");
         
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
-        
-        if (data.session?.user) {
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
           await fetchProfile(data.session.user.id);
         } else {
+          setSession(null);
+          setUser(null);
           setProfile(null);
           setIsLoading(false);
         }
@@ -76,12 +77,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log("Auth state changed:", event, newSession ? "With session" : "No session");
       
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      
-      if (newSession?.user) {
+      if (newSession) {
+        setSession(newSession);
+        setUser(newSession.user);
         await fetchProfile(newSession.user.id);
       } else {
+        setSession(null);
+        setUser(null);
         setProfile(null);
         setIsLoading(false);
       }
@@ -101,8 +103,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          console.log("Profile not found, it may be created by the trigger soon");
+          // Wait a moment and try again
+          setTimeout(async () => {
+            const { data: retryData, error: retryError } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", userId)
+              .single();
+              
+            if (!retryError) {
+              console.log("Profile fetched on retry:", retryData);
+              setProfile(retryData);
+            } else {
+              console.error("Error fetching profile on retry:", retryError);
+            }
+            setIsLoading(false);
+          }, 2000);
+          return;
+        }
+        
         console.error("Error fetching profile:", error);
-        throw error;
+        setIsLoading(false);
+        return;
       }
 
       console.log("Profile fetched:", data ? "Profile found" : "No profile found");
@@ -118,9 +142,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       setProfile(data);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching profile:", error);
-    } finally {
       setIsLoading(false);
     }
   };
