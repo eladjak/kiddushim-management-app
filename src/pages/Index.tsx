@@ -22,7 +22,7 @@ const Index = () => {
   const log = logger.createLogger({ component: 'IndexPage' });
 
   // Fetch data for authenticated users
-  const { data: events, isLoading: eventsLoading } = useEvents(user?.id);
+  const { data: events = [], isLoading: eventsLoading } = useEvents(user?.id);
   const { data: assignments, isLoading: assignmentsLoading } = useAssignments(user?.id);
   const { data: notifications, isLoading: notificationsLoading } = useNotifications(user?.id);
 

@@ -221,6 +221,7 @@ export type Database = {
           location_coordinates: Json | null
           location_name: string
           main_time: string
+          parasha: string | null
           required_service_girls: number | null
           required_youth_volunteers: number | null
           setup_time: string
@@ -239,6 +240,7 @@ export type Database = {
           location_coordinates?: Json | null
           location_name: string
           main_time: string
+          parasha?: string | null
           required_service_girls?: number | null
           required_youth_volunteers?: number | null
           setup_time: string
@@ -257,6 +259,7 @@ export type Database = {
           location_coordinates?: Json | null
           location_name?: string
           main_time?: string
+          parasha?: string | null
           required_service_girls?: number | null
           required_youth_volunteers?: number | null
           setup_time?: string
