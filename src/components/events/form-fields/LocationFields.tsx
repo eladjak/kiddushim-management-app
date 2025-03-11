@@ -1,7 +1,11 @@
 
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { MapPin } from "lucide-react";
+import { MapPin, Map as MapIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import LocationMap from "@/components/maps/LocationMap";
 
 interface LocationFieldsProps {
   formData: {
@@ -12,6 +16,9 @@ interface LocationFieldsProps {
 }
 
 export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [mapCoordinates, setMapCoordinates] = useState<{lat: number; lng: number; address: string} | null>(null);
+
   const getGoogleMapsUrl = (address: string) => {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   };
@@ -22,6 +29,24 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
 
   const getMoovitUrl = (address: string) => {
     return `https://moovit.com/?to=${encodeURIComponent(address)}&tll=32.0853_34.7818&customerId=4908&metroId=1&lang=he`;
+  };
+
+  const showOnMap = () => {
+    setMapDialogOpen(true);
+  };
+
+  const handleLocationSelect = (location: {lat: number; lng: number; address: string}) => {
+    setMapCoordinates(location);
+    
+    // Create a synthetic event to update the parent form
+    const event = {
+      target: {
+        name: 'locationAddress',
+        value: location.address
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onChange(event);
   };
 
   return (
@@ -40,14 +65,26 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
       
       <div className="space-y-2">
         <Label htmlFor="locationAddress">כתובת מלאה</Label>
-        <Input 
-          id="locationAddress" 
-          name="locationAddress" 
-          value={formData.locationAddress} 
-          onChange={onChange} 
-          required 
-          placeholder="הזן כתובת מלאה"
-        />
+        <div className="flex gap-2">
+          <Input 
+            id="locationAddress" 
+            name="locationAddress" 
+            value={formData.locationAddress} 
+            onChange={onChange} 
+            required 
+            placeholder="הזן כתובת מלאה"
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="icon" 
+            onClick={showOnMap}
+            title="הצג על המפה"
+          >
+            <MapIcon className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       
       {formData.locationAddress && (
@@ -84,6 +121,21 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
           </div>
         </div>
       )}
+
+      <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
+        <DialogContent className="sm:max-w-[800px] h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>בחר מיקום במפה</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 h-full min-h-[400px]">
+            <LocationMap 
+              address={formData.locationAddress} 
+              value={mapCoordinates || undefined}
+              onChange={handleLocationSelect}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

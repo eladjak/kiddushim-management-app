@@ -14,7 +14,8 @@ import { PosterUploadField } from "./form-fields/PosterUploadField";
 import { ParashaField, PredefinedEvent } from "./form-fields/ParashaField";
 import { EventContentField } from "./form-fields/EventContentField";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { v4 as uuidv4 } from "uuid";
+import { logger } from "@/utils/logger";
+import { safeEncodeHebrew } from "@/integrations/supabase/setupStorage";
 
 export const CreateEventForm = () => {
   const { user } = useAuth();
@@ -99,34 +100,51 @@ export const CreateEventForm = () => {
     setIsLoading(true);
     
     try {
+      logger.info("Creating event", { formData });
+      
       // Parse input dates
       const eventDate = new Date(formData.date);
       const setupTime = new Date(`${formData.date}T${formData.setupTime}:00`);
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
       
-      const { error } = await supabase
+      // Encode Hebrew text fields
+      const encodedTitle = safeEncodeHebrew(formData.title);
+      const encodedLocationName = safeEncodeHebrew(formData.locationName);
+      const encodedLocationAddress = safeEncodeHebrew(formData.locationAddress);
+      const encodedParasha = safeEncodeHebrew(formData.parasha);
+      const encodedFacilitator = safeEncodeHebrew(formData.facilitator);
+      const encodedWorkshopContent = safeEncodeHebrew(formData.workshopContent);
+      const encodedEventContent = safeEncodeHebrew(formData.eventContent);
+      
+      const { data, error } = await supabase
         .from("events")
         .insert({
-          title: formData.title,
+          title: encodedTitle,
           date: eventDate.toISOString(),
           setup_time: setupTime.toISOString(),
           main_time: mainTime.toISOString(),
           cleanup_time: cleanupTime.toISOString(),
-          location_name: formData.locationName,
-          location_address: formData.locationAddress,
+          location_name: encodedLocationName,
+          location_address: encodedLocationAddress,
           required_service_girls: formData.requiredServiceGirls,
           required_youth_volunteers: formData.requiredYouthVolunteers,
           poster_url: posterUrl,
-          parasha: formData.parasha,
-          facilitator: formData.facilitator,
-          workshop_content: formData.workshopContent,
-          event_content: formData.eventContent,
+          parasha: encodedParasha,
+          facilitator: encodedFacilitator,
+          workshop_content: encodedWorkshopContent,
+          event_content: encodedEventContent,
           created_by: user.id,
           status: "draft",
-        });
+        })
+        .select();
         
-      if (error) throw error;
+      if (error) {
+        logger.error("Error creating event", { error });
+        throw error;
+      }
+      
+      logger.info("Event created successfully", { eventId: data?.[0]?.id });
       
       toast({
         description: "האירוע נוצר בהצלחה",
@@ -135,6 +153,8 @@ export const CreateEventForm = () => {
       navigate("/events");
       
     } catch (error: any) {
+      logger.error("Failed to create event", { error });
+      
       toast({
         variant: "destructive",
         description: error.message || "אירעה שגיאה ביצירת האירוע",

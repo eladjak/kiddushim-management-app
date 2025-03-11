@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
+import { safeDecodeHebrew, safeEncodeHebrew } from "@/integrations/supabase/setupStorage";
 import { Json } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 export const fetchReports = (toast: any) => async () => {
   try {
@@ -53,13 +54,18 @@ export const fetchReports = (toast: any) => async () => {
         return { ...report, content: decodedContent };
       }
       
+      // For events relation, decode titles
+      if (report.events && report.events.title) {
+        report.events.title = safeDecodeHebrew(report.events.title);
+      }
+      
       return report;
     });
 
     // Return the combined data
     return processedReports || [];
   } catch (error: any) {
-    console.error('Error fetching reports:', error);
+    logger.error('Error fetching reports:', { error });
     toast({
       variant: "destructive",
       description: `שגיאה בטעינת הדיווחים: ${error.message}`,
@@ -98,7 +104,26 @@ export const getReportSeverityText = (severity: string) => {
 };
 
 // Helper function to safely encode Hebrew for storage
-export const encodeContentForStorage = (content: string): string => {
-  if (!content) return '';
-  return encodeURIComponent(content);
+export const encodeContentForStorage = (content: Record<string, any>): Record<string, any> => {
+  if (!content) return {};
+  
+  const encodedContent: Record<string, any> = {};
+  
+  // Process each key in the content object
+  Object.entries(content).forEach(([key, value]) => {
+    // Handle nested objects like feedback
+    if (typeof value === 'object' && value !== null) {
+      encodedContent[key] = encodeContentForStorage(value);
+    } 
+    // Handle string values that need encoding
+    else if (typeof value === 'string') {
+      encodedContent[key] = safeEncodeHebrew(value);
+    } 
+    // Keep other types as is
+    else {
+      encodedContent[key] = value;
+    }
+  });
+  
+  return encodedContent;
 };
