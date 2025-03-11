@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { setupStorage } from "@/integrations/supabase/setupStorage";
-import type { User } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +10,7 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 type AuthContextType = {
   user: User | null;
+  session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
   updateAvatar: (avatarUrl: string) => Promise<void>;
@@ -17,6 +18,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  session: null,
   profile: null,
   isLoading: true,
   updateAvatar: async () => {},
@@ -24,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -37,21 +40,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    console.log("Auth provider initialized, checking for session...");
+    
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log("Session check result:", data.session ? "Session found" : "No session");
+        
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        
+        if (data.session?.user) {
+          await fetchProfile(data.session.user.id);
+        } else {
+          setProfile(null);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error("Unexpected error checking session:", err);
         setIsLoading(false);
       }
-    });
+    };
+    
+    checkSession();
 
     // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("Auth state changed:", event, newSession ? "With session" : "No session");
+      
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      
+      if (newSession?.user) {
+        await fetchProfile(newSession.user.id);
       } else {
         setProfile(null);
         setIsLoading(false);
@@ -63,14 +92,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
 
+      console.log("Profile fetched:", data ? "Profile found" : "No profile found");
+      
       // Update profile with Google avatar if available and profile doesn't have one
       if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
         const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
@@ -91,12 +127,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateProfileWithGoogleAvatar = async (userId: string, avatarUrl: string) => {
     try {
+      console.log("Updating profile with Google avatar");
+      
       const { error } = await supabase
         .from("profiles")
         .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
         .eq("id", userId);
 
       if (error) throw error;
+      
+      console.log("Profile updated with Google avatar");
     } catch (error) {
       console.error("Error updating profile with Google avatar:", error);
     }
@@ -132,7 +172,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, updateAvatar }}>
+    <AuthContext.Provider value={{ user, session, profile, isLoading, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

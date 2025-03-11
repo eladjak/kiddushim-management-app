@@ -17,37 +17,77 @@ const AuthCallback = () => {
     // Handle the OAuth callback
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        console.log("Auth callback page loaded, checking session...");
         
-        if (error) {
-          console.error("Auth callback error:", error);
-          setError(error.message);
+        // Get the current session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Auth session error:", sessionError);
+          setError(sessionError.message);
+          return;
+        }
+        
+        if (!sessionData.session) {
+          console.log("No session found, attempting to exchange code for session...");
+          
+          // Exchange auth code for session if needed (this step is usually handled automatically)
+          const { data: authData, error: authError } = await supabase.auth.getUser();
+          
+          if (authError) {
+            console.error("Auth data error:", authError);
+            setError(authError.message);
+            return;
+          }
+          
+          if (!authData.user) {
+            console.error("Auth callback completed but no user found");
+            setError("לא ניתן לאמת את ההתחברות. אנא נסה שוב.");
+            return;
+          }
+        }
+        
+        // Recheck session after exchange
+        const { data: finalSessionData, error: finalSessionError } = await supabase.auth.getSession();
+        
+        if (finalSessionError) {
+          console.error("Final session error:", finalSessionError);
+          setError(finalSessionError.message);
           return;
         }
         
         // If we have a session, check if user should be an admin
-        if (data.session?.user) {
+        if (finalSessionData.session?.user) {
+          console.log("User authenticated:", finalSessionData.session.user.email);
+          toast({
+            description: "התחברת בהצלחה!",
+          });
+          
           const { data: profileData } = await supabase
             .from("profiles")
             .select("id, role")
-            .eq("id", data.session.user.id)
+            .eq("id", finalSessionData.session.user.id)
             .single();
             
           if (profileData) {
             await checkAndSetAdminStatus(
-              data.session.user.email,
+              finalSessionData.session.user.email || "",
               profileData.id,
               profileData.role,
               toast
             );
           }
+        } else {
+          console.error("Auth callback completed but session is missing");
+          setError("ההתחברות הושלמה, אך לא ניתן למצוא את נתוני המשתמש. אנא נסה שוב.");
+          return;
         }
         
         // Successfully authenticated, redirect to home
         navigate("/");
       } catch (err: any) {
         console.error("Unexpected auth callback error:", err);
-        setError(err.message || "An unexpected error occurred");
+        setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
       }
     };
 

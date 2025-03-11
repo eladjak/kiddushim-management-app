@@ -18,20 +18,38 @@ const Auth = () => {
     // Check if user is already logged in
     const checkUser = async () => {
       setIsLoading(true);
-      const { data } = await supabase.auth.getSession();
+      console.log("Auth page: Checking if user is already logged in");
       
-      if (data.session) {
-        navigate("/");
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error checking session:", error);
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log("Auth page session check:", data.session ? "User is logged in" : "No active session");
+        
+        if (data.session) {
+          // User is logged in, redirect to home
+          navigate("/");
+        }
+      } catch (err) {
+        console.error("Unexpected error checking user:", err);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
     checkUser();
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth page auth state changed:", event);
+      
       if (session && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
+        console.log("User signed in, redirecting to home");
         navigate("/");
       }
     });
