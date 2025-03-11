@@ -1,11 +1,11 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MapPin, Map as MapIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import LocationMap from "@/components/maps/LocationMap";
+import { logger } from "@/utils/logger";
 
 interface LocationFieldsProps {
   formData: {
@@ -37,6 +37,7 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
 
   const handleLocationSelect = (location: {lat: number; lng: number; address: string}) => {
     setMapCoordinates(location);
+    logger.info("Location selected", { location });
     
     // Create a synthetic event to update the parent form
     const event = {
@@ -47,6 +48,7 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
     } as React.ChangeEvent<HTMLInputElement>;
     
     onChange(event);
+    setMapDialogOpen(false);
   };
 
   return (

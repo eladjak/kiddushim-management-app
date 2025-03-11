@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +14,6 @@ import { ParashaField, PredefinedEvent } from "./form-fields/ParashaField";
 import { EventContentField } from "./form-fields/EventContentField";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { logger } from "@/utils/logger";
-import { safeEncodeHebrew } from "@/integrations/supabase/setupStorage";
 
 export const CreateEventForm = () => {
   const { user } = useAuth();
@@ -108,32 +106,23 @@ export const CreateEventForm = () => {
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
       
-      // Encode Hebrew text fields
-      const encodedTitle = safeEncodeHebrew(formData.title);
-      const encodedLocationName = safeEncodeHebrew(formData.locationName);
-      const encodedLocationAddress = safeEncodeHebrew(formData.locationAddress);
-      const encodedParasha = safeEncodeHebrew(formData.parasha);
-      const encodedFacilitator = safeEncodeHebrew(formData.facilitator);
-      const encodedWorkshopContent = safeEncodeHebrew(formData.workshopContent);
-      const encodedEventContent = safeEncodeHebrew(formData.eventContent);
-      
       const { data, error } = await supabase
         .from("events")
         .insert({
-          title: encodedTitle,
+          title: formData.title,
           date: eventDate.toISOString(),
           setup_time: setupTime.toISOString(),
           main_time: mainTime.toISOString(),
           cleanup_time: cleanupTime.toISOString(),
-          location_name: encodedLocationName,
-          location_address: encodedLocationAddress,
+          location_name: formData.locationName,
+          location_address: formData.locationAddress,
           required_service_girls: formData.requiredServiceGirls,
           required_youth_volunteers: formData.requiredYouthVolunteers,
           poster_url: posterUrl,
-          parasha: encodedParasha,
-          facilitator: encodedFacilitator,
-          workshop_content: encodedWorkshopContent,
-          event_content: encodedEventContent,
+          parasha: formData.parasha,
+          facilitator: formData.facilitator,
+          workshop_content: formData.workshopContent,
+          event_content: formData.eventContent,
           created_by: user.id,
           status: "draft",
         })
