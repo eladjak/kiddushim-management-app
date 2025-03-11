@@ -12,7 +12,7 @@ export const useEvents = (userId?: string) => {
       try {
         const { data, error } = await supabase
           .from('events')
-          .select('*')
+          .select('id, title, main_time, location_name, date, status, parasha')
           .order('main_time', { ascending: true })
           .limit(6);
         

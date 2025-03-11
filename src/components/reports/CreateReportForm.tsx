@@ -33,20 +33,27 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
   
   const { reportFormSchema, defaultValues, getReportTypeName, submitReport } = useReportForm();
   
-  // Fetch events for the report form
+  // Fetch events for the report form with more details
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, main_time, location_name')
+        .select('id, title, main_time, location_name, date, status, parasha')
         .order('main_time', { ascending: true });
       
       if (error) {
         throw error;
       }
       
-      return data || [];
+      // Filter out past events (events before today)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      return (data || []).filter(event => {
+        const eventDate = new Date(event.main_time);
+        return eventDate >= today;
+      });
     },
   });
   
