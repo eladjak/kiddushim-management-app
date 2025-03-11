@@ -1,5 +1,6 @@
 
 import { supabase } from './client';
+import { logger } from '@/utils/logger';
 
 export const setupStorage = async () => {
   try {
@@ -9,7 +10,7 @@ export const setupStorage = async () => {
       .listBuckets();
 
     if (bucketsError) {
-      console.error("Error listing buckets:", bucketsError);
+      logger.error("Error listing buckets:", { error: bucketsError });
       return false;
     }
 
@@ -20,7 +21,7 @@ export const setupStorage = async () => {
     // Create any missing buckets
     for (const bucketName of requiredBuckets) {
       if (!existingBuckets.includes(bucketName)) {
-        console.log(`Creating bucket: ${bucketName}`);
+        logger.info(`Creating bucket: ${bucketName}`);
         try {
           const { error: createError } = await supabase
             .storage
@@ -30,30 +31,29 @@ export const setupStorage = async () => {
             });
 
           if (createError) {
-            console.error(`Error creating bucket ${bucketName}:`, createError);
+            logger.error(`Error creating bucket ${bucketName}:`, { error: createError });
           } else {
-            console.log(`${bucketName} bucket created successfully`);
+            logger.info(`${bucketName} bucket created successfully`);
           }
         } catch (err) {
-          console.error(`Failed to create bucket ${bucketName}:`, err);
+          logger.error(`Failed to create bucket ${bucketName}:`, { error: err });
         }
       } else {
-        console.log(`${bucketName} bucket already exists`);
+        logger.info(`${bucketName} bucket already exists`);
       }
     }
 
     return true;
   } catch (error) {
-    console.error("Error setting up storage:", error);
+    logger.error("Error setting up storage:", { error });
     return false;
   }
 };
 
 // Helper function to safely encode Hebrew text for storage
 export const safeEncodeHebrew = (text: string): string => {
-  // Instead of using btoa which fails with non-Latin characters,
-  // we use encodeURIComponent which handles Unicode characters properly
   if (!text) return '';
+  // Use encodeURIComponent which properly handles Unicode characters
   return encodeURIComponent(text);
 };
 
@@ -63,7 +63,7 @@ export const safeDecodeHebrew = (encodedText: string): string => {
   try {
     return decodeURIComponent(encodedText);
   } catch (e) {
-    console.error("Error decoding text:", e);
+    logger.error("Error decoding text:", { error: e });
     return encodedText; // Return as-is if decoding fails
   }
 };
