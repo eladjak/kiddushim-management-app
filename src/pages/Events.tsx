@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { CreateEventForm } from "@/components/events/CreateEventForm";
@@ -9,19 +9,14 @@ import { Image } from "@/components/ui/image";
 import { Footer } from "@/components/layout/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { he } from "date-fns/locale";
-import { specialDates } from "@/data/eventCalendar"; // Updated import path
-import {
-  Alert,
-  AlertDescription,
-} from "@/components/ui/alert";
+import { EventsList } from "@/components/events/EventsList";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { specialDates } from "@/data/eventCalendar";
 
 const Events = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -48,31 +43,6 @@ const Events = () => {
     },
   });
   
-  // Group events by month
-  const eventsByMonth: Record<string, any[]> = {};
-  events.forEach(event => {
-    const date = new Date(event.main_time);
-    const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
-    if (!eventsByMonth[monthKey]) {
-      eventsByMonth[monthKey] = [];
-    }
-    eventsByMonth[monthKey].push(event);
-  });
-  
-  // Sort months chronologically
-  const sortedMonthKeys = Object.keys(eventsByMonth).sort();
-  
-  // Check if a date is in a break period
-  const isDateInBreakPeriod = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return specialDates.breakPeriods.some(period => {
-      const startDate = new Date(period.startDate);
-      const endDate = new Date(period.endDate);
-      return date >= startDate && date <= endDate;
-    });
-  };
-  
-  // Check if there are upcoming events
   const hasEvents = events.length > 0;
   
   return (
@@ -180,88 +150,7 @@ const Events = () => {
               </AccordionItem>
             </Accordion>
             
-            {sortedMonthKeys.map(monthKey => {
-              const monthEvents = eventsByMonth[monthKey];
-              const firstEventDate = new Date(monthEvents[0].main_time);
-              const monthLabel = format(firstEventDate, 'MMMM yyyy', { locale: he });
-              
-              return (
-                <div key={monthKey} className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-semibold mb-4 pb-2 border-b">{monthLabel}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {monthEvents.map(event => {
-                      const isInBreakPeriod = isDateInBreakPeriod(event.main_time);
-                      
-                      return (
-                        <div 
-                          key={event.id} 
-                          className={`p-4 rounded-md border ${
-                            isInBreakPeriod 
-                              ? 'border-red-200 bg-red-50' 
-                              : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
-                          } transition-colors`}
-                        >
-                          <div className="text-right">
-                            <div className="text-sm text-accent font-medium mb-2">
-                              {format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he })}
-                              {isInBreakPeriod && (
-                                <span className="text-red-600 mr-2 font-bold">(בתקופת הפסקה)</span>
-                              )}
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2">{event.title}</h3>
-                            
-                            {event.parasha && (
-                              <div className="text-sm text-gray-700 mb-1">פרשת {event.parasha}</div>
-                            )}
-                            
-                            <p className="text-sm text-gray-600 mb-4">{event.location_name}</p>
-                            
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                event.status === 'published' ? 'bg-green-100 text-green-800' : 
-                                event.status === 'draft' ? 'bg-gray-100 text-gray-800' : 
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {event.status === 'published' ? 'פורסם' : 
-                                event.status === 'draft' ? 'טיוטה' : 
-                                'ממתין לאישור'}
-                              </span>
-                              
-                              {event.setup_time && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                                  הכנה: {format(new Date(event.setup_time), "HH:mm", { locale: he })}
-                                </span>
-                              )}
-                              
-                              {event.main_time && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                                  התחלה: {format(new Date(event.main_time), "HH:mm", { locale: he })}
-                                </span>
-                              )}
-                              
-                              {event.cleanup_time && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
-                                  סיום: {format(new Date(event.cleanup_time), "HH:mm", { locale: he })}
-                                </span>
-                              )}
-                            </div>
-                            
-                            <div className="flex justify-end space-x-4 rtl:space-x-reverse">
-                              <Button variant="outline" size="sm">
-                                פרטים נוספים
-                              </Button>
-                              <Button size="sm" disabled={isInBreakPeriod}>
-                                הרשמה לאירוע
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+            <EventsList events={events} />
           </div>
         )}
       </main>

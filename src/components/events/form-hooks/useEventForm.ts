@@ -116,13 +116,13 @@ export const useEventForm = () => {
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
 
       // Safely encode Hebrew text fields
-      const safeTitle = encodeURIComponent(formData.title);
-      const safeLocationName = encodeURIComponent(formData.locationName);
-      const safeLocationAddress = encodeURIComponent(formData.locationAddress);
-      const safeParasha = formData.parasha ? encodeURIComponent(formData.parasha) : null;
-      const safeFacilitator = formData.facilitator ? encodeURIComponent(formData.facilitator) : null;
-      const safeWorkshopContent = formData.workshopContent ? encodeURIComponent(formData.workshopContent) : null;
-      const safeEventContent = formData.eventContent ? encodeURIComponent(formData.eventContent) : null;
+      const safeTitle = safeEncodeHebrew(formData.title);
+      const safeLocationName = safeEncodeHebrew(formData.locationName);
+      const safeLocationAddress = safeEncodeHebrew(formData.locationAddress);
+      const safeParasha = formData.parasha ? safeEncodeHebrew(formData.parasha) : null;
+      const safeFacilitator = formData.facilitator ? safeEncodeHebrew(formData.facilitator) : null;
+      const safeWorkshopContent = formData.workshopContent ? safeEncodeHebrew(formData.workshopContent) : null;
+      const safeEventContent = formData.eventContent ? safeEncodeHebrew(formData.eventContent) : null;
       
       const { data, error } = await supabase
         .from("events")
