@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        log.info("Session check result:", data.session ? "Session found" : "No session");
+        log.info("Session check result:", { hasSession: !!data.session });
         
         if (data.session) {
           setSession(data.session);
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      log.info("Auth state changed:", event, newSession ? "With session" : "No session");
+      log.info("Auth state changed:", { event, hasSession: !!newSession });
       
       if (newSession) {
         setSession(newSession);
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      log.info("Fetching profile for user:", userId);
+      log.info("Fetching profile for user:", { userId });
       
       const { data, error } = await supabase
         .from("profiles")
@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .single();
               
             if (!retryError) {
-              log.info("Profile fetched on retry:", retryData ? "Profile found" : "No profile found");
+              log.info("Profile fetched on retry:", { profileFound: !!retryData });
               setProfile(retryData);
             } else {
               log.error("Error fetching profile on retry:", { error: retryError });
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      log.info("Profile fetched:", data ? "Profile found" : "No profile found");
+      log.info("Profile fetched:", { profileFound: !!data });
       
       // Update profile with Google avatar if available and profile doesn't have one
       if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateProfileWithGoogleAvatar = async (userId: string, avatarUrl: string) => {
     try {
-      console.log("Updating profile with Google avatar");
+      log.info("Updating profile with Google avatar");
       
       const { error } = await supabase
         .from("profiles")
@@ -162,9 +162,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
       
-      console.log("Profile updated with Google avatar");
+      log.info("Profile updated with Google avatar");
     } catch (error) {
-      console.error("Error updating profile with Google avatar:", error);
+      log.error("Error updating profile with Google avatar:", { error });
     }
   };
 

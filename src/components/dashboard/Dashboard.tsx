@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/layout/Footer";
@@ -12,11 +12,51 @@ export const Dashboard = () => {
   const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'Dashboard' });
   
+  // Add state for dashboard data
+  const [dashboardData, setDashboardData] = useState({
+    isLoading: {
+      events: true,
+      assignments: true,
+      notifications: true
+    },
+    events: null,
+    eventsCount: null,
+    assignmentsCount: null,
+    notificationsCount: null,
+    isAllDataLoaded: false
+  });
+  
   useEffect(() => {
     log.info("Dashboard loaded", { 
       userId: user?.id,
       role: profile?.role 
     });
+    
+    // Simulate loading dashboard data
+    const loadDashboardData = async () => {
+      try {
+        // In a real app, you would fetch actual data here
+        // This is just a placeholder for demonstration
+        setTimeout(() => {
+          setDashboardData({
+            isLoading: {
+              events: false,
+              assignments: false,
+              notifications: false
+            },
+            events: [],
+            eventsCount: 0,
+            assignmentsCount: 0,
+            notificationsCount: 0,
+            isAllDataLoaded: true
+          });
+        }, 1000);
+      } catch (error) {
+        log.error("Error loading dashboard data", { error });
+      }
+    };
+    
+    loadDashboardData();
   }, [user, profile]);
 
   return (
@@ -29,15 +69,23 @@ export const Dashboard = () => {
             שלום {profile?.name || 'משתמש'}
           </h1>
           
-          <StatusBanner />
+          <StatusBanner isAllDataLoaded={dashboardData.isAllDataLoaded} />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <div className="lg:col-span-2">
-              <UpcomingEvents />
+              <UpcomingEvents 
+                events={dashboardData.events} 
+                isLoading={dashboardData.isLoading.events} 
+              />
             </div>
             
             <div>
-              <QuickActions />
+              <QuickActions 
+                eventsCount={dashboardData.eventsCount}
+                assignmentsCount={dashboardData.assignmentsCount}
+                notificationsCount={dashboardData.notificationsCount}
+                isLoading={dashboardData.isLoading}
+              />
             </div>
           </div>
         </div>

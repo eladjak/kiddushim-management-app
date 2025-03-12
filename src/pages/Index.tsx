@@ -23,7 +23,7 @@ const Index = () => {
         // Give the auth system a moment to stabilize
         setTimeout(() => {
           setLoading(false);
-        }, 300);
+        }, 1000); // Increased timeout to ensure auth is fully processed
         
       } catch (error) {
         log.error("Error initializing index page", { error });
@@ -44,6 +44,7 @@ const Index = () => {
     }
   }, [loading, authLoading, user]);
 
+  // Show loading state while authentication is in progress
   if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -53,13 +54,13 @@ const Index = () => {
   }
 
   // User is authenticated, show the dashboard
-  if (user && profile) {
-    console.log("Rendering dashboard for authenticated user");
+  if (user) {
+    log.info("Rendering dashboard for authenticated user");
     return <Dashboard />;
   }
 
   // User not authenticated, show welcome screen
-  console.log("Rendering welcome screen for unauthenticated user");
+  log.info("Rendering welcome screen for unauthenticated user");
   return <WelcomeScreen />;
 };
 
