@@ -71,7 +71,7 @@ export const reverseGeocode = async (
 };
 
 // Initialize map configuration options
-export const getMapOptions = (coordinates: { lat: number; lng: number } | null): mapboxgl.MapOptions => {
+export const getMapOptions = (coordinates: { lat: number; lng: number } | null): Omit<mapboxgl.MapOptions, 'container'> => {
   return {
     style: 'mapbox://styles/mapbox/streets-v12',
     center: coordinates ? [coordinates.lng, coordinates.lat] : [34.7818, 32.0853], // Default to Tel Aviv
