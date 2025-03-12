@@ -105,24 +105,30 @@ export const CreateEventForm = () => {
       const setupTime = new Date(`${formData.date}T${formData.setupTime}:00`);
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
+
+      // Safely encode Hebrew text fields
+      const safeTitle = safeEncodeHebrew(formData.title);
+      const safeLocationName = safeEncodeHebrew(formData.locationName);
+      const safeLocationAddress = safeEncodeHebrew(formData.locationAddress);
+      const safeParasha = formData.parasha ? safeEncodeHebrew(formData.parasha) : null;
       
       const { data, error } = await supabase
         .from("events")
         .insert({
-          title: formData.title,
+          title: safeTitle,
           date: eventDate.toISOString(),
           setup_time: setupTime.toISOString(),
           main_time: mainTime.toISOString(),
           cleanup_time: cleanupTime.toISOString(),
-          location_name: formData.locationName,
-          location_address: formData.locationAddress,
+          location_name: safeLocationName,
+          location_address: safeLocationAddress,
           required_service_girls: formData.requiredServiceGirls,
           required_youth_volunteers: formData.requiredYouthVolunteers,
           poster_url: posterUrl,
-          parasha: formData.parasha,
-          facilitator: formData.facilitator,
-          workshop_content: formData.workshopContent,
-          event_content: formData.eventContent,
+          parasha: safeParasha,
+          facilitator: formData.facilitator ? safeEncodeHebrew(formData.facilitator) : null,
+          workshop_content: formData.workshopContent ? safeEncodeHebrew(formData.workshopContent) : null,
+          event_content: formData.eventContent ? safeEncodeHebrew(formData.eventContent) : null,
           created_by: user.id,
           status: "draft",
         })
@@ -279,3 +285,10 @@ export const CreateEventForm = () => {
     </div>
   );
 };
+
+function safeEncodeHebrew(text: string): string {
+  return encodeURIComponent(text).replace(/%[0-9A-F]{2}/g, (match) => {
+    const hex = parseInt(match.slice(1), 16);
+    return hex < 0x80 ? match : `%${hex.toString(16).padStart(2, '0')}`;
+  });
+}

@@ -1,6 +1,25 @@
+import { supabase } from "./client";
+import { logger } from "@/utils/logger";
 
-import { supabase } from './client';
-import { logger } from '@/utils/logger';
+/**
+ * Safe encode Hebrew text to work around encoding issues
+ */
+export const safeEncodeHebrew = (text: string): string => {
+  // Instead of using btoa which fails with non-Latin chars,
+  // we'll use encodeURIComponent which handles Hebrew well
+  return encodeURIComponent(text);
+};
+
+/**
+ * Safe decode Hebrew text
+ */
+export const safeDecodeHebrew = (text: string): string => {
+  try {
+    return decodeURIComponent(text);
+  } catch (e) {
+    return text; // Return original if not encoded
+  }
+};
 
 export const setupStorage = async () => {
   try {
@@ -47,23 +66,5 @@ export const setupStorage = async () => {
   } catch (error) {
     logger.error("Error setting up storage:", { error });
     return false;
-  }
-};
-
-// Helper function to safely encode Hebrew text for storage
-export const safeEncodeHebrew = (text: string): string => {
-  if (!text) return '';
-  // Use encodeURIComponent which properly handles Unicode characters
-  return encodeURIComponent(text);
-};
-
-// Helper function to decode safely encoded Hebrew text
-export const safeDecodeHebrew = (encodedText: string): string => {
-  if (!encodedText) return '';
-  try {
-    return decodeURIComponent(encodedText);
-  } catch (e) {
-    logger.error("Error decoding text:", { error: e });
-    return encodedText; // Return as-is if decoding fails
   }
 };

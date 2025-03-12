@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -40,12 +39,20 @@ const LocationMap: React.FC<LocationMapProps> = ({
     try {
       mapboxgl.accessToken = MAPBOX_TOKEN;
       
-      map.current = new mapboxgl.Map({
+      const mapOptions: mapboxgl.MapOptions = {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: coordinates ? [coordinates.lng, coordinates.lat] : [34.7818, 32.0853], // Default to Tel Aviv
         zoom: coordinates ? 15 : 10,
         language: 'he-IL',
+      };
+
+      map.current = new mapboxgl.Map(mapOptions);
+
+      // Add error handler
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setError('אירעה שגיאה בטעינת המפה');
       });
 
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -82,7 +89,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
         map.current?.remove();
       };
     } catch (err) {
-      console.error('Error initializing map', err);
+      console.error('Error initializing map:', err);
       setError('אירעה שגיאה בטעינת המפה');
       setLoading(false);
     }
