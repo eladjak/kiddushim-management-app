@@ -41,32 +41,34 @@ const Events = () => {
   const toggleCreateForm = () => setShowCreateForm(!showCreateForm);
   
   return (
-    <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-secondary/20 flex flex-col" dir="rtl">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
-        <EventsPageHeader 
-          canCreateEvents={canCreateEvents}
-          showCreateForm={showCreateForm}
-          onToggleCreateForm={toggleCreateForm}
-        />
-        
-        {showCreateForm ? (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <CreateEventForm />
-          </div>
-        ) : isLoading ? (
-          <EventsLoadingState />
-        ) : !hasEvents ? (
-          <EmptyEventsState 
-            canCreateEvents={canCreateEvents} 
-            onCreateEvent={() => setShowCreateForm(true)} 
+      <main className="container mx-auto px-4 py-20 flex-grow">
+        <div className="max-w-5xl mx-auto">
+          <EventsPageHeader 
+            canCreateEvents={canCreateEvents}
+            showCreateForm={showCreateForm}
+            onToggleCreateForm={toggleCreateForm}
           />
-        ) : (
-          <div className="space-y-8">
-            <CalendarInfoAccordion />
-            <EventsList events={events} />
-          </div>
-        )}
+          
+          {showCreateForm ? (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <CreateEventForm />
+            </div>
+          ) : isLoading ? (
+            <EventsLoadingState />
+          ) : !hasEvents ? (
+            <EmptyEventsState 
+              canCreateEvents={canCreateEvents} 
+              onCreateEvent={() => setShowCreateForm(true)} 
+            />
+          ) : (
+            <div className="space-y-6">
+              <CalendarInfoAccordion />
+              <EventsList events={events} />
+            </div>
+          )}
+        </div>
       </main>
       <Footer />
     </div>

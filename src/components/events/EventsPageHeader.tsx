@@ -14,21 +14,21 @@ export const EventsPageHeader = ({
   onToggleCreateForm 
 }: EventsPageHeaderProps) => {
   return (
-    <div className="flex justify-between items-center mb-8">
+    <div className="flex justify-between items-center mb-6">
       <div className="flex items-center">
         <Calendar className="h-6 w-6 text-primary ml-2" />
-        <h1 className="text-3xl font-bold">אירועים</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">אירועים</h1>
       </div>
       
       {canCreateEvents && !showCreateForm && (
-        <Button onClick={onToggleCreateForm}>
-          <Plus className="h-4 w-4 ml-1" />
+        <Button onClick={onToggleCreateForm} className="px-4">
+          <Plus className="h-4 w-4 ml-2" />
           אירוע חדש
         </Button>
       )}
       
       {showCreateForm && (
-        <Button variant="outline" onClick={onToggleCreateForm}>
+        <Button variant="outline" onClick={onToggleCreateForm} className="px-4">
           חזרה לרשימת האירועים
         </Button>
       )}
