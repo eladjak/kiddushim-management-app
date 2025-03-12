@@ -20,35 +20,37 @@ export const QuickActions = ({
   isLoading,
 }: QuickActionsProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <QuickActionCard
-        title="אירועים קרובים"
-        subtitle={isLoading.events ? "טוען..." : `${eventsCount || 0} אירועים קרובים`}
-        icon={Calendar}
-        iconColor="text-primary"
-        iconBgColor="bg-primary/10"
-      />
-      <QuickActionCard
-        title="השיבוצים שלי"
-        subtitle={isLoading.assignments ? "טוען..." : `${assignmentsCount || 0} שיבוצים`}
-        icon={Users}
-        iconColor="text-accent"
-        iconBgColor="bg-accent/10"
-      />
-      <QuickActionCard
-        title="דיווחים"
-        subtitle="לא נמצאו דיווחים חדשים"
-        icon={FileText}
-        iconColor="text-primary"
-        iconBgColor="bg-primary/10"
-      />
-      <QuickActionCard
-        title="התראות"
-        subtitle={isLoading.notifications ? "טוען..." : `${notificationsCount || 0} התראות חדשות`}
-        icon={Bell}
-        iconColor="text-accent"
-        iconBgColor="bg-accent/10"
-      />
+    <div className="space-y-4 lg:space-y-0 bg-gradient-to-br from-secondary/5 to-primary/5 p-6 rounded-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <QuickActionCard
+          title="אירועים קרובים"
+          subtitle={isLoading.events ? "טוען..." : `${eventsCount || 0} אירועים קרובים`}
+          icon={Calendar}
+          iconColor="text-primary"
+          iconBgColor="bg-primary/10"
+        />
+        <QuickActionCard
+          title="השיבוצים שלי"
+          subtitle={isLoading.assignments ? "טוען..." : `${assignmentsCount || 0} שיבוצים`}
+          icon={Users}
+          iconColor="text-accent"
+          iconBgColor="bg-accent/10"
+        />
+        <QuickActionCard
+          title="דיווחים"
+          subtitle="לא נמצאו דיווחים חדשים"
+          icon={FileText}
+          iconColor="text-primary"
+          iconBgColor="bg-primary/10"
+        />
+        <QuickActionCard
+          title="התראות"
+          subtitle={isLoading.notifications ? "טוען..." : `${notificationsCount || 0} התראות חדשות`}
+          icon={Bell}
+          iconColor="text-accent"
+          iconBgColor="bg-accent/10"
+        />
+      </div>
     </div>
   );
 };
