@@ -54,7 +54,7 @@ const Index = () => {
   }
 
   // User is authenticated, show the dashboard
-  if (user) {
+  if (user && profile) {
     log.info("Rendering dashboard for authenticated user");
     return <Dashboard />;
   }

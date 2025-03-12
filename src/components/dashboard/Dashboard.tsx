@@ -8,12 +8,26 @@ import { StatusBanner } from "@/components/dashboard/StatusBanner";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { logger } from "@/utils/logger";
 
+// Define the props types for the components to fix TypeScript errors
+interface DashboardDataState {
+  isLoading: {
+    events: boolean;
+    assignments: boolean;
+    notifications: boolean;
+  };
+  events: any[] | null;
+  eventsCount: number | null;
+  assignmentsCount: number | null;
+  notificationsCount: number | null;
+  isAllDataLoaded: boolean;
+}
+
 export const Dashboard = () => {
   const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'Dashboard' });
   
-  // Add state for dashboard data
-  const [dashboardData, setDashboardData] = useState({
+  // Add state for dashboard data with proper types
+  const [dashboardData, setDashboardData] = useState<DashboardDataState>({
     isLoading: {
       events: true,
       assignments: true,
