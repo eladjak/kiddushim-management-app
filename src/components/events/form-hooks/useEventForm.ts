@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 import { PredefinedEvent } from "@/data/eventCalendar";
-import { safeEncodeHebrew } from "@/integrations/supabase/setupStorage";
 
 export interface EventFormData {
   title: string;
@@ -115,32 +114,24 @@ export const useEventForm = () => {
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
 
-      // Safely encode Hebrew text fields
-      const safeTitle = safeEncodeHebrew(formData.title);
-      const safeLocationName = safeEncodeHebrew(formData.locationName);
-      const safeLocationAddress = safeEncodeHebrew(formData.locationAddress);
-      const safeParasha = formData.parasha ? safeEncodeHebrew(formData.parasha) : null;
-      const safeFacilitator = formData.facilitator ? safeEncodeHebrew(formData.facilitator) : null;
-      const safeWorkshopContent = formData.workshopContent ? safeEncodeHebrew(formData.workshopContent) : null;
-      const safeEventContent = formData.eventContent ? safeEncodeHebrew(formData.eventContent) : null;
-      
+      // Insert raw data directly without using safeEncodeHebrew
       const { data, error } = await supabase
         .from("events")
         .insert({
-          title: safeTitle,
+          title: formData.title,
           date: eventDate.toISOString(),
           setup_time: setupTime.toISOString(),
           main_time: mainTime.toISOString(),
           cleanup_time: cleanupTime.toISOString(),
-          location_name: safeLocationName,
-          location_address: safeLocationAddress,
+          location_name: formData.locationName,
+          location_address: formData.locationAddress,
           required_service_girls: formData.requiredServiceGirls,
           required_youth_volunteers: formData.requiredYouthVolunteers,
           poster_url: posterUrl,
-          parasha: safeParasha,
-          facilitator: safeFacilitator,
-          workshop_content: safeWorkshopContent,
-          event_content: safeEventContent,
+          parasha: formData.parasha,
+          facilitator: formData.facilitator,
+          workshop_content: formData.workshopContent,
+          event_content: formData.eventContent,
           created_by: user.id,
           status: "draft",
         })

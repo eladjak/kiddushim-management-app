@@ -51,23 +51,25 @@ const Events = () => {
             onToggleCreateForm={toggleCreateForm}
           />
           
-          {showCreateForm ? (
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <CreateEventForm />
-            </div>
-          ) : isLoading ? (
-            <EventsLoadingState />
-          ) : !hasEvents ? (
-            <EmptyEventsState 
-              canCreateEvents={canCreateEvents} 
-              onCreateEvent={() => setShowCreateForm(true)} 
-            />
-          ) : (
-            <div className="space-y-6">
-              <CalendarInfoAccordion />
-              <EventsList events={events} />
-            </div>
-          )}
+          <div className="space-y-6">
+            {showCreateForm ? (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <CreateEventForm />
+              </div>
+            ) : isLoading ? (
+              <EventsLoadingState />
+            ) : !hasEvents ? (
+              <EmptyEventsState 
+                canCreateEvents={canCreateEvents} 
+                onCreateEvent={() => setShowCreateForm(true)} 
+              />
+            ) : (
+              <>
+                <CalendarInfoAccordion />
+                <EventsList events={events} />
+              </>
+            )}
+          </div>
         </div>
       </main>
       <Footer />

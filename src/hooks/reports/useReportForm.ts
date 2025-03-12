@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { safeEncodeHebrew } from "@/integrations/supabase/setupStorage";
 
 // Schema for report form validation
 export const reportFormSchema = z.object({
@@ -70,39 +69,29 @@ export const useReportForm = () => {
   };
 
   const submitReport = async ({ values, images, userId, reportType }: SubmitReportParams) => {
-    // ASCII-escape Hebrew content to prevent encoding issues
-    const safeValues = {
-      ...values,
-      title: safeEncodeHebrew(values.title),
-      description: safeEncodeHebrew(values.description),
-      reporter_name: safeEncodeHebrew(values.reporter_name),
-      what_was_good: values.what_was_good ? safeEncodeHebrew(values.what_was_good) : "",
-      what_to_improve: values.what_to_improve ? safeEncodeHebrew(values.what_to_improve) : "",
-    };
-    
-    // Create content object to store in the JSON field
+    // Create content object to store in the JSON field - sending values directly now
     const contentData = {
-      title: safeValues.title,
-      description: safeValues.description,
-      reporter_name: safeValues.reporter_name,
+      title: values.title,
+      description: values.description,
+      reporter_name: values.reporter_name,
       status: "new",
-      severity: reportType === "issue" ? safeValues.severity : null,
+      severity: reportType === "issue" ? values.severity : null,
       images: images.length > 0 ? images : null,
       ratings: reportType === "event_report" || reportType === "feedback" ? {
-        overall: safeValues.overall_rating,
-        audience: safeValues.audience_rating,
-        organization: safeValues.organization_rating,
-        logistics: safeValues.logistics_rating,
+        overall: values.overall_rating,
+        audience: values.audience_rating,
+        organization: values.organization_rating,
+        logistics: values.logistics_rating,
       } : null,
       feedback: {
-        positive: safeValues.what_was_good || "",
-        improvement: safeValues.what_to_improve || "",
+        positive: values.what_was_good || "",
+        improvement: values.what_to_improve || "",
       },
     };
     
     const reportData = {
       content: contentData,
-      event_id: safeValues.event_id || null,
+      event_id: values.event_id || null,
       reporter_id: userId,
       type: reportType,
     };
