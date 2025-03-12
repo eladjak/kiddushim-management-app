@@ -5,6 +5,7 @@ import { setupStorage } from "@/integrations/supabase/setupStorage";
 import type { User, Session } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -30,17 +31,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const log = logger.createLogger({ component: 'AuthProvider' });
 
   // Setup storage for avatars
   useEffect(() => {
     setupStorage()
       .catch(error => {
-        console.error("Failed to setup storage:", error);
+        log.error("Failed to setup storage:", { error });
       });
   }, []);
 
   useEffect(() => {
-    console.log("Auth provider initialized, checking for session...");
+    log.info("Auth provider initialized, checking for session...");
     
     // Check active sessions and sets the user
     const checkSession = async () => {
@@ -48,12 +50,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("Error getting session:", error);
+          log.error("Error getting session:", { error });
           setIsLoading(false);
           return;
         }
         
-        console.log("Session check result:", data.session ? "Session found" : "No session");
+        log.info("Session check result:", data.session ? "Session found" : "No session");
         
         if (data.session) {
           setSession(data.session);
@@ -66,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsLoading(false);
         }
       } catch (err) {
-        console.error("Unexpected error checking session:", err);
+        log.error("Unexpected error checking session:", { error: err });
         setIsLoading(false);
       }
     };
@@ -75,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log("Auth state changed:", event, newSession ? "With session" : "No session");
+      log.info("Auth state changed:", event, newSession ? "With session" : "No session");
       
       if (newSession) {
         setSession(newSession);
@@ -94,7 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log("Fetching profile for user:", userId);
+      log.info("Fetching profile for user:", userId);
       
       const { data, error } = await supabase
         .from("profiles")
@@ -104,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          console.log("Profile not found, it may be created by the trigger soon");
+          log.info("Profile not found, it may be created by the trigger soon");
           // Wait a moment and try again
           setTimeout(async () => {
             const { data: retryData, error: retryError } = await supabase
@@ -114,22 +116,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .single();
               
             if (!retryError) {
-              console.log("Profile fetched on retry:", retryData);
+              log.info("Profile fetched on retry:", retryData ? "Profile found" : "No profile found");
               setProfile(retryData);
             } else {
-              console.error("Error fetching profile on retry:", retryError);
+              log.error("Error fetching profile on retry:", { error: retryError });
             }
             setIsLoading(false);
           }, 2000);
           return;
         }
         
-        console.error("Error fetching profile:", error);
+        log.error("Error fetching profile:", { error });
         setIsLoading(false);
         return;
       }
 
-      console.log("Profile fetched:", data ? "Profile found" : "No profile found");
+      log.info("Profile fetched:", data ? "Profile found" : "No profile found");
       
       // Update profile with Google avatar if available and profile doesn't have one
       if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
@@ -144,7 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile(data);
       setIsLoading(false);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      log.error("Error fetching profile:", { error });
       setIsLoading(false);
     }
   };
