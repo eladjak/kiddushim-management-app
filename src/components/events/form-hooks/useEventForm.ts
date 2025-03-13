@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 import { PredefinedEvent } from "@/data/eventCalendar";
+import { createNotification } from "@/utils/notificationUtils";
 
 export interface EventFormData {
   title: string;
@@ -114,7 +115,7 @@ export const useEventForm = () => {
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
 
-      // Insert raw data directly without using safeEncodeHebrew
+      // Insert data directly without encoding
       const { data, error } = await supabase
         .from("events")
         .insert({
@@ -142,7 +143,20 @@ export const useEventForm = () => {
         throw error;
       }
       
-      logger.info("Event created successfully", { eventId: data?.[0]?.id });
+      const eventId = data?.[0]?.id;
+      logger.info("Event created successfully", { eventId });
+      
+      // Create notification for admins and coordinators about the new event
+      if (user.id) {
+        await createNotification({
+          userId: user.id,
+          title: "אירוע חדש נוצר",
+          message: `האירוע "${formData.title}" נוצר בהצלחה`,
+          type: "event",
+          link: `/events/${eventId}`,
+          metadata: { eventId }
+        });
+      }
       
       toast({
         description: "האירוע נוצר בהצלחה",

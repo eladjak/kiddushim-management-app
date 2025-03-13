@@ -6,39 +6,22 @@ import { Footer } from "@/components/layout/Footer";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
+import { useNotifications } from "@/hooks/dashboard/useNotifications";
+import { useEvents } from "@/hooks/dashboard/useEvents";
+import { useAssignments } from "@/hooks/dashboard/useAssignments";
 import { logger } from "@/utils/logger";
-
-// Define the props types for the components to fix TypeScript errors
-interface DashboardDataState {
-  isLoading: {
-    events: boolean;
-    assignments: boolean;
-    notifications: boolean;
-  };
-  events: any[] | null;
-  eventsCount: number | null;
-  assignmentsCount: number | null;
-  notificationsCount: number | null;
-  isAllDataLoaded: boolean;
-}
 
 export const Dashboard = () => {
   const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'Dashboard' });
   
-  // Add state for dashboard data with proper types
-  const [dashboardData, setDashboardData] = useState<DashboardDataState>({
-    isLoading: {
-      events: true,
-      assignments: true,
-      notifications: true
-    },
-    events: null,
-    eventsCount: null,
-    assignmentsCount: null,
-    notificationsCount: null,
-    isAllDataLoaded: false
-  });
+  // Use the hooks for fetching data
+  const { events, isLoading: eventsLoading } = useEvents();
+  const { assignments, isLoading: assignmentsLoading } = useAssignments(user?.id);
+  const { unreadCount: notificationsCount, isLoading: notificationsLoading } = useNotifications(user?.id);
+  
+  // Dashboard data state
+  const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   
   useEffect(() => {
     log.info("Dashboard loaded", { 
@@ -46,32 +29,11 @@ export const Dashboard = () => {
       role: profile?.role 
     });
     
-    // Simulate loading dashboard data
-    const loadDashboardData = async () => {
-      try {
-        // In a real app, you would fetch actual data here
-        // This is just a placeholder for demonstration
-        setTimeout(() => {
-          setDashboardData({
-            isLoading: {
-              events: false,
-              assignments: false,
-              notifications: false
-            },
-            events: [],
-            eventsCount: 0,
-            assignmentsCount: 0,
-            notificationsCount: 0,
-            isAllDataLoaded: true
-          });
-        }, 1000);
-      } catch (error) {
-        log.error("Error loading dashboard data", { error });
-      }
-    };
-    
-    loadDashboardData();
-  }, [user, profile]);
+    // Check if all data has loaded
+    if (!eventsLoading && !assignmentsLoading && !notificationsLoading) {
+      setIsAllDataLoaded(true);
+    }
+  }, [user, profile, eventsLoading, assignmentsLoading, notificationsLoading]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex flex-col">
@@ -83,22 +45,26 @@ export const Dashboard = () => {
             שלום {profile?.name || 'משתמש'}
           </h1>
           
-          <StatusBanner isAllDataLoaded={dashboardData.isAllDataLoaded} />
+          <StatusBanner isAllDataLoaded={isAllDataLoaded} />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <div className="lg:col-span-2">
               <UpcomingEvents 
-                events={dashboardData.events} 
-                isLoading={dashboardData.isLoading.events} 
+                events={events} 
+                isLoading={eventsLoading} 
               />
             </div>
             
             <div>
               <QuickActions 
-                eventsCount={dashboardData.eventsCount}
-                assignmentsCount={dashboardData.assignmentsCount}
-                notificationsCount={dashboardData.notificationsCount}
-                isLoading={dashboardData.isLoading}
+                eventsCount={events?.length || 0}
+                assignmentsCount={assignments?.length || 0}
+                notificationsCount={notificationsCount || 0}
+                isLoading={{
+                  events: eventsLoading,
+                  assignments: assignmentsLoading,
+                  notifications: notificationsLoading
+                }}
               />
             </div>
           </div>
