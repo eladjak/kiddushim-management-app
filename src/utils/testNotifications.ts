@@ -14,17 +14,20 @@ export const createTestNotifications = async (userId: string) => {
     userId,
     content: "האירוע 'קידושישי - פרשת ויקרא' נוצר בהצלחה.",
     type: "event",
+    link: "/events/1",
   });
   
   await createNotification({
     userId,
     content: "שובצת לאירוע 'קידושישי - פרשת צו' ביום שישי הקרוב.",
     type: "assignment",
+    link: "/events/2",
   });
   
   await createNotification({
     userId,
     content: "התקבל דיווח חדש על האירוע האחרון.",
     type: "report",
+    link: "/reports/1",
   });
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -57,7 +56,6 @@ export const useEventForm = () => {
   };
 
   const handleEventSelect = (event: PredefinedEvent) => {
-    // Calculate cleanup time (30 minutes after main time)
     const mainTimeParts = event.mainTime?.split(":").map(Number) || [0, 0];
     const mainTimeHour = mainTimeParts[0];
     const mainTimeMinute = mainTimeParts[1];
@@ -72,7 +70,6 @@ export const useEventForm = () => {
     
     const cleanupTime = `${cleanupHour.toString().padStart(2, '0')}:${cleanupMinute.toString().padStart(2, '0')}`;
     
-    // Auto-fill form fields based on the selected event
     setFormData({
       ...formData,
       title: `קידושישי - פרשת ${event.parasha}`,
@@ -85,7 +82,6 @@ export const useEventForm = () => {
       requiredYouthVolunteers: 3,
     });
     
-    // Set event notes for display
     if (event.notes && event.notes.length > 0) {
       setEventNotes(event.notes);
     } else {
@@ -109,13 +105,11 @@ export const useEventForm = () => {
     try {
       logger.info("Creating event", { formData });
       
-      // Parse input dates
       const eventDate = new Date(formData.date);
       const setupTime = new Date(`${formData.date}T${formData.setupTime}:00`);
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
 
-      // Insert data directly without encoding
       const { data, error } = await supabase
         .from("events")
         .insert({
@@ -146,12 +140,10 @@ export const useEventForm = () => {
       const eventId = data?.[0]?.id;
       logger.info("Event created successfully", { eventId });
       
-      // Create notification for admins and coordinators about the new event
       if (user.id) {
         await createNotification({
           userId: user.id,
-          title: "אירוע חדש נוצר",
-          message: `האירוע "${formData.title}" נוצר בהצלחה`,
+          content: `האירוע "${formData.title}" נוצר בהצלחה`,
           type: "event",
           link: `/events/${eventId}`,
           metadata: { eventId }

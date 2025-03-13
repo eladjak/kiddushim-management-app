@@ -6,6 +6,7 @@ export interface CreateNotificationParams {
   userId: string;
   content: string;
   type: 'event' | 'assignment' | 'report' | 'system' | 'alert';
+  link?: string;
   metadata?: Record<string, any>;
 }
 
@@ -13,6 +14,7 @@ export const createNotification = async ({
   userId,
   content,
   type,
+  link,
   metadata = {}
 }: CreateNotificationParams) => {
   const log = logger.createLogger({ component: 'NotificationUtils' });
@@ -24,6 +26,7 @@ export const createNotification = async ({
         user_id: userId,
         content,
         type,
+        link,
         metadata
       })
       .select();
