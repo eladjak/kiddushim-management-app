@@ -16,8 +16,8 @@ export const Dashboard = () => {
   const log = logger.createLogger({ component: 'Dashboard' });
   
   // Use the hooks for fetching data
-  const { events, isLoading: eventsLoading } = useEvents();
-  const { assignments, isLoading: assignmentsLoading } = useAssignments(user?.id);
+  const { data: events = [], isLoading: eventsLoading } = useEvents(user?.id);
+  const { data: assignments = [], isLoading: assignmentsLoading } = useAssignments(user?.id);
   const { unreadCount: notificationsCount, isLoading: notificationsLoading } = useNotifications(user?.id);
   
   // Dashboard data state

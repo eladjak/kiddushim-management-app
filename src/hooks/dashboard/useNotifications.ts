@@ -6,13 +6,11 @@ import { logger } from "@/utils/logger";
 
 export interface Notification {
   id: string;
-  title: string;
-  message: string;
+  content: string;
   type: string;
-  is_read: boolean;
+  read: boolean;
   created_at: string;
-  link?: string;
-  metadata?: any;
+  user_id: string;
 }
 
 export const useNotifications = (userId?: string) => {
@@ -44,7 +42,7 @@ export const useNotifications = (userId?: string) => {
         }
 
         setNotifications(data || []);
-        setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+        setUnreadCount(data?.filter(n => !n.read).length || 0);
         
         log.info("Notifications loaded", { count: data?.length });
       } catch (error: any) {
@@ -71,8 +69,8 @@ export const useNotifications = (userId?: string) => {
         
         // Show toast for new notification
         toast({
-          title: (payload.new as Notification).title,
-          description: (payload.new as Notification).message,
+          title: (payload.new as any).type,
+          description: (payload.new as Notification).content,
         });
       })
       .subscribe();
@@ -86,7 +84,7 @@ export const useNotifications = (userId?: string) => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update({ read: true })
         .eq('id', notificationId);
 
       if (error) {
@@ -94,7 +92,7 @@ export const useNotifications = (userId?: string) => {
       }
 
       setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
       
@@ -110,16 +108,16 @@ export const useNotifications = (userId?: string) => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update({ read: true })
         .eq('user_id', userId)
-        .eq('is_read', false);
+        .eq('read', false);
 
       if (error) {
         throw error;
       }
 
       setNotifications(prev => 
-        prev.map(n => ({ ...n, is_read: true }))
+        prev.map(n => ({ ...n, read: true }))
       );
       setUnreadCount(0);
       

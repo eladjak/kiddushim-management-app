@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Bell, Check, CheckAll } from "lucide-react";
+import { Bell, Check, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -46,9 +46,8 @@ export const NotificationsList = ({
   const handleNotificationClick = async (notification: Notification) => {
     await markAsRead(notification.id);
     
-    if (notification.link) {
-      navigate(notification.link);
-    }
+    // Navigate based on notification metadata if needed
+    // This would need to be enhanced based on your navigation needs
   };
   
   const visibleNotifications = notifications.slice(0, displayCount);
@@ -62,10 +61,10 @@ export const NotificationsList = ({
           variant="ghost" 
           size="sm" 
           onClick={markAllAsRead}
-          disabled={notifications.every(n => n.is_read)}
+          disabled={notifications.every(n => n.read)}
           className="text-xs flex items-center"
         >
-          <CheckAll className="h-4 w-4 mr-1" />
+          <CheckCheck className="h-4 w-4 mr-1" />
           סמן הכל כנקרא
         </Button>
       </div>
@@ -74,18 +73,18 @@ export const NotificationsList = ({
         {visibleNotifications.map((notification) => (
           <Card 
             key={notification.id} 
-            className={`p-3 m-2 cursor-pointer transition-colors ${!notification.is_read ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-muted'}`}
+            className={`p-3 m-2 cursor-pointer transition-colors ${!notification.read ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-muted'}`}
             onClick={() => handleNotificationClick(notification)}
           >
             <div className="flex justify-between items-start">
               <div className="flex-grow text-right">
-                <h4 className="font-medium">{notification.title}</h4>
-                <p className="text-sm text-gray-600 mb-1">{notification.message}</p>
+                <h4 className="font-medium">{notification.type}</h4>
+                <p className="text-sm text-gray-600 mb-1">{notification.content}</p>
                 <p className="text-xs text-muted-foreground">
                   {format(new Date(notification.created_at), 'dd בMMMM, HH:mm', { locale: he })}
                 </p>
               </div>
-              {notification.is_read ? (
+              {notification.read ? (
                 <Check className="h-4 w-4 text-muted-foreground" />
               ) : (
                 <div className="h-3 w-3 rounded-full bg-primary"></div>

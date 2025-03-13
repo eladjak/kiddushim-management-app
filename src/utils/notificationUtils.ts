@@ -4,19 +4,15 @@ import { logger } from "@/utils/logger";
 
 export interface CreateNotificationParams {
   userId: string;
-  title: string;
-  message: string;
+  content: string;
   type: 'event' | 'assignment' | 'report' | 'system' | 'alert';
-  link?: string;
   metadata?: Record<string, any>;
 }
 
 export const createNotification = async ({
   userId,
-  title,
-  message,
+  content,
   type,
-  link,
   metadata = {}
 }: CreateNotificationParams) => {
   const log = logger.createLogger({ component: 'NotificationUtils' });
@@ -26,10 +22,8 @@ export const createNotification = async ({
       .from('notifications')
       .insert({
         user_id: userId,
-        title,
-        message,
+        content,
         type,
-        link,
         metadata
       })
       .select();
