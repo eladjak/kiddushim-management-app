@@ -20,37 +20,19 @@ export function useAuthCallback() {
       try {
         log.info("Auth callback hook initialized, extracting session from URL...");
         
-        // Get the hash from the URL
-        const urlHash = window.location.hash || location.hash;
-        
-        // If we have a hash with tokens, log its presence (without the actual tokens for security)
-        if (urlHash && urlHash.includes('access_token=')) {
-          log.info("Found auth hash in URL", { 
-            hasAccessToken: urlHash.includes('access_token='),
-            hasExpiresAt: urlHash.includes('expires_at='),
-            hasRefreshToken: urlHash.includes('refresh_token=')
-          });
-        } else {
-          log.warn("No access token found in URL hash");
-          setError("לא נמצא אסימון זיהוי בקישור. אנא נסה להתחבר שוב.");
-          setIsProcessing(false);
-          return;
-        }
-        
-        // The URL includes the access token and refresh token as hash parameters
-        // Supabase Auth will automatically extract these and establish the session
+        // Try to get session without relying on the URL hash
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          log.error("Error getting session from URL:", { error });
+          log.error("Error getting session:", { error });
           setError(error.message);
           setIsProcessing(false);
           return;
         }
         
         if (!data.session) {
-          log.error("No session found in callback URL");
-          setError("לא ניתן למצוא פרטי משתמש בקישור. אנא נסה להתחבר שוב.");
+          log.error("No session found during callback");
+          setError("לא ניתן למצוא פרטי משתמש. אנא נסה להתחבר שוב.");
           setIsProcessing(false);
           return;
         }
@@ -87,15 +69,26 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // First clean URL by removing hash parameters
-        window.history.replaceState({}, document.title, "/");
+        // Clean URL by removing hash parameters
+        // Use a try-catch to handle any encoding issues with the URL
+        try {
+          window.history.replaceState({}, document.title, "/");
+        } catch (historyError) {
+          log.error("Error cleaning URL:", { error: historyError });
+          // Continue anyway
+        }
         
-        // Important: Wait a moment before redirecting to ensure the state is updated
+        // Important: Use a more robust redirect approach
         setTimeout(() => {
-          // Use direct window.location for a complete page refresh
-          // This ensures a clean state after authentication
-          window.location.href = "/";
-        }, 500);
+          try {
+            // Force a full page reload to clean all states
+            window.location.replace("/");
+          } catch (redirectError) {
+            log.error("Error during redirect:", { error: redirectError });
+            // Fallback to simple navigation if something goes wrong
+            navigate("/");
+          }
+        }, 800);
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");

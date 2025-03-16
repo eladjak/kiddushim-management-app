@@ -18,25 +18,53 @@ const Index = () => {
 
   // Handle access token in URL hash - redirect to auth callback if present
   useEffect(() => {
-    // Check if we have an auth token in the URL hash
+    // Check if we have an auth token in the URL hash (but avoid examining the actual token content)
     if (window.location.hash && window.location.hash.includes("access_token=")) {
       try {
-        log.info("Detected auth hash in URL, redirecting to auth callback");
+        log.info("Detected auth hash in URL, will process it directly");
         setIsRedirecting(true);
         
-        // Clear any existing timeouts to prevent state updates after redirect
-        window.setTimeout(() => {
-          // Use window.location.href directly to ensure complete navigation
-          window.location.href = "/auth/callback" + window.location.hash;
-        }, 100);
-        return;
+        // Handle auth directly on the main page to avoid redirect issues
+        // Let supabase extract the token itself
+        const processAuth = async () => {
+          try {
+            // Attempt to extract the session from the hash
+            const { data, error } = await supabase.auth.getSession();
+            
+            if (error) {
+              log.error("Error getting session from hash:", { error });
+              // If there's an error, clean the URL anyway
+              window.history.replaceState({}, document.title, window.location.pathname);
+              setIsRedirecting(false);
+              return;
+            }
+            
+            if (data.session) {
+              // Success! Clean the URL and force a reload to reset app state
+              log.info("Successfully processed auth hash");
+              window.history.replaceState({}, document.title, "/");
+              window.location.reload();
+            } else {
+              // No session found, clean URL and show normal content
+              log.warn("No session found in auth hash");
+              window.history.replaceState({}, document.title, window.location.pathname);
+              setIsRedirecting(false);
+            }
+          } catch (processError) {
+            log.error("Error processing auth:", { error: processError });
+            setIsRedirecting(false);
+          }
+        };
+        
+        processAuth();
       } catch (error) {
-        log.error("Error redirecting to auth callback", { error });
+        log.error("Error handling auth hash:", { error });
         setIsRedirecting(false);
       }
     } else if (window.location.hash && window.location.hash.length > 0) {
+      // Clean any other hash that may be in the URL
       try {
-        log.info("Cleaning URL hash", { hash: window.location.hash });
+        log.info("Cleaning URL hash");
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (error) {
         log.error("Error cleaning URL hash", { error });
@@ -67,7 +95,7 @@ const Index = () => {
         setLoadingTimedOut(true);
         setLoading(false);
       }
-    }, 1500); // Shorter timeout of 1.5 seconds
+    }, 1200); // Short timeout
     
     return () => clearTimeout(timeout);
   }, [authLoading, user, profile, loading, isRedirecting]);
@@ -76,7 +104,7 @@ const Index = () => {
   if (isRedirecting) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
-        <div className="text-primary font-medium mb-4">מעבר לדף ההתחברות...</div>
+        <div className="text-primary font-medium mb-4">מעבד פרטי התחברות...</div>
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );

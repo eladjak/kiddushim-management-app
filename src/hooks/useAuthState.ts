@@ -14,6 +14,7 @@ export function useAuthState() {
     log.info("Auth state hook initialized, checking for session...");
     
     let authStateSubscription: { data: { subscription: { unsubscribe: () => void } } };
+    let initialized = false;
     
     // Check active sessions and sets the user
     const checkSession = async () => {
@@ -36,10 +37,16 @@ export function useAuthState() {
           setSession(data.session);
           setUser(data.session.user);
           setIsLoading(false);
+          initialized = true;
         } else {
           setSession(null);
           setUser(null);
-          setIsLoading(false);
+          
+          // Only set loading to false if this is our first check
+          if (!initialized) {
+            setIsLoading(false);
+            initialized = true;
+          }
         }
       } catch (err) {
         log.error("Unexpected error checking session:", { error: err });
@@ -56,11 +63,13 @@ export function useAuthState() {
           userId: newSession?.user?.id ? `${newSession.user.id.substring(0, 8)}...` : 'none'
         });
         
-        if (newSession) {
-          setSession(newSession);
-          setUser(newSession.user);
-          setIsLoading(false);
-        } else {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (newSession) {
+            setSession(newSession);
+            setUser(newSession.user);
+            setIsLoading(false);
+          }
+        } else if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
           setIsLoading(false);
@@ -78,7 +87,7 @@ export function useAuthState() {
         log.warn("Force completing auth loading state after timeout");
         setIsLoading(false);
       }
-    }, 800); // Even shorter timeout
+    }, 700);
 
     return () => {
       if (authStateSubscription?.data?.subscription) {
