@@ -23,7 +23,7 @@ const Index = () => {
         // Give the auth system a moment to stabilize
         setTimeout(() => {
           setLoading(false);
-        }, 1000); // Increased timeout to ensure auth is fully processed
+        }, 1500); // Increased timeout to ensure auth is fully processed
         
       } catch (error) {
         log.error("Error initializing index page", { error });
@@ -39,10 +39,11 @@ const Index = () => {
     if (!loading && !authLoading) {
       log.info("Index page rendering", {
         user: user ? 'Authenticated' : 'Not authenticated',
+        profile: profile ? 'Profile loaded' : 'No profile',
         rendering: 'In progress'
       });
     }
-  }, [loading, authLoading, user]);
+  }, [loading, authLoading, user, profile]);
 
   // Show loading state while authentication is in progress
   if (loading || authLoading) {

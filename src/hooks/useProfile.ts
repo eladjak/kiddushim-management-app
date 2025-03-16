@@ -45,6 +45,31 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
               setProfile(retryData);
             } else {
               log.error("Error fetching profile on retry:", { error: retryError });
+              
+              // Final attempt: create a basic profile if needed
+              try {
+                const { data: userData } = await supabase.auth.getUser();
+                if (userData?.user) {
+                  const { error: insertError } = await supabase
+                    .from("profiles")
+                    .insert({
+                      id: userId,
+                      name: userData.user.user_metadata?.name || 
+                            userData.user.user_metadata?.full_name || 
+                            userData.user.email?.split('@')[0] || 'משתמש',
+                      email: userData.user.email
+                    });
+                  
+                  if (!insertError) {
+                    log.info("Created basic profile for user");
+                    fetchProfile(userId);
+                  } else {
+                    log.error("Error creating basic profile:", { error: insertError });
+                  }
+                }
+              } catch (createError) {
+                log.error("Error in profile creation fallback:", { error: createError });
+              }
             }
             setIsLoading(false);
           }, 2000);

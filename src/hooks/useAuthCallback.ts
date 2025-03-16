@@ -66,7 +66,8 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        navigate("/");
+        // Force reload to ensure state is fresh after auth
+        window.location.href = "/";
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
