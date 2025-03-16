@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndSetAdminStatus } from "@/lib/admin-utils";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ export function useAuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useAuthCallback' });
 
@@ -18,6 +19,19 @@ export function useAuthCallback() {
     const handleAuthCallback = async () => {
       try {
         log.info("Auth callback hook initialized, extracting session from URL...");
+        
+        // Get the hash if we were redirected from the /auth/callback route
+        // or if we're on the index page with a hash
+        const urlHash = window.location.hash || location.hash;
+        
+        // If we have a hash with tokens, log it (without the tokens)
+        if (urlHash && urlHash.includes('access_token=')) {
+          log.info("Found auth hash in URL", { 
+            hasAccessToken: urlHash.includes('access_token='),
+            hasExpiresAt: urlHash.includes('expires_at='),
+            hasRefreshToken: urlHash.includes('refresh_token=')
+          });
+        }
         
         // The URL includes the access token and refresh token as hash parameters
         // Supabase Auth will automatically extract these and establish the session
@@ -79,7 +93,7 @@ export function useAuthCallback() {
     };
 
     handleAuthCallback();
-  }, [navigate, toast]);
+  }, [navigate, location, toast]);
 
   return { error, isProcessing };
 }

@@ -27,14 +27,14 @@ export function useAuthState() {
         log.info("Session check result:", { hasSession: !!data.session });
         
         if (data.session) {
+          // If we have a session, update state immediately
           setSession(data.session);
           setUser(data.session.user);
           
-          // Force loading state to finish after a very short delay
-          // This ensures that other components have time to react to the state change
+          // Complete loading state after ensuring state is updated
           setTimeout(() => {
             setIsLoading(false);
-          }, 100);
+          }, 50);
         } else {
           setSession(null);
           setUser(null);
@@ -57,10 +57,8 @@ export function useAuthState() {
         setSession(newSession);
         setUser(newSession.user);
         
-        // Force loading state to finish after a very short delay
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 100);
+        // Force loading state to finish quickly
+        setIsLoading(false);
       } else {
         setSession(null);
         setUser(null);
@@ -68,7 +66,18 @@ export function useAuthState() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Set a backup timeout to ensure loading state doesn't get stuck
+    const loadingTimeout = setTimeout(() => {
+      if (isLoading) {
+        log.warn("Force completing auth loading state after timeout");
+        setIsLoading(false);
+      }
+    }, 1500);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(loadingTimeout);
+    };
   }, []);
 
   return { user, session, setIsLoading, isLoading };

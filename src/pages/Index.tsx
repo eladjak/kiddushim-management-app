@@ -4,16 +4,26 @@ import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
+  const navigate = useNavigate();
 
-  // Clean hash from URL if present
+  // Handle access token in URL hash - redirect to auth callback if present
   useEffect(() => {
-    if (window.location.hash && window.location.hash.length > 0) {
+    if (window.location.hash && window.location.hash.includes("access_token=")) {
+      try {
+        log.info("Detected auth hash in URL, redirecting to auth callback");
+        navigate("/auth/callback", { replace: true });
+        return;
+      } catch (error) {
+        log.error("Error redirecting to auth callback", { error });
+      }
+    } else if (window.location.hash && window.location.hash.length > 0) {
       try {
         log.info("Cleaning URL hash", { hash: window.location.hash });
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -21,7 +31,7 @@ const Index = () => {
         log.error("Error cleaning URL hash", { error });
       }
     }
-  }, []);
+  }, [navigate]);
 
   // Set loading state based on auth status
   useEffect(() => {
