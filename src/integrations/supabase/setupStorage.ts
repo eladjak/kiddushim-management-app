@@ -34,33 +34,19 @@ export const setupStorage = async () => {
 
     // Check which buckets we need to create
     const requiredBuckets = ['avatars', 'event_posters', 'report_images'];
-    const existingBuckets = buckets.map(bucket => bucket.name);
+    const existingBucketNames = buckets.map(bucket => bucket.name);
     
-    // Create any missing buckets
+    // Log which buckets already exist
     for (const bucketName of requiredBuckets) {
-      if (!existingBuckets.includes(bucketName)) {
-        logger.info(`Creating bucket: ${bucketName}`);
-        try {
-          const { error: createError } = await supabase
-            .storage
-            .createBucket(bucketName, {
-              public: true,
-              fileSizeLimit: 5 * 1024 * 1024, // 5MB
-            });
-
-          if (createError) {
-            logger.error(`Error creating bucket ${bucketName}:`, { error: createError });
-          } else {
-            logger.info(`${bucketName} bucket created successfully`);
-          }
-        } catch (err) {
-          logger.error(`Failed to create bucket ${bucketName}:`, { error: err });
-        }
-      } else {
+      if (existingBucketNames.includes(bucketName)) {
         logger.info(`${bucketName} bucket already exists`);
       }
     }
-
+    
+    // We won't attempt to create buckets from the client side anymore
+    // as it's causing RLS policy violations. These need to be created
+    // by an admin or through SQL migrations
+    
     return true;
   } catch (error) {
     logger.error("Error setting up storage:", { error });

@@ -14,8 +14,12 @@ const Index = () => {
   // Clean hash from URL if present
   useEffect(() => {
     if (window.location.hash && window.location.hash.length > 0) {
-      log.info("Cleaning URL hash", { hash: window.location.hash });
-      window.history.replaceState({}, document.title, window.location.pathname);
+      try {
+        log.info("Cleaning URL hash", { hash: window.location.hash });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        log.error("Error cleaning URL hash", { error });
+      }
     }
   }, []);
 
@@ -25,8 +29,7 @@ const Index = () => {
         log.info("Index page loaded", { 
           authenticated: !!user,
           authLoading,
-          profile: profile ? 'exists' : 'missing',
-          dataLoading: { status: loading }
+          profile: profile ? 'exists' : 'missing'
         });
         
         // Give the auth system a moment to stabilize
@@ -38,7 +41,7 @@ const Index = () => {
             setLoadingTimedOut(true);
             log.warn("Auth loading timed out", { authLoading });
           }
-        }, 3000); // Increased timeout to ensure auth is fully processed
+        }, 5000); // Increased timeout to ensure auth is fully processed
         
         return () => clearTimeout(timeout);
       } catch (error) {
