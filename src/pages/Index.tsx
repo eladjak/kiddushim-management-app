@@ -6,6 +6,7 @@ import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
