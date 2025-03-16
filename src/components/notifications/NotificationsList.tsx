@@ -10,15 +10,17 @@ import { he } from "date-fns/locale";
 
 interface NotificationsListProps {
   notifications: Notification[];
-  onMarkAsRead: (id: string) => void;
-  onMarkAllAsRead: () => void;
+  isLoading?: boolean;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
   onClose?: () => void;
 }
 
 export const NotificationsList = ({ 
   notifications, 
-  onMarkAsRead, 
-  onMarkAllAsRead,
+  isLoading = false,
+  markAsRead, 
+  markAllAsRead,
   onClose
 }: NotificationsListProps) => {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export const NotificationsList = ({
   const handleNotificationClick = (notification: Notification) => {
     // Mark as read
     if (!notification.read) {
-      onMarkAsRead(notification.id);
+      markAsRead(notification.id);
     }
     
     // Navigate if there's a link
@@ -79,6 +81,14 @@ export const NotificationsList = ({
   
   const hasUnreadNotifications = notifications.some(n => !n.read);
   
+  if (isLoading) {
+    return (
+      <div className="py-4 px-2 text-center text-muted-foreground">
+        טוען התראות...
+      </div>
+    );
+  }
+  
   if (notifications.length === 0) {
     return (
       <div className="py-4 px-2 text-center text-muted-foreground">
@@ -95,7 +105,7 @@ export const NotificationsList = ({
             variant="ghost" 
             size="sm" 
             className="w-full flex items-center justify-center gap-2"
-            onClick={onMarkAllAsRead}
+            onClick={markAllAsRead}
           >
             <CheckCheck className="h-4 w-4" />
             <span>סמן הכל כנקרא</span>

@@ -114,9 +114,14 @@ const LocationMap: React.FC<LocationMapProps> = ({
       
       mapboxgl.accessToken = MAPBOX_TOKEN;
       
+      const options = getMapOptions(coordinates);
       const mapOptions = { 
         container: mapContainer,
-        ...getMapOptions(coordinates)
+        style: options.style,
+        center: coordinates ? [coordinates.lng, coordinates.lat] as [number, number] : options.center as [number, number],
+        zoom: options.zoom,
+        minZoom: options.minZoom,
+        maxZoom: options.maxZoom
       };
 
       // Create new map instance
@@ -242,9 +247,6 @@ const LocationMap: React.FC<LocationMapProps> = ({
             map.current = null;
           }
           setLoading(true);
-          if (mapContainer.current) {
-            initializeMap(mapContainer.current);
-          }
         }}
         mapInitialized={initializeMap}
       />

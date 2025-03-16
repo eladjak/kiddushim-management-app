@@ -1,5 +1,5 @@
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { useAdminCheck } from "./lib/admin-utils";
@@ -19,18 +19,18 @@ import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 
 // Layout component with Navigation for authenticated routes
-const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
+const AuthenticatedLayout = () => {
   return (
     <>
       <Navigation />
-      {children}
+      <Outlet />
     </>
   );
 };
 
 // Layout without Navigation for public routes
-const PublicLayout = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+const PublicLayout = () => {
+  return <Outlet />;
 };
 
 /**

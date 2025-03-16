@@ -8,8 +8,8 @@ export const getMapOptions = (coordinates?: { lat: number; lng: number } | null)
   const defaultOptions = {
     style: 'mapbox://styles/mapbox/streets-v12',
     center: coordinates 
-      ? [coordinates.lng, coordinates.lat] 
-      : [35.217018, 32.722756], // Israel center
+      ? [coordinates.lng, coordinates.lat] as [number, number]
+      : [35.217018, 32.722756] as [number, number], // Israel center
     zoom: coordinates ? 15 : 7,
     minZoom: 3,
     maxZoom: 19

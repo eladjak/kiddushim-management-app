@@ -23,6 +23,18 @@ export interface Notification {
 export type NotificationType = 'event' | 'assignment' | 'report' | 'system' | 'alert';
 
 /**
+ * Parameters for creating a new notification
+ */
+export interface CreateNotificationParams {
+  user_id: string;
+  content: string;
+  type: NotificationType;
+  link?: string;
+  metadata?: Record<string, any>;
+  read?: boolean;
+}
+
+/**
  * Notification filter options for viewing notifications
  */
 export interface NotificationFilters {
