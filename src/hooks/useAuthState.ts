@@ -30,10 +30,11 @@ export function useAuthState() {
           setSession(data.session);
           setUser(data.session.user);
           
-          // Explicitly ending the loading state once we have a session
+          // Force loading state to finish after a very short delay
+          // This ensures that other components have time to react to the state change
           setTimeout(() => {
             setIsLoading(false);
-          }, 500);
+          }, 100);
         } else {
           setSession(null);
           setUser(null);
@@ -45,6 +46,7 @@ export function useAuthState() {
       }
     };
     
+    // Start session check right away
     checkSession();
 
     // Listen for changes on auth state (logged in, signed out, etc.)
@@ -55,11 +57,10 @@ export function useAuthState() {
         setSession(newSession);
         setUser(newSession.user);
         
-        // Make sure to update loading state after a short delay
-        // to allow profile to be fetched
+        // Force loading state to finish after a very short delay
         setTimeout(() => {
           setIsLoading(false);
-        }, 500);
+        }, 100);
       } else {
         setSession(null);
         setUser(null);

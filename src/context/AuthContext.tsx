@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const log = logger.createLogger({ component: 'AuthContext' });
   const [storageInitialized, setStorageInitialized] = useState(false);
   
-  // Initialize storage for avatars - once only
+  // Initialize storage for avatars - once only and early
   useEffect(() => {
     if (!storageInitialized) {
       setupStorage()
@@ -31,9 +31,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setStorageInitialized(true); // Mark as initialized even on error
         });
     }
-  }, [storageInitialized]);
+  }, []);
   
-  // Handle auth state
+  // Handle auth state - independent of storage initialization
   const { user, session, isLoading, setIsLoading } = useAuthState();
   
   // Handle profile management
@@ -46,7 +46,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       hasProfile: !!profile, 
       isLoading 
     });
-  }, [user, profile, isLoading]);
+    
+    // Force loading to complete after a maximum time
+    if (isLoading) {
+      const timeout = setTimeout(() => {
+        if (isLoading) {
+          log.warn("Forcing auth loading to complete after timeout");
+          setIsLoading(false);
+        }
+      }, 2500); // 2.5 seconds max loading time
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [user, profile, isLoading, setIsLoading]);
 
   return (
     <AuthContext.Provider value={{ user, session, profile, isLoading, updateAvatar }}>
