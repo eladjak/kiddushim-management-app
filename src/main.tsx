@@ -1,3 +1,4 @@
+
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,9 +15,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Initialize storage setup
-import { setupStorage } from "./integrations/supabase/setupStorage";
-setupStorage().catch(console.error);
+// Initialize storage setup is now handled inside the AuthProvider
+// No need to call it here - removing potential duplicate calls
 
 // הוספת BrowserRouter כדי לוודא שהניתוב עובד כראוי
 // והוספת QueryClientProvider לתמיכה ב-React Query

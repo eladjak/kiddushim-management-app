@@ -29,6 +29,11 @@ export function useAuthState() {
         if (data.session) {
           setSession(data.session);
           setUser(data.session.user);
+          
+          // Explicitly ending the loading state once we have a session
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 500);
         } else {
           setSession(null);
           setUser(null);
@@ -49,6 +54,12 @@ export function useAuthState() {
       if (newSession) {
         setSession(newSession);
         setUser(newSession.user);
+        
+        // Make sure to update loading state after a short delay
+        // to allow profile to be fetched
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
       } else {
         setSession(null);
         setUser(null);
