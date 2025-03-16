@@ -13,8 +13,13 @@ const AuthCallback = () => {
   const log = logger.createLogger({ component: 'AuthCallback' });
   
   useEffect(() => {
-    log.info("Auth callback page mounted");
-  }, []);
+    log.info("Auth callback page mounted", { 
+      hasHash: !!window.location.hash,
+      hashLength: window.location.hash?.length || 0,
+      processing: isProcessing,
+      error: !!error
+    });
+  }, [isProcessing, error]);
 
   if (error) {
     return <AuthCallbackError error={error} />;

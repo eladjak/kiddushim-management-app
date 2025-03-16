@@ -20,17 +20,21 @@ export function useAuthCallback() {
       try {
         log.info("Auth callback hook initialized, extracting session from URL...");
         
-        // Get the hash if we were redirected from the /auth/callback route
-        // or if we're on the index page with a hash
+        // Get the hash from the URL
         const urlHash = window.location.hash || location.hash;
         
-        // If we have a hash with tokens, log it (without the tokens)
+        // If we have a hash with tokens, log its presence (without the actual tokens for security)
         if (urlHash && urlHash.includes('access_token=')) {
           log.info("Found auth hash in URL", { 
             hasAccessToken: urlHash.includes('access_token='),
             hasExpiresAt: urlHash.includes('expires_at='),
             hasRefreshToken: urlHash.includes('refresh_token=')
           });
+        } else {
+          log.warn("No access token found in URL hash");
+          setError("לא נמצא אסימון זיהוי בקישור. אנא נסה להתחבר שוב.");
+          setIsProcessing(false);
+          return;
         }
         
         // The URL includes the access token and refresh token as hash parameters
@@ -51,7 +55,10 @@ export function useAuthCallback() {
           return;
         }
         
-        log.info("Successfully established session for user:", { email: data.session.user.email });
+        log.info("Successfully established session for user:", { 
+          email: data.session.user.email,
+          userId: data.session.user.id.substring(0, 8) + '...' // Log only part of the ID for security
+        });
         
         // Get user profile
         const { data: profileData, error: profileError } = await supabase
@@ -83,8 +90,8 @@ export function useAuthCallback() {
         // First clean URL by removing hash parameters
         window.history.replaceState({}, document.title, "/");
         
-        // Then navigate to home page
-        navigate("/", { replace: true });
+        // Then navigate to home page using direct navigation to ensure clean URL
+        window.location.href = "/";
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");

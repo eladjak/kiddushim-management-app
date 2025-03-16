@@ -5,6 +5,7 @@ import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
@@ -12,13 +13,17 @@ const Index = () => {
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Handle access token in URL hash - redirect to auth callback if present
   useEffect(() => {
+    // Check if we have an auth token in the URL hash
     if (window.location.hash && window.location.hash.includes("access_token=")) {
       try {
         log.info("Detected auth hash in URL, redirecting to auth callback");
-        navigate("/auth/callback", { replace: true });
+        
+        // Direct navigation instead of React Router to ensure clean URL
+        window.location.replace("/auth/callback" + window.location.hash);
         return;
       } catch (error) {
         log.error("Error redirecting to auth callback", { error });
@@ -31,7 +36,7 @@ const Index = () => {
         log.error("Error cleaning URL hash", { error });
       }
     }
-  }, [navigate]);
+  }, []);
 
   // Set loading state based on auth status
   useEffect(() => {
@@ -53,7 +58,7 @@ const Index = () => {
         setLoadingTimedOut(true);
         setLoading(false);
       }
-    }, 3000); // Shorter timeout of 3 seconds
+    }, 2000); // Shorter timeout of 2 seconds
     
     return () => clearTimeout(timeout);
   }, [authLoading, user, profile, loading]);

@@ -13,6 +13,8 @@ export function useAuthState() {
   useEffect(() => {
     log.info("Auth state hook initialized, checking for session...");
     
+    let authStateSubscription: { data: { subscription: { unsubscribe: () => void } } };
+    
     // Check active sessions and sets the user
     const checkSession = async () => {
       try {
@@ -24,17 +26,16 @@ export function useAuthState() {
           return;
         }
         
-        log.info("Session check result:", { hasSession: !!data.session });
+        log.info("Session check result:", { 
+          hasSession: !!data.session,
+          userId: data.session?.user?.id ? `${data.session.user.id.substring(0, 8)}...` : 'none'
+        });
         
         if (data.session) {
           // If we have a session, update state immediately
           setSession(data.session);
           setUser(data.session.user);
-          
-          // Complete loading state after ensuring state is updated
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 50);
+          setIsLoading(false);
         } else {
           setSession(null);
           setUser(null);
@@ -46,25 +47,30 @@ export function useAuthState() {
       }
     };
     
-    // Start session check right away
-    checkSession();
-
     // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      log.info("Auth state changed:", { event, hasSession: !!newSession });
-      
-      if (newSession) {
-        setSession(newSession);
-        setUser(newSession.user);
+    const setupAuthListener = () => {
+      authStateSubscription = supabase.auth.onAuthStateChange(async (event, newSession) => {
+        log.info("Auth state changed:", { 
+          event, 
+          hasSession: !!newSession,
+          userId: newSession?.user?.id ? `${newSession.user.id.substring(0, 8)}...` : 'none'
+        });
         
-        // Force loading state to finish quickly
-        setIsLoading(false);
-      } else {
-        setSession(null);
-        setUser(null);
-        setIsLoading(false);
-      }
-    });
+        if (newSession) {
+          setSession(newSession);
+          setUser(newSession.user);
+          setIsLoading(false);
+        } else {
+          setSession(null);
+          setUser(null);
+          setIsLoading(false);
+        }
+      });
+    };
+    
+    // Start session check and setup listeners
+    checkSession();
+    setupAuthListener();
 
     // Set a backup timeout to ensure loading state doesn't get stuck
     const loadingTimeout = setTimeout(() => {
@@ -72,10 +78,12 @@ export function useAuthState() {
         log.warn("Force completing auth loading state after timeout");
         setIsLoading(false);
       }
-    }, 1500);
+    }, 1000); // Shorten timeout to 1 second
 
     return () => {
-      subscription.unsubscribe();
+      if (authStateSubscription?.data?.subscription) {
+        authStateSubscription.data.subscription.unsubscribe();
+      }
       clearTimeout(loadingTimeout);
     };
   }, []);
