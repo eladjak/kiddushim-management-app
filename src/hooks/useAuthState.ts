@@ -78,7 +78,7 @@ export function useAuthState() {
         log.warn("Force completing auth loading state after timeout");
         setIsLoading(false);
       }
-    }, 1000); // Shorten timeout to 1 second
+    }, 800); // Even shorter timeout
 
     return () => {
       if (authStateSubscription?.data?.subscription) {

@@ -19,6 +19,15 @@ const AuthCallback = () => {
       processing: isProcessing,
       error: !!error
     });
+    
+    // Log the current URL for debugging (without exposing sensitive tokens)
+    const url = new URL(window.location.href);
+    log.info("Current URL in AuthCallback", { 
+      pathname: url.pathname,
+      hasHash: !!url.hash,
+      hashLength: url.hash?.length || 0,
+      search: url.search
+    });
   }, [isProcessing, error]);
 
   if (error) {

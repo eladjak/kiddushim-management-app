@@ -82,7 +82,7 @@ export function useAuthCallback() {
           );
         }
         
-        // Successfully authenticated, redirect to home
+        // Successfully authenticated, show toast
         toast({
           description: "התחברת בהצלחה!",
         });
@@ -90,8 +90,12 @@ export function useAuthCallback() {
         // First clean URL by removing hash parameters
         window.history.replaceState({}, document.title, "/");
         
-        // Then navigate to home page using direct navigation to ensure clean URL
-        window.location.href = "/";
+        // Important: Wait a moment before redirecting to ensure the state is updated
+        setTimeout(() => {
+          // Use direct window.location for a complete page refresh
+          // This ensures a clean state after authentication
+          window.location.href = "/";
+        }, 500);
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");

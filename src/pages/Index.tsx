@@ -11,6 +11,7 @@ const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -21,12 +22,17 @@ const Index = () => {
     if (window.location.hash && window.location.hash.includes("access_token=")) {
       try {
         log.info("Detected auth hash in URL, redirecting to auth callback");
+        setIsRedirecting(true);
         
-        // Direct navigation instead of React Router to ensure clean URL
-        window.location.replace("/auth/callback" + window.location.hash);
+        // Clear any existing timeouts to prevent state updates after redirect
+        window.setTimeout(() => {
+          // Use window.location.href directly to ensure complete navigation
+          window.location.href = "/auth/callback" + window.location.hash;
+        }, 100);
         return;
       } catch (error) {
         log.error("Error redirecting to auth callback", { error });
+        setIsRedirecting(false);
       }
     } else if (window.location.hash && window.location.hash.length > 0) {
       try {
@@ -40,6 +46,9 @@ const Index = () => {
 
   // Set loading state based on auth status
   useEffect(() => {
+    // Skip any loading logic if we're redirecting
+    if (isRedirecting) return;
+
     log.info("Index page loaded", { 
       authenticated: !!user,
       authLoading,
@@ -58,21 +67,20 @@ const Index = () => {
         setLoadingTimedOut(true);
         setLoading(false);
       }
-    }, 2000); // Shorter timeout of 2 seconds
+    }, 1500); // Shorter timeout of 1.5 seconds
     
     return () => clearTimeout(timeout);
-  }, [authLoading, user, profile, loading]);
+  }, [authLoading, user, profile, loading, isRedirecting]);
 
-  // Effect to log rendering state
-  useEffect(() => {
-    if (!loading && !authLoading) {
-      log.info("Index page rendering", {
-        user: user ? 'Authenticated' : 'Not authenticated',
-        profile: profile ? 'Profile loaded' : 'No profile',
-        rendering: 'In progress'
-      });
-    }
-  }, [loading, authLoading, user, profile]);
+  // If we're redirecting, show a dedicated loading state
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
+        <div className="text-primary font-medium mb-4">מעבר לדף ההתחברות...</div>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (loading || (authLoading && !loadingTimedOut)) {
