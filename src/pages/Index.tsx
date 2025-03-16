@@ -4,15 +4,11 @@ import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const log = logger.createLogger({ component: 'IndexPage' });
 
   // Clean hash from URL if present
@@ -42,7 +38,7 @@ const Index = () => {
             setLoadingTimedOut(true);
             log.warn("Auth loading timed out", { authLoading });
           }
-        }, 2000); // Increased timeout to ensure auth is fully processed
+        }, 3000); // Increased timeout to ensure auth is fully processed
         
         return () => clearTimeout(timeout);
       } catch (error) {
@@ -63,6 +59,7 @@ const Index = () => {
         profile: profile ? 'Profile loaded' : 'No profile'
       });
       setLoadingTimedOut(false);
+      setLoading(false);
     }
   }, [loadingTimedOut, user, profile]);
 

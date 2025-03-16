@@ -1,5 +1,5 @@
 
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { useAdminCheck } from "./lib/admin-utils";
@@ -19,18 +19,18 @@ import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 
 // Layout component with Navigation for authenticated routes
-const AuthenticatedLayout = () => {
+const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Navigation />
-      <Outlet />
+      {children}
     </>
   );
 };
 
 // Layout without Navigation for public routes
-const PublicLayout = () => {
-  return <Outlet />;
+const PublicLayout = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
 };
 
 /**
@@ -43,22 +43,18 @@ function AppWithAdminCheck() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route element={<PublicLayout />}>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/" element={<Index />} />
-        <Route path="/documentation" element={<Documentation />} />
-      </Route>
+      <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
+      <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
+      <Route path="/auth/callback" element={<PublicLayout><AuthCallback /></PublicLayout>} />
+      <Route path="/documentation" element={<PublicLayout><Documentation /></PublicLayout>} />
       
       {/* Authenticated routes with Navigation */}
-      <Route element={<AuthenticatedLayout />}>
-        <Route path="/events" element={<Events />} />
-        <Route path="/volunteers" element={<Volunteers />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/equipment" element={<Equipment />} />
-        <Route path="/profile" element={<UserProfile />} />
-      </Route>
+      <Route path="/events" element={<AuthenticatedLayout><Events /></AuthenticatedLayout>} />
+      <Route path="/volunteers" element={<AuthenticatedLayout><Volunteers /></AuthenticatedLayout>} />
+      <Route path="/users" element={<AuthenticatedLayout><Users /></AuthenticatedLayout>} />
+      <Route path="/reports" element={<AuthenticatedLayout><Reports /></AuthenticatedLayout>} />
+      <Route path="/equipment" element={<AuthenticatedLayout><Equipment /></AuthenticatedLayout>} />
+      <Route path="/profile" element={<AuthenticatedLayout><UserProfile /></AuthenticatedLayout>} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>

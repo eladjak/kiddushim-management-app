@@ -32,36 +32,23 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
+        if (error.code === 'PGRST116') { // Row not found
           log.info("Profile not found, it may be created by the trigger soon");
           
           // Wait a moment and try again
           if (retryCount < 3) {
-            log.info("Retrying profile fetch...", { retryCount });
-            setRetryCount(prevCount => prevCount + 1);
+            const newRetryCount = retryCount + 1;
+            log.info("Retrying profile fetch...", { retryCount: newRetryCount });
+            setRetryCount(newRetryCount);
             
-            setTimeout(async () => {
-              const { data: retryData, error: retryError } = await supabase
-                .from("profiles")
-                .select("*")
-                .eq("id", userId)
-                .single();
-                
-              if (!retryError) {
-                log.info("Profile fetched on retry:", { profileFound: !!retryData, retryCount });
-                setProfile(retryData);
-                setIsLoading(false);
-              } else {
-                log.error("Error fetching profile on retry:", { error: retryError, retryCount });
-                
-                // Final attempt: create a basic profile if needed
-                createBasicProfile(userId);
-              }
+            setTimeout(() => {
+              fetchProfile(userId);
             }, 2000);
             return;
           } else {
             // We've retried enough, try to create a profile
-            createBasicProfile(userId);
+            log.info("Max retries reached, attempting to create profile");
+            await createBasicProfile(userId);
             return;
           }
         }

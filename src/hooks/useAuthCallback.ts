@@ -66,10 +66,11 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // Force reload to ensure state is fresh after auth
-        // Clean URL by removing hash parameters
+        // First clean URL by removing hash parameters
         window.history.replaceState({}, document.title, "/");
-        window.location.href = "/";
+        
+        // Then navigate to home page
+        navigate("/", { replace: true });
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
