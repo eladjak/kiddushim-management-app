@@ -8,6 +8,7 @@ import type { Profile } from "@/types/auth";
 
 export function useProfile(user: User | null, setIsLoading: (value: boolean) => void) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useProfile' });
 
@@ -16,12 +17,13 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       fetchProfile(user.id);
     } else {
       setProfile(null);
+      setIsLoading(false);
     }
   }, [user]);
 
   const fetchProfile = async (userId: string) => {
     try {
-      log.info("Fetching profile for user:", { userId });
+      log.info("Fetching profile for user:", { userId, retry: retryCount });
       
       const { data, error } = await supabase
         .from("profiles")
@@ -32,48 +34,36 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (error) {
         if (error.code === 'PGRST116') {
           log.info("Profile not found, it may be created by the trigger soon");
+          
           // Wait a moment and try again
-          setTimeout(async () => {
-            const { data: retryData, error: retryError } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", userId)
-              .single();
-              
-            if (!retryError) {
-              log.info("Profile fetched on retry:", { profileFound: !!retryData });
-              setProfile(retryData);
-            } else {
-              log.error("Error fetching profile on retry:", { error: retryError });
-              
-              // Final attempt: create a basic profile if needed
-              try {
-                const { data: userData } = await supabase.auth.getUser();
-                if (userData?.user) {
-                  const { error: insertError } = await supabase
-                    .from("profiles")
-                    .insert({
-                      id: userId,
-                      name: userData.user.user_metadata?.name || 
-                            userData.user.user_metadata?.full_name || 
-                            userData.user.email?.split('@')[0] || 'משתמש',
-                      email: userData.user.email
-                    });
-                  
-                  if (!insertError) {
-                    log.info("Created basic profile for user");
-                    fetchProfile(userId);
-                  } else {
-                    log.error("Error creating basic profile:", { error: insertError });
-                  }
-                }
-              } catch (createError) {
-                log.error("Error in profile creation fallback:", { error: createError });
+          if (retryCount < 3) {
+            log.info("Retrying profile fetch...", { retryCount });
+            setRetryCount(prevCount => prevCount + 1);
+            
+            setTimeout(async () => {
+              const { data: retryData, error: retryError } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", userId)
+                .single();
+                
+              if (!retryError) {
+                log.info("Profile fetched on retry:", { profileFound: !!retryData, retryCount });
+                setProfile(retryData);
+                setIsLoading(false);
+              } else {
+                log.error("Error fetching profile on retry:", { error: retryError, retryCount });
+                
+                // Final attempt: create a basic profile if needed
+                createBasicProfile(userId);
               }
-            }
-            setIsLoading(false);
-          }, 2000);
-          return;
+            }, 2000);
+            return;
+          } else {
+            // We've retried enough, try to create a profile
+            createBasicProfile(userId);
+            return;
+          }
         }
         
         log.error("Error fetching profile:", { error });
@@ -97,6 +87,61 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       setIsLoading(false);
     } catch (error) {
       log.error("Error fetching profile:", { error });
+      setIsLoading(false);
+    }
+  };
+
+  const createBasicProfile = async (userId: string) => {
+    try {
+      log.info("Creating basic profile for user", { userId });
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        // Get user metadata
+        const name = userData.user.user_metadata?.name || 
+                    userData.user.user_metadata?.full_name || 
+                    userData.user.email?.split('@')[0] || 'משתמש';
+        
+        // Try to determine language based on name - if contains Hebrew chars, use he
+        const hasHebrewChars = /[\u0590-\u05FF]/.test(name);
+        
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: userId,
+            name: name,
+            email: userData.user.email,
+            language: hasHebrewChars ? 'he' : 'en',
+            role: 'coordinator', // Default role
+            shabbat_mode: false
+          });
+        
+        if (!insertError) {
+          log.info("Created basic profile for user", { userId });
+          
+          // Fetch the newly created profile
+          const { data: newProfile, error: fetchError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
+            .single();
+            
+          if (!fetchError && newProfile) {
+            log.info("Fetched newly created profile", { profile: newProfile });
+            setProfile(newProfile);
+          } else {
+            log.error("Failed to fetch newly created profile", { error: fetchError });
+          }
+        } else {
+          log.error("Error creating basic profile:", { error: insertError });
+          toast({
+            variant: "destructive",
+            description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
+          });
+        }
+      }
+      setIsLoading(false);
+    } catch (createError) {
+      log.error("Error in profile creation:", { error: createError });
       setIsLoading(false);
     }
   };

@@ -67,6 +67,8 @@ export function useAuthCallback() {
         });
         
         // Force reload to ensure state is fresh after auth
+        // Clean URL by removing hash parameters
+        window.history.replaceState({}, document.title, "/");
         window.location.href = "/";
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
