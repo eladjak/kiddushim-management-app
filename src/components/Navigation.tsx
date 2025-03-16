@@ -10,6 +10,7 @@ import { logger } from "@/utils/logger";
 import { Brand } from "./navigation/Brand";
 import { DesktopNav } from "./navigation/DesktopNav";
 import { MobileNav } from "./navigation/MobileNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
  * Main navigation component for the application
@@ -22,6 +23,7 @@ export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const log = logger.createLogger({ component: 'Navigation' });
 
   // Close mobile menu when route changes
@@ -36,7 +38,7 @@ export const Navigation = () => {
     try {
       log.info('Logout initiated', { userId: user?.id });
       await supabase.auth.signOut();
-      navigate("/auth");
+      navigate("/");
       toast({
         description: "התנתקת בהצלחה",
       });
@@ -62,18 +64,20 @@ export const Navigation = () => {
             <Brand />
           </div>
           
-          <DesktopNav />
+          {!isMobile && <DesktopNav onLogout={handleLogout} />}
 
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-md hover:bg-secondary transition-colors"
-              aria-expanded={isOpen}
-              aria-label="תפריט ניווט"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-          </div>
+          {isMobile && (
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-md hover:bg-secondary transition-colors"
+                aria-expanded={isOpen}
+                aria-label="תפריט ניווט"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

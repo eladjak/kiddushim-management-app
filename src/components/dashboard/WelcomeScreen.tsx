@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Navigation } from "@/components/Navigation";
 import { Image } from "@/components/ui/image";
 import { FileText } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
@@ -9,7 +8,6 @@ import { Footer } from "@/components/layout/Footer";
 export const WelcomeScreen = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex flex-col">
-      <Navigation />
       <main className="container mx-auto px-4 pt-16 md:pt-24 pb-8 flex-grow">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col items-center mb-8 md:mb-10">

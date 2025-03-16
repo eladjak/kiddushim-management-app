@@ -1,81 +1,114 @@
 
-import { safeEncodeHebrew, safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
+import { logger } from '@/utils/logger';
 
-export const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsdTI4M3FxajA0aW0ya2xnbzAydGl4enYifQ.ZNxOA1MFV-vZRH6oYYN3yQ';
+export const MAPBOX_TOKEN = 'pk.eyJ1IjoiZWxhZGhpdGVjbGVhcm5pbmciLCJhIjoiY2x1Z2N0eDRmMDdnaTJtcW5ybXJibXRzcCJ9.z6zqU03gj31bscBCWVirxQ';
 
-// Geocode address to coordinates
+// Default map options for Israel
+export const getMapOptions = (coordinates?: { lat: number; lng: number } | null) => {
+  const defaultOptions = {
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: coordinates 
+      ? [coordinates.lng, coordinates.lat] 
+      : [35.217018, 32.722756], // Israel center
+    zoom: coordinates ? 15 : 7,
+    minZoom: 3,
+    maxZoom: 19
+  };
+  
+  return defaultOptions;
+};
+
+// Geocode an address to get coordinates
 export const geocodeAddress = async (
-  searchAddress: string,
+  address: string,
   onSuccess: (result: { lng: number; lat: number; address: string }) => void,
-  onError: (errorMessage: string) => void,
+  onError: (message: string) => void,
   setLoading: (loading: boolean) => void
 ) => {
-  if (!searchAddress) return;
-  
-  setLoading(true);
-  
   try {
-    const encodedAddress = encodeURIComponent(searchAddress);
+    setLoading(true);
+    
+    if (!address.trim()) {
+      onError('יש להזין כתובת לחיפוש');
+      setLoading(false);
+      return;
+    }
+    
+    // Add Israel as a bias if not specified in the address
+    let searchTerm = address;
+    if (!address.includes('ישראל') && !address.includes('Israel')) {
+      searchTerm = `${address}, Israel`;
+    }
+    
+    const encodedAddress = encodeURIComponent(searchTerm);
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${MAPBOX_TOKEN}&language=he-IL`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${MAPBOX_TOKEN}&country=il&language=he&limit=1`
     );
+    
+    if (!response.ok) {
+      throw new Error(`Geocoding API error: ${response.status}`);
+    }
     
     const data = await response.json();
     
-    if (data.features && data.features.length > 0) {
-      const [lng, lat] = data.features[0].center;
-      const formattedAddress = data.features[0].place_name;
-      
-      onSuccess({ lng, lat, address: formattedAddress });
-    } else {
-      onError('לא נמצאו תוצאות עבור הכתובת שהוזנה');
+    if (!data.features || data.features.length === 0) {
+      onError('הכתובת לא נמצאה');
+      setLoading(false);
+      return;
     }
-  } catch (err) {
-    console.error('Geocoding error', err);
+    
+    const feature = data.features[0];
+    const [lng, lat] = feature.center;
+    const placeName = feature.place_name;
+    
+    onSuccess({
+      lng,
+      lat,
+      address: placeName
+    });
+  } catch (error) {
+    logger.error('Error geocoding address:', { error, address });
     onError('אירעה שגיאה בחיפוש הכתובת');
   } finally {
     setLoading(false);
   }
 };
 
-// Reverse geocode - get address from coordinates
+// Reverse geocode coordinates to get an address
 export const reverseGeocode = async (
-  lng: number, 
+  lng: number,
   lat: number,
-  onChange?: (value: { lat: number; lng: number; address: string }) => void
-) => {
-  if (!onChange) return;
-  
+  onChange?: (result: { lng: number; lat: number; address: string }) => void
+): Promise<string | null> => {
   try {
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=he-IL`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=he`
     );
+    
+    if (!response.ok) {
+      throw new Error(`Reverse geocoding API error: ${response.status}`);
+    }
     
     const data = await response.json();
     
-    if (data.features && data.features.length > 0) {
-      const formattedAddress = data.features[0].place_name;
-      
-      if (onChange) {
-        onChange({ lng, lat, address: formattedAddress });
-      }
-      
-      return formattedAddress;
+    if (!data.features || data.features.length === 0) {
+      return null;
     }
     
-    return null;
-  } catch (err) {
-    console.error('Reverse geocoding error', err);
+    const address = data.features[0].place_name;
+    
+    // Call onChange if provided
+    if (onChange) {
+      onChange({
+        lng,
+        lat,
+        address
+      });
+    }
+    
+    return address;
+  } catch (error) {
+    logger.error('Error reverse geocoding:', { error, coordinates: { lng, lat } });
     return null;
   }
-};
-
-// Initialize map configuration options
-export const getMapOptions = (coordinates: { lat: number; lng: number } | null): Omit<mapboxgl.MapOptions, 'container'> => {
-  return {
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: coordinates ? [coordinates.lng, coordinates.lat] : [34.7818, 32.0853], // Default to Tel Aviv
-    zoom: coordinates ? 15 : 10,
-    language: 'he-IL',
-  };
 };

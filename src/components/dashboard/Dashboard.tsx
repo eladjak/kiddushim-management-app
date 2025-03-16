@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
@@ -10,14 +9,17 @@ import { useNotifications } from "@/hooks/dashboard/useNotifications";
 import { useEvents } from "@/hooks/dashboard/useEvents";
 import { useAssignments } from "@/hooks/dashboard/useAssignments";
 import { logger } from "@/utils/logger";
+import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Dashboard = () => {
   const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'Dashboard' });
+  const isMobile = useIsMobile();
   
   // Use the hooks for fetching data
-  const { data: events = [], isLoading: eventsLoading } = useEvents(user?.id);
-  const { data: assignments = [], isLoading: assignmentsLoading } = useAssignments(user?.id);
+  const { data: eventsData, isLoading: eventsLoading } = useEvents(user?.id);
+  const { data: assignmentsData, isLoading: assignmentsLoading } = useAssignments(user?.id);
   const { unreadCount: notificationsCount, isLoading: notificationsLoading } = useNotifications(user?.id);
   
   // Dashboard data state
@@ -37,28 +39,20 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex flex-col">
-      <Navigation />
-      
-      <main className="container mx-auto px-4 pt-20 md:pt-24 pb-8 flex-grow">
+      <main className="container mx-auto px-4 pt-20 pb-8 flex-grow">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">
             שלום {profile?.name || 'משתמש'}
           </h1>
           
           <StatusBanner isAllDataLoaded={isAllDataLoaded} />
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="lg:col-span-2">
-              <UpcomingEvents 
-                events={events} 
-                isLoading={eventsLoading} 
-              />
-            </div>
-            
-            <div>
+          {isMobile ? (
+            // Mobile layout
+            <div className="space-y-4 mt-4">
               <QuickActions 
-                eventsCount={events?.length || 0}
-                assignmentsCount={assignments?.length || 0}
+                eventsCount={eventsData?.length || 0}
+                assignmentsCount={assignmentsData?.length || 0}
                 notificationsCount={notificationsCount || 0}
                 isLoading={{
                   events: eventsLoading,
@@ -66,8 +60,38 @@ export const Dashboard = () => {
                   notifications: notificationsLoading
                 }}
               />
+              
+              <Separator className="my-4" />
+              
+              <UpcomingEvents 
+                events={eventsData || []} 
+                isLoading={eventsLoading} 
+              />
             </div>
-          </div>
+          ) : (
+            // Desktop layout
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+              <div className="lg:col-span-2">
+                <UpcomingEvents 
+                  events={eventsData || []} 
+                  isLoading={eventsLoading} 
+                />
+              </div>
+              
+              <div>
+                <QuickActions 
+                  eventsCount={eventsData?.length || 0}
+                  assignmentsCount={assignmentsData?.length || 0}
+                  notificationsCount={notificationsCount || 0}
+                  isLoading={{
+                    events: eventsLoading,
+                    assignments: assignmentsLoading,
+                    notifications: notificationsLoading
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </main>
       

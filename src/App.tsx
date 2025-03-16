@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { useAdminCheck } from "./lib/admin-utils";
+import { Navigation } from "./components/Navigation";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -17,6 +18,21 @@ import UserProfile from "./pages/UserProfile";
 import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 
+// Layout component with Navigation for authenticated routes
+const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <>
+      <Navigation />
+      {children}
+    </>
+  );
+};
+
+// Layout without Navigation for public routes
+const PublicLayout = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
+};
+
 /**
  * Main application component with admin check
  */
@@ -26,16 +42,24 @@ function AppWithAdminCheck() {
   
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/events" element={<Events />} />
-      <Route path="/volunteers" element={<Volunteers />} />
-      <Route path="/users" element={<Users />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/equipment" element={<Equipment />} />
-      <Route path="/documentation" element={<Documentation />} />
-      <Route path="/profile" element={<UserProfile />} />
+      {/* Public routes */}
+      <Route element={<PublicLayout />}>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/documentation" element={<Documentation />} />
+      </Route>
+      
+      {/* Authenticated routes with Navigation */}
+      <Route element={<AuthenticatedLayout />}>
+        <Route path="/events" element={<Events />} />
+        <Route path="/volunteers" element={<Volunteers />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/equipment" element={<Equipment />} />
+        <Route path="/profile" element={<UserProfile />} />
+      </Route>
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -53,7 +77,7 @@ function App() {
   
   return (
     <AuthProvider>
-      <div dir="rtl" className="rtl-app"> {/* Added rtl-app class for additional CSS targeting */}
+      <div dir="rtl" className="rtl-app">
         <AppWithAdminCheck />
         <Toaster />
       </div>
