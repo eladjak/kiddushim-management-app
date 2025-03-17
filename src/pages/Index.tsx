@@ -13,78 +13,90 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Handle access token in URL hash - redirect to auth callback if present
+  // Handle access token in URL hash - process auth directly when present
   useEffect(() => {
-    // Check if we have an auth token in the URL hash (but avoid examining the actual token content)
-    if (window.location.hash && window.location.hash.includes("access_token=")) {
+    // This runs once on mount to check if there's an auth hash
+    if (window.location.hash && !authProcessed) {
       try {
-        log.info("Detected auth hash in URL, will process it directly");
-        setIsRedirecting(true);
-        
-        // Handle auth directly on the main page to avoid redirect issues
-        // Let supabase extract the token itself
+        // Process authentication directly without parsing the hash
         const processAuth = async () => {
+          setIsRedirecting(true);
+          log.info("Processing auth directly from Index page");
+          
           try {
-            // Attempt to extract the session from the hash
+            // Let Supabase handle the hash extraction
             const { data, error } = await supabase.auth.getSession();
             
             if (error) {
-              log.error("Error getting session from hash:", { error });
-              // If there's an error, clean the URL anyway
-              window.history.replaceState({}, document.title, window.location.pathname);
+              log.error("Error getting session:", { error });
               setIsRedirecting(false);
+              setAuthProcessed(true);
+              // Clean the URL regardless of error
+              window.history.replaceState({}, document.title, window.location.pathname);
               return;
             }
-            
+
             if (data.session) {
-              // Success! Clean the URL and force a reload to reset app state
-              log.info("Successfully processed auth hash");
+              log.info("Auth successful, cleaning URL and reloading");
+              
+              // Successfully authenticated, clean the URL
               window.history.replaceState({}, document.title, "/");
-              window.location.reload();
+              
+              // Mark as processed
+              setAuthProcessed(true);
+              
+              // Wait a moment before reload to ensure state is updated
+              setTimeout(() => {
+                window.location.reload();
+              }, 100);
             } else {
-              // No session found, clean URL and show normal content
-              log.warn("No session found in auth hash");
-              window.history.replaceState({}, document.title, window.location.pathname);
+              log.warn("No session found after auth attempt");
               setIsRedirecting(false);
+              setAuthProcessed(true);
+              // Clean URL anyway
+              window.history.replaceState({}, document.title, "/");
             }
-          } catch (processError) {
-            log.error("Error processing auth:", { error: processError });
+          } catch (e) {
+            log.error("Error during auth processing:", e);
             setIsRedirecting(false);
+            setAuthProcessed(true);
+            // Clean URL on error
+            window.history.replaceState({}, document.title, "/");
           }
         };
         
+        // Run the auth processing
         processAuth();
       } catch (error) {
-        log.error("Error handling auth hash:", { error });
+        log.error("Auth processing failed:", error);
         setIsRedirecting(false);
+        setAuthProcessed(true);
+        // Clean URL on outer error
+        window.history.replaceState({}, document.title, "/");
       }
-    } else if (window.location.hash && window.location.hash.length > 0) {
-      // Clean any other hash that may be in the URL
-      try {
-        log.info("Cleaning URL hash");
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } catch (error) {
-        log.error("Error cleaning URL hash", { error });
-      }
+    } else {
+      // No hash or already processed, mark as processed
+      setAuthProcessed(true);
     }
   }, []);
 
   // Set loading state based on auth status
   useEffect(() => {
-    // Skip any loading logic if we're redirecting
-    if (isRedirecting) return;
+    // Skip any loading logic if we're redirecting or haven't processed auth
+    if (isRedirecting || !authProcessed) return;
 
-    log.info("Index page loaded", { 
+    log.info("Processing regular page load", { 
       authenticated: !!user,
       authLoading,
-      profile: profile ? 'exists' : 'missing'
+      hasProfile: !!profile
     });
 
-    // If auth is no longer loading, or we have a user, we can stop our loading
+    // If auth is no longer loading, or we have a user, we can stop loading
     if (!authLoading || user) {
       setLoading(false);
     }
@@ -92,14 +104,14 @@ const Index = () => {
     // Additional timeout to prevent infinite loading
     const timeout = setTimeout(() => {
       if (loading) {
-        log.warn("Auth loading timed out", { authLoading });
+        log.warn("Auth loading timed out");
         setLoadingTimedOut(true);
         setLoading(false);
       }
-    }, 1200); // Short timeout
+    }, 800); // Shorter timeout
     
     return () => clearTimeout(timeout);
-  }, [authLoading, user, profile, loading, isRedirecting]);
+  }, [authLoading, user, profile, loading, isRedirecting, authProcessed]);
 
   // If we're redirecting, show a dedicated loading state
   if (isRedirecting) {
@@ -111,8 +123,8 @@ const Index = () => {
     );
   }
 
-  // Show loading state
-  if (loading || (authLoading && !loadingTimedOut)) {
+  // Show loading state if still loading and not timed out
+  if ((loading || authLoading) && !loadingTimedOut) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
         <div className="text-primary font-medium mb-4">טוען...</div>
@@ -136,7 +148,7 @@ const Index = () => {
 
   // User is authenticated but no profile yet
   if (user && !profile) {
-    log.warn("User authenticated but no profile found", { userId: user.id });
+    log.warn("User authenticated but no profile found");
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
