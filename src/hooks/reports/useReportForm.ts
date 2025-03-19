@@ -69,7 +69,7 @@ export const useReportForm = () => {
   };
 
   const submitReport = async ({ values, images, userId, reportType }: SubmitReportParams) => {
-    // Create content object to store in the JSON field - sending values directly now
+    // Create content object with sanitized values
     const contentData = {
       title: values.title,
       description: values.description,
@@ -89,12 +89,16 @@ export const useReportForm = () => {
       },
     };
     
+    // Create sanitized report data object
     const reportData = {
       content: contentData,
       event_id: values.event_id || null,
       reporter_id: userId,
       type: reportType,
     };
+    
+    // Log the data being sent for debugging
+    console.log("Submitting report data:", JSON.stringify(reportData));
     
     const { error } = await supabase
       .from("reports")

@@ -1,4 +1,3 @@
-
 import { supabase } from "./client";
 import { logger } from "@/utils/logger";
 
@@ -52,4 +51,20 @@ export const setupStorage = async () => {
     logger.error("Error setting up storage:", { error });
     return false;
   }
+};
+
+// Let's create a utility function for handling Hebrew text encoding
+export const encodeHebrewText = (text: string): string => {
+  // If the text is null or undefined, return an empty string
+  if (!text) return '';
+  
+  // Return the text as is - no need to encode it
+  // Supabase should handle UTF-8 properly with JSON
+  return text;
+};
+
+// Use the following function to safely decode Hebrew text if needed
+export const safeDecodeHebrew = (text: string): string => {
+  if (!text) return '';
+  return text;
 };

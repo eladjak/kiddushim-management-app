@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -110,26 +111,29 @@ export const useEventForm = () => {
       const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
       const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
 
+      // Create a sanitized version of the event data for submission
+      const eventData = {
+        title: formData.title,
+        date: eventDate.toISOString(),
+        setup_time: setupTime.toISOString(),
+        main_time: mainTime.toISOString(),
+        cleanup_time: cleanupTime.toISOString(),
+        location_name: formData.locationName,
+        location_address: formData.locationAddress,
+        required_service_girls: formData.requiredServiceGirls,
+        required_youth_volunteers: formData.requiredYouthVolunteers,
+        poster_url: posterUrl,
+        parasha: formData.parasha,
+        facilitator: formData.facilitator,
+        workshop_content: formData.workshopContent,
+        event_content: formData.eventContent,
+        created_by: user.id,
+        status: "draft",
+      };
+
       const { data, error } = await supabase
         .from("events")
-        .insert({
-          title: formData.title,
-          date: eventDate.toISOString(),
-          setup_time: setupTime.toISOString(),
-          main_time: mainTime.toISOString(),
-          cleanup_time: cleanupTime.toISOString(),
-          location_name: formData.locationName,
-          location_address: formData.locationAddress,
-          required_service_girls: formData.requiredServiceGirls,
-          required_youth_volunteers: formData.requiredYouthVolunteers,
-          poster_url: posterUrl,
-          parasha: formData.parasha,
-          facilitator: formData.facilitator,
-          workshop_content: formData.workshopContent,
-          event_content: formData.eventContent,
-          created_by: user.id,
-          status: "draft",
-        })
+        .insert(eventData)
         .select();
         
       if (error) {

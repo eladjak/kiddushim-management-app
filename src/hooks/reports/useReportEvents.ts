@@ -1,7 +1,5 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
 import { logger } from "@/utils/logger";
 
 export const useReportEvents = () => {
@@ -22,7 +20,7 @@ export const useReportEvents = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        // Process any encoded content and filter past events
+        // Process and filter past events
         return (data || [])
           .filter(event => {
             const eventDate = new Date(event.main_time);
@@ -30,9 +28,10 @@ export const useReportEvents = () => {
           })
           .map(event => ({
             ...event,
-            title: safeDecodeHebrew(event.title),
-            location_name: safeDecodeHebrew(event.location_name),
-            parasha: event.parasha ? safeDecodeHebrew(event.parasha) : null
+            // No need to encode/decode here, keeping data as is
+            title: event.title,
+            location_name: event.location_name,
+            parasha: event.parasha
           }));
       } catch (error) {
         logger.error("Error fetching events:", { error });

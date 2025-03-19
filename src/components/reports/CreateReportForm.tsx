@@ -56,6 +56,8 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     setIsLoading(true);
     
     try {
+      console.log("Submitting report with values:", values);
+      
       await submitReport({
         values,
         images,
@@ -73,6 +75,8 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
       onSuccess();
       
     } catch (error: any) {
+      console.error("Error submitting report:", error);
+      
       toast({
         variant: "destructive",
         description: error.message || "אירעה שגיאה בשליחת הדיווח",
