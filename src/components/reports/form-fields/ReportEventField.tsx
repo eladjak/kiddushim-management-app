@@ -29,7 +29,7 @@ export const ReportEventField = ({ events }: ReportEventFieldProps) => {
             <SelectContent>
               {events.length > 0 ? (
                 events.map((event) => (
-                  <SelectItem key={event.id} value={event.id || 'default'}>
+                  <SelectItem key={event.id} value={event.id}>
                     {event.title || 'אירוע ללא כותרת'}
                   </SelectItem>
                 ))

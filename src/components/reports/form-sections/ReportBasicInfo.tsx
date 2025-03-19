@@ -24,11 +24,7 @@ export const ReportBasicInfo = ({ events }: ReportBasicInfoProps) => {
         onChange={(e) => form.setValue("description", e.target.value)}
       />
       
-      <ReportEventField 
-        value={form.watch("event_id")}
-        events={events}
-        onValueChange={(value) => form.setValue("event_id", value)}
-      />
+      <ReportEventField events={events} />
       
       <ReporterNameField 
         value={form.watch("reporter_name")}
