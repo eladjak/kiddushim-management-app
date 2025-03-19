@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Footer } from "@/components/layout/Footer";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
@@ -38,8 +37,8 @@ export const Dashboard = () => {
   }, [user, profile, eventsLoading, assignmentsLoading, notificationsLoading]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex flex-col">
-      <main className="container mx-auto px-4 pt-20 pb-8 flex-grow">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10">
+      <main className="container mx-auto px-4 pt-4 pb-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">
             שלום {profile?.name || 'משתמש'}
@@ -94,8 +93,6 @@ export const Dashboard = () => {
           )}
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

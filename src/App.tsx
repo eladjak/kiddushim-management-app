@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { useAdminCheck } from "./lib/admin-utils";
 import { Navigation } from "./components/Navigation";
+import { Footer } from "./components/layout/Footer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -18,19 +19,26 @@ import UserProfile from "./pages/UserProfile";
 import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 
-// Layout component with Navigation for authenticated routes
+// Layout component with Navigation and Footer for authenticated routes
 const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Navigation />
-      {children}
-    </>
+      <main className="flex-grow pt-16">
+        {children}
+      </main>
+      <Footer />
+    </div>
   );
 };
 
 // Layout without Navigation for public routes
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+  return (
+    <div className="flex flex-col min-h-screen">
+      {children}
+    </div>
+  );
 };
 
 /**
@@ -46,7 +54,7 @@ function AppWithAdminCheck() {
       <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
       <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
       <Route path="/auth/callback" element={<PublicLayout><AuthCallback /></PublicLayout>} />
-      <Route path="/documentation" element={<PublicLayout><Documentation /></PublicLayout>} />
+      <Route path="/documentation" element={<AuthenticatedLayout><Documentation /></AuthenticatedLayout>} />
       
       {/* Authenticated routes with Navigation */}
       <Route path="/events" element={<AuthenticatedLayout><Events /></AuthenticatedLayout>} />
