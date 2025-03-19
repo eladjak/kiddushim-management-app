@@ -18,6 +18,7 @@ import { SeverityField } from "./form-fields/SeverityField";
 import { useReportEvents } from "@/hooks/reports/useReportEvents";
 import { DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { logger } from "@/utils/logger";
 
 type CreateReportFormProps = {
   onCancel: () => void;
@@ -31,6 +32,7 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const log = logger.createLogger({ component: 'CreateReportForm' });
   
   const { reportFormSchema, defaultValues, getReportTypeName, submitReport } = useReportForm();
   const { data: events = [] } = useReportEvents();
@@ -56,14 +58,20 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     setIsLoading(true);
     
     try {
-      console.log("Submitting report with values:", values);
+      log.info("Submitting report with values:", { 
+        type: reportType,
+        title: values.title,
+        eventId: values.event_id || 'none'
+      });
       
-      await submitReport({
+      const result = await submitReport({
         values,
         images,
         userId: user.id,
         reportType,
       });
+      
+      log.info("Report submitted successfully", { reportId: result?.id });
       
       toast({
         description: "הדיווח נשלח בהצלחה",
@@ -75,7 +83,7 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
       onSuccess();
       
     } catch (error: any) {
-      console.error("Error submitting report:", error);
+      log.error("Error submitting report:", { error, values });
       
       toast({
         variant: "destructive",
