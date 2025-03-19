@@ -4,8 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
@@ -15,8 +13,6 @@ const Index = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Handle access token in URL hash - process auth directly when present
   useEffect(() => {
