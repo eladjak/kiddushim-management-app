@@ -1,3 +1,4 @@
+
 import { supabase } from "./client";
 import { logger } from "@/utils/logger";
 
@@ -16,6 +17,7 @@ export const safeEncodeHebrew = (text: string): string => {
  */
 export const safeDecodeHebrew = (text: string): string => {
   // Return text as-is
+  if (!text) return '';
   return text;
 };
 
@@ -63,8 +65,4 @@ export const encodeHebrewText = (text: string): string => {
   return text;
 };
 
-// Use the following function to safely decode Hebrew text if needed
-export const safeDecodeHebrew = (text: string): string => {
-  if (!text) return '';
-  return text;
-};
+// The safeDecodeHebrew function is already declared above, so we don't need to declare it again here
