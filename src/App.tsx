@@ -51,7 +51,7 @@ function AppWithAdminCheck() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
+      <Route path="/" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
       <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
       <Route path="/auth/callback" element={<PublicLayout><AuthCallback /></PublicLayout>} />
       <Route path="/documentation" element={<AuthenticatedLayout><Documentation /></AuthenticatedLayout>} />

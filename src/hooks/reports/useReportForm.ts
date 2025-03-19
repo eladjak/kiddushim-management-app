@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const reportFormSchema = z.object({
   title: z.string().min(3, "יש להזין כותרת באורך של 3 תווים לפחות"),
   description: z.string().min(10, "יש להזין תיאור באורך של 10 תווים לפחות"),
-  event_id: z.string().optional(),
+  event_id: z.string().min(1, "יש לבחור אירוע").optional(),
   reporter_name: z.string().min(2, "יש להזין שם בן 2 תווים לפחות"),
-  severity: z.string().optional(),
+  severity: z.string().min(1, "יש לבחור רמת חומרה").default("medium"),
   overall_rating: z.number().min(1).max(10).default(5),
   audience_rating: z.number().min(1).max(10).default(5),
   organization_rating: z.number().min(1).max(10).default(5),
@@ -48,7 +48,7 @@ export const useReportForm = () => {
   const defaultValues: ReportFormValues = {
     title: "",
     description: "",
-    event_id: "",
+    event_id: events.length > 0 ? events[0]?.id : undefined,
     reporter_name: "",
     severity: "medium",
     overall_rating: 5,

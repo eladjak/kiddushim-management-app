@@ -16,6 +16,8 @@ import { FeedbackSection } from "./form-sections/FeedbackSection";
 import { ReportFormActions } from "./form-actions/ReportFormActions";
 import { SeverityField } from "./form-fields/SeverityField";
 import { useReportEvents } from "@/hooks/reports/useReportEvents";
+import { DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 type CreateReportFormProps = {
   onCancel: () => void;
@@ -38,6 +40,7 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     defaultValues: {
       ...defaultValues,
       reporter_name: profile?.name || "",
+      event_id: events.length > 0 ? events[0]?.id : undefined,
     }
   });
 
@@ -79,10 +82,12 @@ export const CreateReportForm = ({ onCancel, onSuccess, reportType }: CreateRepo
     }
   };
 
+  const reportTypeName = getReportTypeName(reportType);
+
   return (
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">{getReportTypeName(reportType)} חדש</h2>
+        <DialogTitle className="text-xl font-bold">{reportTypeName} חדש</DialogTitle>
         <Button variant="ghost" size="sm" onClick={onCancel}>
           <X className="h-4 w-4" />
         </Button>
