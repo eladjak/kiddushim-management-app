@@ -106,30 +106,46 @@ export const useEventForm = () => {
     try {
       logger.info("Creating event", { formData });
       
+      // Parse and format dates carefully
       const eventDate = new Date(formData.date);
-      const setupTime = new Date(`${formData.date}T${formData.setupTime}:00`);
-      const mainTime = new Date(`${formData.date}T${formData.mainTime}:00`);
-      const cleanupTime = new Date(`${formData.date}T${formData.cleanupTime}:00`);
+      
+      // Create setup time
+      const setupTimeParts = formData.setupTime.split(':');
+      const setupDate = new Date(eventDate);
+      setupDate.setHours(parseInt(setupTimeParts[0], 10), parseInt(setupTimeParts[1], 10), 0, 0);
+      
+      // Create main time
+      const mainTimeParts = formData.mainTime.split(':');
+      const mainDate = new Date(eventDate);
+      mainDate.setHours(parseInt(mainTimeParts[0], 10), parseInt(mainTimeParts[1], 10), 0, 0);
+      
+      // Create cleanup time
+      const cleanupTimeParts = formData.cleanupTime.split(':');
+      const cleanupDate = new Date(eventDate);
+      cleanupDate.setHours(parseInt(cleanupTimeParts[0], 10), parseInt(cleanupTimeParts[1], 10), 0, 0);
 
       // Create a sanitized version of the event data for submission
       const eventData = {
         title: formData.title,
         date: eventDate.toISOString(),
-        setup_time: setupTime.toISOString(),
-        main_time: mainTime.toISOString(),
-        cleanup_time: cleanupTime.toISOString(),
+        setup_time: setupDate.toISOString(),
+        main_time: mainDate.toISOString(),
+        cleanup_time: cleanupDate.toISOString(),
         location_name: formData.locationName,
         location_address: formData.locationAddress,
         required_service_girls: formData.requiredServiceGirls,
         required_youth_volunteers: formData.requiredYouthVolunteers,
-        poster_url: posterUrl,
-        parasha: formData.parasha,
-        facilitator: formData.facilitator,
-        workshop_content: formData.workshopContent,
-        event_content: formData.eventContent,
+        poster_url: posterUrl || null,
+        parasha: formData.parasha || null,
+        facilitator: formData.facilitator || null,
+        workshop_content: formData.workshopContent || null,
+        event_content: formData.eventContent || null,
         created_by: user.id,
         status: "draft",
       };
+
+      // Log the data being sent for debugging
+      logger.info("Submitting event data:", { event: JSON.stringify(eventData) });
 
       const { data, error } = await supabase
         .from("events")

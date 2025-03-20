@@ -103,6 +103,11 @@ export const useReportForm = () => {
       // Log the data being sent for debugging
       log.info("Submitting report data:", { report: JSON.stringify(reportData) });
       
+      // Handle the case where event_id is null or undefined
+      if (!reportData.event_id) {
+        reportData.event_id = 'no-events';
+      }
+      
       const { data, error } = await supabase
         .from("reports")
         .insert(reportData)

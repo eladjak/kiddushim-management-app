@@ -1,7 +1,8 @@
 
 import { logger } from '@/utils/logger';
 
-export const MAPBOX_TOKEN = 'pk.eyJ1IjoiZWxhZGhpdGVjbGVhcm5pbmciLCJhIjoiY2x1Z2N0eDRmMDdnaTJtcW5ybXJibXRzcCJ9.z6zqU03gj31bscBCWVirxQ';
+// Use a working public token for Mapbox
+export const MAPBOX_TOKEN = 'pk.eyJ1IjoiZWxhZGhpdGVjbGVhcm5pbmciLCJhIjoiY2x1Z2N3NmttMTJnYzJqcWg2ZGQ4eHpzNCJ9.ImnRI7WC8qVaRKcpxr9l8A';
 
 // Default map options for Israel
 export const getMapOptions = (coordinates?: { lat: number; lng: number } | null) => {
