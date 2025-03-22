@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
@@ -11,14 +11,23 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useProfile' });
+  const mountedRef = useRef(true);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchProfile(user.id);
     } else {
       setProfile(null);
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
+
+    return () => {
+      mountedRef.current = false;
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
   }, [user]);
 
   const fetchProfile = async (userId: string) => {
@@ -31,6 +40,8 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         .eq("id", userId)
         .single();
 
+      if (!mountedRef.current) return;
+
       if (error) {
         if (error.code === 'PGRST116') { // Row not found
           log.info("Profile not found, it may be created by the trigger soon");
@@ -39,10 +50,12 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
           if (retryCount < 3) {
             const newRetryCount = retryCount + 1;
             log.info("Retrying profile fetch...", { retryCount: newRetryCount });
-            setRetryCount(newRetryCount);
+            if (mountedRef.current) setRetryCount(newRetryCount);
             
-            setTimeout(() => {
-              fetchProfile(userId);
+            retryTimerRef.current = setTimeout(() => {
+              if (mountedRef.current) {
+                fetchProfile(userId);
+              }
             }, 2000);
             return;
           } else {
@@ -54,7 +67,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         }
         
         log.error("Error fetching profile:", { error });
-        setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
         return;
       }
 
@@ -70,11 +83,13 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         }
       }
       
-      setProfile(data);
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setProfile(data);
+        setIsLoading(false);
+      }
     } catch (error) {
       log.error("Error fetching profile:", { error });
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   };
 
@@ -82,6 +97,9 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
     try {
       log.info("Creating basic profile for user", { userId });
       const { data: userData } = await supabase.auth.getUser();
+      
+      if (!mountedRef.current) return;
+
       if (userData?.user) {
         // Get user metadata
         const name = userData.user.user_metadata?.name || 
@@ -102,6 +120,8 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
             shabbat_mode: false
           });
         
+        if (!mountedRef.current) return;
+
         if (!insertError) {
           log.info("Created basic profile for user", { userId });
           
@@ -112,6 +132,8 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
             .eq("id", userId)
             .single();
             
+          if (!mountedRef.current) return;
+
           if (!fetchError && newProfile) {
             log.info("Fetched newly created profile", { profile: newProfile });
             setProfile(newProfile);
@@ -120,16 +142,18 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
           }
         } else {
           log.error("Error creating basic profile:", { error: insertError });
-          toast({
-            variant: "destructive",
-            description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
-          });
+          if (mountedRef.current) {
+            toast({
+              variant: "destructive",
+              description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
+            });
+          }
         }
       }
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     } catch (createError) {
       log.error("Error in profile creation:", { error: createError });
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   };
 
@@ -151,7 +175,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
   };
 
   const updateAvatar = async (avatarUrl: string) => {
-    if (!user?.id) return;
+    if (!user?.id || !mountedRef.current) return;
     
     try {
       const { error } = await supabase
@@ -165,17 +189,21 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (error) throw error;
       
       // Update local profile state
-      setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
-      
-      toast({
-        description: "תמונת הפרופיל עודכנה בהצלחה",
-      });
+      if (mountedRef.current) {
+        setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+        
+        toast({
+          description: "תמונת הפרופיל עודכנה בהצלחה",
+        });
+      }
     } catch (error: any) {
       console.error("Error updating avatar:", error);
-      toast({
-        variant: "destructive",
-        description: `שגיאה בעדכון תמונת הפרופיל: ${error.message}`,
-      });
+      if (mountedRef.current) {
+        toast({
+          variant: "destructive",
+          description: `שגיאה בעדכון תמונת הפרופיל: ${error.message}`,
+        });
+      }
     }
   };
 

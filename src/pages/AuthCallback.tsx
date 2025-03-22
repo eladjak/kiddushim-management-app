@@ -2,7 +2,7 @@
 import { useAuthCallback } from "@/hooks/useAuthCallback";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
 import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { logger } from "@/utils/logger";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,8 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 const AuthCallback = () => {
   const { error, isProcessing } = useAuthCallback();
   const log = logger.createLogger({ component: 'AuthCallback' });
+  const processedRef = useRef(false);
   
   useEffect(() => {
+    // Only process once to avoid multiple calls
+    if (processedRef.current) return;
+    processedRef.current = true;
+    
     const processAuthHash = async () => {
       log.info("Auth callback page mounted", { 
         hasHash: !!window.location.hash,

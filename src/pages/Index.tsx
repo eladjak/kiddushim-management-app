@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
@@ -13,6 +13,8 @@ const Index = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
+  const mountedRef = useRef(true);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Handle access token in URL hash - process auth directly when present
   useEffect(() => {
@@ -21,17 +23,21 @@ const Index = () => {
       try {
         // Process authentication directly without parsing the hash
         const processAuth = async () => {
-          setIsRedirecting(true);
+          if (mountedRef.current) setIsRedirecting(true);
           log.info("Processing auth directly from Index page");
           
           try {
             // Let Supabase handle the hash extraction
             const { data, error } = await supabase.auth.getSession();
             
+            if (!mountedRef.current) return;
+
             if (error) {
               log.error("Error getting session:", { error });
-              setIsRedirecting(false);
-              setAuthProcessed(true);
+              if (mountedRef.current) {
+                setIsRedirecting(false);
+                setAuthProcessed(true);
+              }
               // Clean the URL regardless of error
               window.history.replaceState({}, document.title, window.location.pathname);
               return;
@@ -44,23 +50,29 @@ const Index = () => {
               window.history.replaceState({}, document.title, "/");
               
               // Mark as processed
-              setAuthProcessed(true);
+              if (mountedRef.current) setAuthProcessed(true);
               
               // Wait a moment before reload to ensure state is updated
-              setTimeout(() => {
-                window.location.reload();
+              timeoutRef.current = setTimeout(() => {
+                if (mountedRef.current) {
+                  window.location.reload();
+                }
               }, 100);
             } else {
               log.warn("No session found after auth attempt");
-              setIsRedirecting(false);
-              setAuthProcessed(true);
+              if (mountedRef.current) {
+                setIsRedirecting(false);
+                setAuthProcessed(true);
+              }
               // Clean URL anyway
               window.history.replaceState({}, document.title, "/");
             }
           } catch (e) {
             log.error("Error during auth processing:", e);
-            setIsRedirecting(false);
-            setAuthProcessed(true);
+            if (mountedRef.current) {
+              setIsRedirecting(false);
+              setAuthProcessed(true);
+            }
             // Clean URL on error
             window.history.replaceState({}, document.title, "/");
           }
@@ -70,21 +82,30 @@ const Index = () => {
         processAuth();
       } catch (error) {
         log.error("Auth processing failed:", error);
-        setIsRedirecting(false);
-        setAuthProcessed(true);
+        if (mountedRef.current) {
+          setIsRedirecting(false);
+          setAuthProcessed(true);
+        }
         // Clean URL on outer error
         window.history.replaceState({}, document.title, "/");
       }
     } else {
       // No hash or already processed, mark as processed
-      setAuthProcessed(true);
+      if (mountedRef.current) setAuthProcessed(true);
     }
+
+    return () => {
+      mountedRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, []);
 
   // Set loading state based on auth status
   useEffect(() => {
     // Skip any loading logic if we're redirecting or haven't processed auth
-    if (isRedirecting || !authProcessed) return;
+    if (isRedirecting || !authProcessed || !mountedRef.current) return;
 
     log.info("Processing regular page load", { 
       authenticated: !!user,
@@ -94,12 +115,12 @@ const Index = () => {
 
     // If auth is no longer loading, or we have a user, we can stop loading
     if (!authLoading || user) {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
     
     // Additional timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      if (loading) {
+      if (loading && mountedRef.current) {
         log.warn("Auth loading timed out");
         setLoadingTimedOut(true);
         setLoading(false);
@@ -108,6 +129,16 @@ const Index = () => {
     
     return () => clearTimeout(timeout);
   }, [authLoading, user, profile, loading, isRedirecting, authProcessed]);
+
+  // User is authenticated but no profile yet - warn about this unusual state
+  useEffect(() => {
+    if (user && !profile && !authLoading) {
+      log.warn("User authenticated but no profile found", {
+        userId: user.id,
+        email: user.email
+      });
+    }
+  }, [user, profile, authLoading]);
 
   // If we're redirecting, show a dedicated loading state
   if (isRedirecting) {

@@ -1,7 +1,7 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -11,15 +11,20 @@ import { Button } from "@/components/ui/button";
 export const GoogleAuthButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const authInProgressRef = useRef(false);
 
   /**
    * Initiates Google Sign In flow
    */
   const signInWithGoogle = async () => {
+    // Prevent multiple clicks
+    if (authInProgressRef.current || isLoading) return;
+    
     console.log('Attempting Google sign in');
     
     try {
       setIsLoading(true);
+      authInProgressRef.current = true;
       
       // Create full app URL for redirect
       const origin = window.location.origin;
@@ -49,6 +54,11 @@ export const GoogleAuthButton = () => {
       toast({
         description: "מועבר להתחברות עם Google...",
       });
+      
+      // Wait a moment to ensure the toast is shown before redirect
+      setTimeout(() => {
+        // The actual redirect will be handled by Supabase
+      }, 500);
     } catch (error: any) {
       console.error("Google auth error:", error);
       
@@ -62,8 +72,10 @@ export const GoogleAuthButton = () => {
         variant: "destructive",
         description: errorMessage,
       });
-    } finally {
+      
+      // Reset state
       setIsLoading(false);
+      authInProgressRef.current = false;
     }
   };
 

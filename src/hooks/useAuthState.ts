@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { logger } from "@/utils/logger";
@@ -9,6 +9,7 @@ export function useAuthState() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const log = logger.createLogger({ component: 'useAuthState' });
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     log.info("Auth state hook initialized, checking for session...");
@@ -23,7 +24,7 @@ export function useAuthState() {
         
         if (error) {
           log.error("Error getting session:", { error });
-          setIsLoading(false);
+          if (mountedRef.current) setIsLoading(false);
           return;
         }
         
@@ -34,23 +35,27 @@ export function useAuthState() {
         
         if (data.session) {
           // If we have a session, update state immediately
-          setSession(data.session);
-          setUser(data.session.user);
-          setIsLoading(false);
+          if (mountedRef.current) {
+            setSession(data.session);
+            setUser(data.session.user);
+            setIsLoading(false);
+          }
           initialized = true;
         } else {
-          setSession(null);
-          setUser(null);
-          
-          // Only set loading to false if this is our first check
-          if (!initialized) {
-            setIsLoading(false);
-            initialized = true;
+          if (mountedRef.current) {
+            setSession(null);
+            setUser(null);
+            
+            // Only set loading to false if this is our first check
+            if (!initialized) {
+              setIsLoading(false);
+              initialized = true;
+            }
           }
         }
       } catch (err) {
         log.error("Unexpected error checking session:", { error: err });
-        setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
       }
     };
     
@@ -62,6 +67,8 @@ export function useAuthState() {
           hasSession: !!newSession,
           userId: newSession?.user?.id ? `${newSession.user.id.substring(0, 8)}...` : 'none'
         });
+        
+        if (!mountedRef.current) return;
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (newSession) {
@@ -78,18 +85,19 @@ export function useAuthState() {
     };
     
     // Start session check and setup listeners
-    checkSession();
     setupAuthListener();
+    checkSession();
 
     // Set a backup timeout to ensure loading state doesn't get stuck
     const loadingTimeout = setTimeout(() => {
-      if (isLoading) {
+      if (isLoading && mountedRef.current) {
         log.warn("Force completing auth loading state after timeout");
         setIsLoading(false);
       }
     }, 700);
 
     return () => {
+      mountedRef.current = false;
       if (authStateSubscription?.data?.subscription) {
         authStateSubscription.data.subscription.unsubscribe();
       }

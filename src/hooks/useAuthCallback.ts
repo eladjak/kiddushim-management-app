@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndSetAdminStatus } from "@/lib/admin-utils";
@@ -13,6 +13,8 @@ export function useAuthCallback() {
   const location = useLocation();
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useAuthCallback' });
+  const mountedRef = useRef(true);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Handle the OAuth callback
@@ -23,6 +25,8 @@ export function useAuthCallback() {
         // Try to get session without relying on the URL hash
         const { data, error } = await supabase.auth.getSession();
         
+        if (!mountedRef.current) return;
+
         if (error) {
           log.error("Error getting session:", { error });
           setError(error.message);
@@ -49,6 +53,8 @@ export function useAuthCallback() {
           .eq("id", data.session.user.id)
           .single();
           
+        if (!mountedRef.current) return;
+
         if (profileError && profileError.code !== 'PGRST116') {
           log.error("Error fetching profile:", { error: profileError });
           // Continue anyway - the trigger should create the profile
@@ -64,6 +70,8 @@ export function useAuthCallback() {
           );
         }
         
+        if (!mountedRef.current) return;
+
         // Successfully authenticated, show toast
         toast({
           description: "התחברת בהצלחה!",
@@ -79,7 +87,9 @@ export function useAuthCallback() {
         }
         
         // Important: Use a more robust redirect approach
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
+          if (!mountedRef.current) return;
+          
           try {
             // Force a full page reload to clean all states
             window.location.replace("/");
@@ -91,12 +101,21 @@ export function useAuthCallback() {
         }, 800);
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
-        setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
-        setIsProcessing(false);
+        if (mountedRef.current) {
+          setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
+          setIsProcessing(false);
+        }
       }
     };
 
     handleAuthCallback();
+
+    return () => {
+      mountedRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [navigate, location, toast]);
 
   return { error, isProcessing };
