@@ -32,10 +32,11 @@ const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Layout for the Index page without Navigation
+// Layout for the Index page - Navigation will appear conditionally based on auth state
 const IndexLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col min-h-screen">
+      <Navigation />
       <main className="flex-grow">
         {children}
       </main>
@@ -62,7 +63,7 @@ function AppWithAdminCheck() {
   
   return (
     <Routes>
-      {/* Index route with its own layout (no navigation) */}
+      {/* Index route with its own layout (navigation will show only for authenticated users) */}
       <Route path="/" element={<IndexLayout><Index /></IndexLayout>} />
       
       {/* Public routes */}
