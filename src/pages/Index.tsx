@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Main Index page component
@@ -24,7 +25,7 @@ const Index = () => {
     // Set mounted flag
     mountedRef.current = true;
     
-    const processAuthHash = () => {
+    const processAuthHash = async () => {
       if (processingRef.current || !mountedRef.current) return;
       
       const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
@@ -34,25 +35,25 @@ const Index = () => {
         log.info("Processing auth hash from URL");
         
         try {
+          // Process the hash directly with Supabase
+          await supabase.auth.getSession();
+          
           // Safely clear the hash to avoid reprocessing
           window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (e) {
-          log.error("Failed to clean URL hash", { error: e });
-        }
-        
-        if (mountedRef.current) {
-          setAuthProcessed(true);
           
-          // Use a safer approach to reload
-          setTimeout(() => {
-            try {
-              if (mountedRef.current) {
-                window.location.href = window.location.pathname;
-              }
-            } catch (e) {
-              log.error("Failed to reload page", { error: e });
-            }
-          }, 100);
+          if (mountedRef.current) {
+            setAuthProcessed(true);
+            
+            // Refresh the page to ensure clean state
+            window.location.reload();
+            return;
+          }
+        } catch (e) {
+          log.error("Failed to process URL hash", { error: e });
+          // Continue with normal flow even on error
+          if (mountedRef.current) {
+            setAuthProcessed(true);
+          }
         }
       } else if (mountedRef.current && !authProcessed) {
         setAuthProcessed(true);
@@ -68,7 +69,7 @@ const Index = () => {
 
   // Handle loading states
   useEffect(() => {
-    mountedRef.current = true;
+    if (!mountedRef.current) return;
     
     if (!authProcessed) return;
 

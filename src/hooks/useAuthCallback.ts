@@ -37,12 +37,53 @@ export function useAuthCallback() {
         }
         
         if (!data.session) {
-          log.error("No session found during callback");
-          if (mountedRef.current) {
-            setError("לא ניתן למצוא פרטי משתמש. אנא נסה להתחבר שוב.");
-            setIsProcessing(false);
+          // Maybe we need to extract the token from URL hash directly?
+          if (window.location.hash && window.location.hash.includes('access_token')) {
+            log.info("No session found but hash exists, trying to set session from hash...");
+            // Let supabase process the hash
+            await supabase.auth.getSession();
+            
+            // Check again for session
+            const { data: refreshedData, error: refreshError } = await supabase.auth.getSession();
+            
+            if (refreshError || !refreshedData.session) {
+              log.error("Failed to get session after hash processing", { error: refreshError });
+              if (mountedRef.current) {
+                setError("לא ניתן למצוא פרטי משתמש. אנא נסה להתחבר שוב.");
+                setIsProcessing(false);
+              }
+              return;
+            }
+            
+            // We have a session now, proceed with it
+            if (mountedRef.current) {
+              // Clean URL by removing hash parameters
+              try {
+                window.history.replaceState({}, document.title, "/");
+              } catch (historyError) {
+                log.error("Error cleaning URL:", { error: historyError });
+              }
+              
+              // Show toast and redirect
+              toast({
+                description: "התחברת בהצלחה!",
+              });
+              
+              setTimeout(() => {
+                if (mountedRef.current) {
+                  window.location.href = "/";
+                }
+              }, 800);
+            }
+            return;
+          } else {
+            log.error("No session found during callback");
+            if (mountedRef.current) {
+              setError("לא ניתן למצוא פרטי משתמש. אנא נסה להתחבר שוב.");
+              setIsProcessing(false);
+            }
+            return;
           }
-          return;
         }
         
         log.info("Successfully established session for user:", { 
@@ -50,26 +91,11 @@ export function useAuthCallback() {
           userId: data.session.user.id.substring(0, 8) + '...' // Log only part of the ID for security
         });
         
-        // Get user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("id, role")
-          .eq("id", data.session.user.id)
-          .single();
-          
-        if (profileError && profileError.code !== 'PGRST116') {
-          log.error("Error fetching profile:", { error: profileError });
-          // Continue anyway - the trigger should create the profile
-        }
-        
-        // Check admin status if we have a profile
-        if (profileData) {
-          await checkAndSetAdminStatus(
-            data.session.user.email || "",
-            profileData.id,
-            profileData.role,
-            toast
-          );
+        // Clean URL by removing hash parameters
+        try {
+          window.history.replaceState({}, document.title, "/");
+        } catch (historyError) {
+          log.error("Error cleaning URL:", { error: historyError });
         }
         
         // Successfully authenticated, show toast
@@ -79,25 +105,15 @@ export function useAuthCallback() {
           });
         }
         
-        // Clean URL by removing hash parameters
-        // Use a try-catch to handle any encoding issues with the URL
-        try {
-          window.history.replaceState({}, document.title, "/");
-        } catch (historyError) {
-          log.error("Error cleaning URL:", { error: historyError });
-          // Continue anyway
-        }
-        
         // Important: Use a more robust redirect approach
         setTimeout(() => {
           try {
             // Force a full page reload to clean all states
             if (mountedRef.current) {
-              window.location.replace("/");
+              window.location.href = "/";
             }
           } catch (redirectError) {
             log.error("Error during redirect:", { error: redirectError });
-            // Fallback to simple navigation if something goes wrong
             if (mountedRef.current) {
               navigate("/");
             }

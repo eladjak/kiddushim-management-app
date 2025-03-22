@@ -42,6 +42,8 @@ export function useAuthState() {
           if (mountedRef.current) {
             setSession(data.session);
             setUser(data.session.user);
+            
+            // Only set loading to false after we've processed the session
             setIsLoading(false);
             isInitializedRef.current = true;
           }
@@ -63,8 +65,14 @@ export function useAuthState() {
       }
     };
     
+    // Setup auth state change listener before checking session
+    setupAuthListener();
+    
+    // Then check the current session
+    checkSession();
+    
     // Listen for changes on auth state (logged in, signed out, etc.)
-    const setupAuthListener = () => {
+    function setupAuthListener() {
       authStateSubscription = supabase.auth.onAuthStateChange(async (event, newSession) => {
         if (!mountedRef.current) return;
         
@@ -88,11 +96,7 @@ export function useAuthState() {
           }
         }
       });
-    };
-    
-    // Start session check and setup listeners
-    checkSession();
-    setupAuthListener();
+    }
 
     // Set a backup timeout to ensure loading state doesn't get stuck
     const loadingTimeout = setTimeout(() => {
@@ -109,7 +113,7 @@ export function useAuthState() {
       }
       clearTimeout(loadingTimeout);
     };
-  }, [isLoading]);
+  }, []);
 
   return { user, session, setIsLoading, isLoading };
 }
