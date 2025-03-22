@@ -17,13 +17,15 @@ const Index = () => {
   const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
   const processingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   // Process authentication hash from URL if present
   useEffect(() => {
-    let mounted = true;
+    // Set mounted flag
+    mountedRef.current = true;
     
     const processAuthHash = () => {
-      if (processingRef.current) return;
+      if (processingRef.current || !mountedRef.current) return;
       
       const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
       
@@ -38,19 +40,21 @@ const Index = () => {
           log.error("Failed to clean URL hash", { error: e });
         }
         
-        if (mounted) {
+        if (mountedRef.current) {
           setAuthProcessed(true);
           
           // Use a safer approach to reload
           setTimeout(() => {
             try {
-              window.location.href = window.location.pathname;
+              if (mountedRef.current) {
+                window.location.href = window.location.pathname;
+              }
             } catch (e) {
               log.error("Failed to reload page", { error: e });
             }
           }, 100);
         }
-      } else if (mounted && !authProcessed) {
+      } else if (mountedRef.current && !authProcessed) {
         setAuthProcessed(true);
       }
     };
@@ -58,13 +62,13 @@ const Index = () => {
     processAuthHash();
     
     return () => {
-      mounted = false;
+      mountedRef.current = false;
     };
   }, [authProcessed]);
 
   // Handle loading states
   useEffect(() => {
-    let mounted = true;
+    mountedRef.current = true;
     
     if (!authProcessed) return;
 
@@ -75,23 +79,23 @@ const Index = () => {
     });
 
     // End loading when auth is no longer loading
-    if (!authLoading && mounted) {
+    if (!authLoading && mountedRef.current) {
       setLocalLoading(false);
     }
     
     // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      if (localLoading && mounted) {
+      if (localLoading && mountedRef.current) {
         log.warn("Loading timed out");
         setLocalLoading(false);
       }
     }, 1500);
     
     return () => {
-      mounted = false;
+      mountedRef.current = false;
       clearTimeout(timeout);
     };
-  }, [authLoading, user, profile, authProcessed]);
+  }, [authLoading, user, profile, authProcessed, localLoading]);
 
   // Loading state
   if ((localLoading || authLoading) && authProcessed) {

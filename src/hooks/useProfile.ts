@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
@@ -10,53 +10,58 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
   const [profile, setProfile] = useState<Profile | null>(null);
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useProfile' });
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    let isMounted = true;
+    // Set mounted flag
+    mountedRef.current = true;
+    
     let profileCreationAttempted = false;
     
     const fetchProfile = async () => {
       try {
         log.info("Attempting to fetch profile");
         
+        if (!user?.id || !mountedRef.current) return;
+        
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", user?.id)
+          .eq("id", user.id)
           .single();
 
         if (error) {
-          if (error.code === 'PGRST116' && !profileCreationAttempted) { // Row not found
+          if (error.code === 'PGRST116' && !profileCreationAttempted && mountedRef.current) { // Row not found
             log.info("Profile not found, creating one immediately");
             profileCreationAttempted = true;
-            await createBasicProfile(user?.id as string);
+            await createBasicProfile(user.id);
             return;
           }
           
           log.error("Error fetching profile:", { error });
-          if (isMounted) setIsLoading(false);
+          if (mountedRef.current) setIsLoading(false);
           return;
         }
 
         log.info("Profile fetched successfully");
         
         // Update profile with Google avatar if available and profile doesn't have one
-        if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
+        if (data && !data.avatar_url && user.app_metadata?.provider === 'google') {
           const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
           
-          if (googleAvatarUrl) {
+          if (googleAvatarUrl && mountedRef.current) {
             await updateProfileWithGoogleAvatar(user.id, googleAvatarUrl);
             data.avatar_url = googleAvatarUrl;
           }
         }
         
-        if (isMounted) {
+        if (mountedRef.current) {
           setProfile(data);
           setIsLoading(false);
         }
       } catch (error) {
         log.error("Error in profile fetch:", { error });
-        if (isMounted) setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
       }
     };
 
@@ -64,17 +69,19 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       fetchProfile();
     } else {
       setProfile(null);
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
     
     return () => {
-      isMounted = false;
+      mountedRef.current = false;
     };
   }, [user, setIsLoading]);
 
   const createBasicProfile = async (userId: string) => {
     try {
       log.info("Creating basic profile for user", { userId });
+      if (!mountedRef.current) return;
+      
       const { data: userData } = await supabase.auth.getUser();
       if (userData?.user) {
         // Get user metadata
@@ -96,7 +103,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
             shabbat_mode: false
           });
         
-        if (!insertError) {
+        if (!insertError && mountedRef.current) {
           log.info("Created basic profile for user", { userId });
           
           // Fetch the newly created profile
@@ -106,34 +113,37 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
             .eq("id", userId)
             .single();
             
-          if (!fetchError && newProfile) {
+          if (!fetchError && newProfile && mountedRef.current) {
             log.info("Fetched newly created profile", { profile: newProfile });
             setProfile(newProfile);
             setIsLoading(false);
           } else {
             log.error("Failed to fetch newly created profile", { error: fetchError });
-            setIsLoading(false);
+            if (mountedRef.current) setIsLoading(false);
           }
         } else {
           log.error("Error creating basic profile:", { error: insertError });
-          toast({
-            variant: "destructive",
-            description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
-          });
-          setIsLoading(false);
+          if (mountedRef.current) {
+            toast({
+              variant: "destructive",
+              description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
+            });
+            setIsLoading(false);
+          }
         }
       } else {
         log.error("No user data available for profile creation");
-        setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
       }
     } catch (createError) {
       log.error("Error in profile creation:", { error: createError });
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   };
 
   const updateProfileWithGoogleAvatar = async (userId: string, avatarUrl: string) => {
     try {
+      if (!mountedRef.current) return;
       log.info("Updating profile with Google avatar");
       
       const { error } = await supabase
@@ -150,7 +160,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
   };
 
   const updateAvatar = async (avatarUrl: string) => {
-    if (!user?.id) return;
+    if (!user?.id || !mountedRef.current) return;
     
     try {
       const { error } = await supabase
@@ -164,17 +174,21 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (error) throw error;
       
       // Update local profile state
-      setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
-      
-      toast({
-        description: "תמונת הפרופיל עודכנה בהצלחה",
-      });
+      if (mountedRef.current) {
+        setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+        
+        toast({
+          description: "תמונת הפרופיל עודכנה בהצלחה",
+        });
+      }
     } catch (error: any) {
       console.error("Error updating avatar:", error);
-      toast({
-        variant: "destructive",
-        description: `שגיאה בעדכון תמונת הפרופיל: ${error.message}`,
-      });
+      if (mountedRef.current) {
+        toast({
+          variant: "destructive",
+          description: `שגיאה בעדכון תמונת הפרופיל: ${error.message}`,
+        });
+      }
     }
   };
 

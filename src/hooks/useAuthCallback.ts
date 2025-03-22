@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndSetAdminStatus } from "@/lib/admin-utils";
@@ -13,8 +13,12 @@ export function useAuthCallback() {
   const location = useLocation();
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useAuthCallback' });
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    // Set mounted flag
+    mountedRef.current = true;
+    
     // Handle the OAuth callback
     const handleAuthCallback = async () => {
       try {
@@ -25,15 +29,19 @@ export function useAuthCallback() {
         
         if (error) {
           log.error("Error getting session:", { error });
-          setError(error.message);
-          setIsProcessing(false);
+          if (mountedRef.current) {
+            setError(error.message);
+            setIsProcessing(false);
+          }
           return;
         }
         
         if (!data.session) {
           log.error("No session found during callback");
-          setError("לא ניתן למצוא פרטי משתמש. אנא נסה להתחבר שוב.");
-          setIsProcessing(false);
+          if (mountedRef.current) {
+            setError("לא ניתן למצוא פרטי משתמש. אנא נסה להתחבר שוב.");
+            setIsProcessing(false);
+          }
           return;
         }
         
@@ -65,9 +73,11 @@ export function useAuthCallback() {
         }
         
         // Successfully authenticated, show toast
-        toast({
-          description: "התחברת בהצלחה!",
-        });
+        if (mountedRef.current) {
+          toast({
+            description: "התחברת בהצלחה!",
+          });
+        }
         
         // Clean URL by removing hash parameters
         // Use a try-catch to handle any encoding issues with the URL
@@ -82,21 +92,31 @@ export function useAuthCallback() {
         setTimeout(() => {
           try {
             // Force a full page reload to clean all states
-            window.location.replace("/");
+            if (mountedRef.current) {
+              window.location.replace("/");
+            }
           } catch (redirectError) {
             log.error("Error during redirect:", { error: redirectError });
             // Fallback to simple navigation if something goes wrong
-            navigate("/");
+            if (mountedRef.current) {
+              navigate("/");
+            }
           }
         }, 800);
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
-        setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
-        setIsProcessing(false);
+        if (mountedRef.current) {
+          setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
+          setIsProcessing(false);
+        }
       }
     };
 
     handleAuthCallback();
+    
+    return () => {
+      mountedRef.current = false;
+    };
   }, [navigate, location, toast]);
 
   return { error, isProcessing };

@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
+
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useProfile } from "@/hooks/useProfile";
 import { setupStorage } from "@/integrations/supabase/setupStorage";
@@ -17,25 +18,27 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const log = logger.createLogger({ component: 'AuthContext' });
   const [storageInitialized, setStorageInitialized] = useState(false);
+  const mountedRef = useRef(true);
   
   // Initialize storage for avatars - once only and early
   useEffect(() => {
-    let mounted = true;
+    // Set mounted flag
+    mountedRef.current = true;
     
     setupStorage()
       .then(() => {
-        if (mounted) {
+        if (mountedRef.current) {
           setStorageInitialized(true);
           log.info("Storage initialized");
         }
       })
       .catch(error => {
         log.error("Failed to setup storage:", { error });
-        if (mounted) setStorageInitialized(true); // Mark as initialized even on error
+        if (mountedRef.current) setStorageInitialized(true); // Mark as initialized even on error
       });
       
     return () => {
-      mounted = false;
+      mountedRef.current = false;
     };
   }, []);
   
@@ -47,7 +50,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   // Log auth state changes
   useEffect(() => {
-    let mounted = true;
+    // Set mounted flag
+    mountedRef.current = true;
     
     log.info("Auth state changed", { 
       authenticated: !!user, 
@@ -58,14 +62,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Force loading to complete after a maximum time
     const timeoutDuration = 2000; // 2 seconds max loading time
     const timeout = setTimeout(() => {
-      if (mounted && isLoading) {
+      if (mountedRef.current && isLoading) {
         log.warn("Forcing auth loading to complete after timeout");
         setIsLoading(false);
       }
     }, timeoutDuration);
     
     return () => {
-      mounted = false;
+      mountedRef.current = false;
       clearTimeout(timeout);
     };
   }, [user, profile, isLoading, setIsLoading]);
