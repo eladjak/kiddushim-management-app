@@ -142,9 +142,11 @@ const Index = () => {
     return <Dashboard />;
   }
 
-  // User is authenticated but no profile yet
+  // User is authenticated but no profile yet - this is the problematic part that needs fixing
   if (user && !profile) {
     log.warn("User authenticated but no profile found");
+    // Instead of waiting indefinitely for a profile which may never appear,
+    // we'll show a temporary loading state but not loop infinitely
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
