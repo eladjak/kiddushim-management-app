@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
  * Main navigation component for the application
  * 
  * Provides navigation links and authentication controls
+ * Hidden on the index page to make it accessible only from within the app
  */
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +26,14 @@ export const Navigation = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const log = logger.createLogger({ component: 'Navigation' });
+  
+  // Check if we're on the index page
+  const isIndexPage = location.pathname === "/";
+
+  // Don't render navigation on the index page
+  if (isIndexPage) {
+    return null;
+  }
 
   // Close mobile menu when route changes
   useEffect(() => {

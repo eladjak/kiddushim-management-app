@@ -32,6 +32,18 @@ const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Layout for the Index page without Navigation
+const IndexLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 // Layout without Navigation for public routes
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -50,13 +62,15 @@ function AppWithAdminCheck() {
   
   return (
     <Routes>
+      {/* Index route with its own layout (no navigation) */}
+      <Route path="/" element={<IndexLayout><Index /></IndexLayout>} />
+      
       {/* Public routes */}
-      <Route path="/" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
       <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
       <Route path="/auth/callback" element={<PublicLayout><AuthCallback /></PublicLayout>} />
-      <Route path="/documentation" element={<AuthenticatedLayout><Documentation /></AuthenticatedLayout>} />
       
       {/* Authenticated routes with Navigation */}
+      <Route path="/documentation" element={<AuthenticatedLayout><Documentation /></AuthenticatedLayout>} />
       <Route path="/events" element={<AuthenticatedLayout><Events /></AuthenticatedLayout>} />
       <Route path="/volunteers" element={<AuthenticatedLayout><Volunteers /></AuthenticatedLayout>} />
       <Route path="/users" element={<AuthenticatedLayout><Users /></AuthenticatedLayout>} />
