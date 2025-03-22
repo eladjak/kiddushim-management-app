@@ -3,7 +3,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { logger } from "@/utils/logger";
 
 /**
  * Google authentication button component
@@ -12,13 +11,12 @@ import { logger } from "@/utils/logger";
 export const GoogleAuthButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const log = logger.createLogger({ component: 'GoogleAuthButton' });
 
   /**
    * Initiates Google Sign In flow
    */
   const signInWithGoogle = async () => {
-    log.info('Attempting Google sign in');
+    console.log('Attempting Google sign in');
     
     try {
       setIsLoading(true);
@@ -28,7 +26,7 @@ export const GoogleAuthButton = () => {
       const callbackPath = "/auth/callback";
       const redirectUrl = `${origin}${callbackPath}`;
       
-      log.info('Redirect URL:', { redirectUrl });
+      console.log('Redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -38,20 +36,21 @@ export const GoogleAuthButton = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
+          skipBrowserRedirect: false, // Ensure browser redirects properly
         },
       });
       
       if (error) {
-        log.error("Google auth error:", { error });
+        console.error("Google auth error:", error);
         throw error;
       }
       
-      log.info('Google auth initiated successfully:', { data });
+      console.log('Google auth initiated successfully:', data);
       toast({
         description: "מועבר להתחברות עם Google...",
       });
     } catch (error: any) {
-      log.error("Google auth error:", { error });
+      console.error("Google auth error:", error);
       
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       

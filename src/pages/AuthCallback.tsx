@@ -22,17 +22,6 @@ const AuthCallback = () => {
         error: !!error
       });
       
-      // Try to directly set the session from the hash if present
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        try {
-          // This will attempt to set the auth session from the URL
-          await supabase.auth.getSession();
-          log.info("Successfully processed auth hash from URL");
-        } catch (err) {
-          log.error("Error processing auth hash:", { error: err });
-        }
-      }
-      
       // Log the current URL for debugging (without exposing sensitive tokens)
       const url = new URL(window.location.href);
       log.info("Current URL in AuthCallback", { 
@@ -47,6 +36,18 @@ const AuthCallback = () => {
       if (!window.location.hash && url.searchParams.has('error')) {
         const errorDescription = url.searchParams.get('error_description') || 'Unknown error';
         log.error("OAuth error from provider:", { error: errorDescription });
+      }
+      
+      // Check if we can get the session directly (in case the session was already established)
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          log.error("Error checking session in callback:", { error });
+        } else if (data.session) {
+          log.info("Session already established in callback");
+        }
+      } catch (err) {
+        log.error("Unexpected error checking session:", { error: err });
       }
     };
     
