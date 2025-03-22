@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useProfile } from "@/hooks/useProfile";
 import { setupStorage } from "@/integrations/supabase/setupStorage";
@@ -42,19 +42,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Handle auth state
   const { user, session, isLoading, setIsLoading } = useAuthState();
   
-  // Handle profile management - wrapping in useCallback
-  const updateAvatar = useCallback(async (avatarUrl: string) => {
-    // Implementation will be provided by the useProfile hook
-  }, []);
-  
   // Keep profile handling separate with its own dependency array
-  const { profile, updateAvatar: updateAvatarImpl } = useProfile(user, setIsLoading);
+  const { profile, updateAvatar } = useProfile(user, setIsLoading);
   
-  // Assign the implementation to our callback
-  useEffect(() => {
-    updateAvatar.implementation = updateAvatarImpl;
-  }, [updateAvatar, updateAvatarImpl]);
-
   // Log auth state changes
   useEffect(() => {
     let mounted = true;
@@ -85,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     session,
     profile,
     isLoading,
-    updateAvatar: updateAvatarImpl
+    updateAvatar
   };
 
   return (
