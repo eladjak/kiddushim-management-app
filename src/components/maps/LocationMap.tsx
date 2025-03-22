@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { logger } from '@/utils/logger';
-import { Button } from '@/components/ui/button';
 import MapSearchInput from './map-components/MapSearchInput';
 import MapDisplay from './map-components/MapDisplay';
 import useMarkerManagement from './hooks/useMarkerManagement';
@@ -11,13 +10,18 @@ interface LocationMapProps {
   value?: { lat: number; lng: number; address: string };
   onChange?: (value: { lat: number; lng: number; address: string }) => void;
   readOnly?: boolean;
+  className?: string;
 }
 
+/**
+ * A location map component that allows location selection and display
+ */
 const LocationMap: React.FC<LocationMapProps> = ({ 
   address, 
   value, 
   onChange,
-  readOnly = false
+  readOnly = false,
+  className = ''
 }) => {
   const log = logger.createLogger({ component: 'LocationMap' });
   const [addressInput, setAddressInput] = useState(address || value?.address || '');
@@ -40,7 +44,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
   });
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className={`w-full h-full flex flex-col ${className}`}>
       {!readOnly && (
         <MapSearchInput
           addressInput={addressInput}

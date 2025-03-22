@@ -10,13 +10,19 @@ interface MapDisplayProps {
   error: string | null;
   onRetry: () => void;
   mapInitialized: (mapContainer: HTMLDivElement) => void;
+  className?: string;
 }
 
+/**
+ * Display component for maps that handles loading states, error states,
+ * and map initialization
+ */
 const MapDisplay: React.FC<MapDisplayProps> = ({
   loading,
   error,
   onRetry,
-  mapInitialized
+  mapInitialized,
+  className = ''
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const log = logger.createLogger({ component: 'MapDisplay' });
@@ -55,7 +61,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   }
 
   return (
-    <div className="relative flex-1 min-h-[300px] rounded-md overflow-hidden">
+    <div className={`relative flex-1 min-h-[300px] rounded-md overflow-hidden ${className}`}>
       {loading && (
         <div className="absolute inset-0 bg-gray-100/80 flex items-center justify-center z-10">
           <div className="flex flex-col items-center">

@@ -9,14 +9,19 @@ interface MapContainerProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
-  mapInitialized: (mapContainer: HTMLDivElement, map: mapboxgl.Map | null) => void;
+  onMapInit: (mapContainer: HTMLDivElement, map: mapboxgl.Map | null) => void;
+  className?: string;
 }
 
+/**
+ * A reusable container for mapbox maps providing loading, error states, and initialization
+ */
 const MapContainer: React.FC<MapContainerProps> = ({
   loading,
   error,
   onRetry,
-  mapInitialized
+  onMapInit,
+  className = ''
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const log = logger.createLogger({ component: 'MapContainer' });
@@ -29,7 +34,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
     
     try {
       log.info("Initializing map container");
-      mapInitialized(mapContainer.current, null);
+      onMapInit(mapContainer.current, null);
     } catch (err) {
       log.error("Error initializing map", { error: err });
     }
@@ -55,7 +60,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   }
 
   return (
-    <div className="relative flex-1 min-h-[300px] rounded-md overflow-hidden">
+    <div className={`relative flex-1 min-h-[300px] rounded-md overflow-hidden ${className}`}>
       {loading && (
         <div className="absolute inset-0 bg-gray-100/80 flex items-center justify-center z-10">
           <div className="flex flex-col items-center">
