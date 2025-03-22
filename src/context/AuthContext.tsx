@@ -1,5 +1,4 @@
-
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useProfile } from "@/hooks/useProfile";
 import { setupStorage } from "@/integrations/supabase/setupStorage";
@@ -21,25 +20,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   // Initialize storage for avatars - once only and early
   useEffect(() => {
+    let mounted = true;
+    
     setupStorage()
       .then(() => {
-        setStorageInitialized(true);
-        log.info("Storage initialized");
+        if (mounted) {
+          setStorageInitialized(true);
+          log.info("Storage initialized");
+        }
       })
       .catch(error => {
         log.error("Failed to setup storage:", { error });
-        setStorageInitialized(true); // Mark as initialized even on error
+        if (mounted) setStorageInitialized(true); // Mark as initialized even on error
       });
+      
+    return () => {
+      mounted = false;
+    };
   }, []);
   
   // Handle auth state
   const { user, session, isLoading, setIsLoading } = useAuthState();
   
-  // Handle profile management
-  const { profile, updateAvatar } = useProfile(user, setIsLoading);
+  // Handle profile management - wrapping in useCallback
+  const updateAvatar = useCallback(async (avatarUrl: string) => {
+    // Implementation will be provided by the useProfile hook
+  }, []);
+  
+  // Keep profile handling separate with its own dependency array
+  const { profile, updateAvatar: updateAvatarImpl } = useProfile(user, setIsLoading);
+  
+  // Assign the implementation to our callback
+  useEffect(() => {
+    updateAvatar.implementation = updateAvatarImpl;
+  }, [updateAvatar, updateAvatarImpl]);
 
   // Log auth state changes
   useEffect(() => {
+    let mounted = true;
+    
     log.info("Auth state changed", { 
       authenticated: !!user, 
       hasProfile: !!profile, 
@@ -49,21 +68,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Force loading to complete after a maximum time
     const timeoutDuration = 2000; // 2 seconds max loading time
     const timeout = setTimeout(() => {
-      if (isLoading) {
+      if (mounted && isLoading) {
         log.warn("Forcing auth loading to complete after timeout");
         setIsLoading(false);
       }
     }, timeoutDuration);
     
-    return () => clearTimeout(timeout);
-  }, [user, profile, isLoading]);
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
+  }, [user, profile, isLoading, setIsLoading]);
 
   const value = {
     user,
     session,
     profile,
     isLoading,
-    updateAvatar
+    updateAvatar: updateAvatarImpl
   };
 
   return (

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
@@ -16,26 +16,56 @@ const Index = () => {
   const [localLoading, setLocalLoading] = useState(true);
   const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
+  const processingRef = useRef(false);
 
   // Process authentication hash from URL if present
   useEffect(() => {
-    const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
+    let mounted = true;
     
-    if (hasAuthHash && !authProcessed) {
-      log.info("Processing auth hash from URL");
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setAuthProcessed(true);
+    const processAuthHash = () => {
+      if (processingRef.current) return;
       
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    } else {
-      setAuthProcessed(true);
-    }
-  }, []);
+      const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
+      
+      if (hasAuthHash && !authProcessed) {
+        processingRef.current = true;
+        log.info("Processing auth hash from URL");
+        
+        try {
+          // Safely clear the hash to avoid reprocessing
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (e) {
+          log.error("Failed to clean URL hash", { error: e });
+        }
+        
+        if (mounted) {
+          setAuthProcessed(true);
+          
+          // Use a safer approach to reload
+          setTimeout(() => {
+            try {
+              window.location.href = window.location.pathname;
+            } catch (e) {
+              log.error("Failed to reload page", { error: e });
+            }
+          }, 100);
+        }
+      } else if (mounted && !authProcessed) {
+        setAuthProcessed(true);
+      }
+    };
+    
+    processAuthHash();
+    
+    return () => {
+      mounted = false;
+    };
+  }, [authProcessed]);
 
   // Handle loading states
   useEffect(() => {
+    let mounted = true;
+    
     if (!authProcessed) return;
 
     log.info("Auth state processed", { 
@@ -45,19 +75,22 @@ const Index = () => {
     });
 
     // End loading when auth is no longer loading
-    if (!authLoading) {
+    if (!authLoading && mounted) {
       setLocalLoading(false);
     }
     
     // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      if (localLoading) {
+      if (localLoading && mounted) {
         log.warn("Loading timed out");
         setLocalLoading(false);
       }
     }, 1500);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
   }, [authLoading, user, profile, authProcessed]);
 
   // Loading state
