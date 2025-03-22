@@ -16,7 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
  * Main navigation component for the application
  * 
  * Provides navigation links and authentication controls
- * Hidden on the index page to make it accessible only from within the app
+ * Hidden on the index page only for non-authenticated users
  */
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,11 +27,12 @@ export const Navigation = () => {
   const isMobile = useIsMobile();
   const log = logger.createLogger({ component: 'Navigation' });
   
-  // Check if we're on the index page
+  // Check if we're on the index page and not authenticated
   const isIndexPage = location.pathname === "/";
+  const isAuthenticated = !!user;
 
-  // Don't render navigation on the index page
-  if (isIndexPage) {
+  // Don't render navigation on the index page for non-authenticated users
+  if (isIndexPage && !isAuthenticated) {
     return null;
   }
 

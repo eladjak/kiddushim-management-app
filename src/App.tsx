@@ -32,18 +32,6 @@ const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Layout for the Index page without Navigation
-const IndexLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
-        {children}
-      </main>
-      <Footer />
-    </div>
-  );
-};
-
 // Layout without Navigation for public routes
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -62,8 +50,8 @@ function AppWithAdminCheck() {
   
   return (
     <Routes>
-      {/* Index route with its own layout (no navigation) */}
-      <Route path="/" element={<IndexLayout><Index /></IndexLayout>} />
+      {/* Index route - Navigation will conditionally appear based on auth state */}
+      <Route path="/" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
       
       {/* Public routes */}
       <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
