@@ -8,83 +8,69 @@ import type { Profile } from "@/types/auth";
 
 export function useProfile(user: User | null, setIsLoading: (value: boolean) => void) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useProfile' });
 
   useEffect(() => {
     let isMounted = true;
+    let profileCreationAttempted = false;
     
-    if (user) {
-      fetchProfile(user.id);
-    } else {
-      if (isMounted) {
-        setProfile(null);
-        setIsLoading(false);
+    const fetchProfile = async () => {
+      try {
+        log.info("Attempting to fetch profile");
+        
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user?.id)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116' && !profileCreationAttempted) { // Row not found
+            log.info("Profile not found, creating one immediately");
+            profileCreationAttempted = true;
+            await createBasicProfile(user?.id as string);
+            return;
+          }
+          
+          log.error("Error fetching profile:", { error });
+          if (isMounted) setIsLoading(false);
+          return;
+        }
+
+        log.info("Profile fetched successfully");
+        
+        // Update profile with Google avatar if available and profile doesn't have one
+        if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
+          const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+          
+          if (googleAvatarUrl) {
+            await updateProfileWithGoogleAvatar(user.id, googleAvatarUrl);
+            data.avatar_url = googleAvatarUrl;
+          }
+        }
+        
+        if (isMounted) {
+          setProfile(data);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        log.error("Error in profile fetch:", { error });
+        if (isMounted) setIsLoading(false);
       }
+    };
+
+    if (user) {
+      fetchProfile();
+    } else {
+      setProfile(null);
+      setIsLoading(false);
     }
     
     return () => {
       isMounted = false;
     };
-  }, [user]);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      log.info("Fetching profile for user:", { userId, retry: retryCount });
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') { // Row not found
-          log.info("Profile not found, it may be created by the trigger soon");
-          
-          // Wait a moment and try again
-          if (retryCount < 2) {
-            const newRetryCount = retryCount + 1;
-            log.info("Retrying profile fetch...", { retryCount: newRetryCount });
-            setRetryCount(newRetryCount);
-            
-            setTimeout(() => {
-              fetchProfile(userId);
-            }, 1500);
-            return;
-          } else {
-            // We've retried enough, try to create a profile immediately
-            log.info("Max retries reached, creating profile immediately");
-            await createBasicProfile(userId);
-            return;
-          }
-        }
-        
-        log.error("Error fetching profile:", { error });
-        setIsLoading(false);
-        return;
-      }
-
-      log.info("Profile fetched:", { profileFound: !!data });
-      
-      // Update profile with Google avatar if available and profile doesn't have one
-      if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
-        const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
-        
-        if (googleAvatarUrl) {
-          await updateProfileWithGoogleAvatar(userId, googleAvatarUrl);
-          data.avatar_url = googleAvatarUrl;
-        }
-      }
-      
-      setProfile(data);
-      setIsLoading(false);
-    } catch (error) {
-      log.error("Error fetching profile:", { error });
-      setIsLoading(false);
-    }
-  };
+  }, [user, setIsLoading]);
 
   const createBasicProfile = async (userId: string) => {
     try {
@@ -123,8 +109,10 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
           if (!fetchError && newProfile) {
             log.info("Fetched newly created profile", { profile: newProfile });
             setProfile(newProfile);
+            setIsLoading(false);
           } else {
             log.error("Failed to fetch newly created profile", { error: fetchError });
+            setIsLoading(false);
           }
         } else {
           log.error("Error creating basic profile:", { error: insertError });
@@ -132,9 +120,12 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
             variant: "destructive",
             description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
           });
+          setIsLoading(false);
         }
+      } else {
+        log.error("No user data available for profile creation");
+        setIsLoading(false);
       }
-      setIsLoading(false);
     } catch (createError) {
       log.error("Error in profile creation:", { error: createError });
       setIsLoading(false);

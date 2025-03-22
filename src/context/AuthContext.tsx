@@ -6,6 +6,7 @@ import { setupStorage } from "@/integrations/supabase/setupStorage";
 import { logger } from "@/utils/logger";
 import type { AuthContextType } from "@/types/auth";
 
+// Create the auth context with default values
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
@@ -20,26 +21,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   // Initialize storage for avatars - once only and early
   useEffect(() => {
-    if (!storageInitialized) {
-      setupStorage()
-        .then(() => {
-          setStorageInitialized(true);
-          log.info("Storage initialized");
-        })
-        .catch(error => {
-          log.error("Failed to setup storage:", { error });
-          setStorageInitialized(true); // Mark as initialized even on error
-        });
-    }
+    setupStorage()
+      .then(() => {
+        setStorageInitialized(true);
+        log.info("Storage initialized");
+      })
+      .catch(error => {
+        log.error("Failed to setup storage:", { error });
+        setStorageInitialized(true); // Mark as initialized even on error
+      });
   }, []);
   
-  // Handle auth state - independent of storage initialization
+  // Handle auth state
   const { user, session, isLoading, setIsLoading } = useAuthState();
   
   // Handle profile management
   const { profile, updateAvatar } = useProfile(user, setIsLoading);
 
-  // Log auth state for debugging
+  // Log auth state changes
   useEffect(() => {
     log.info("Auth state changed", { 
       authenticated: !!user, 
@@ -57,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, timeoutDuration);
     
     return () => clearTimeout(timeout);
-  }, [user, profile, isLoading, setIsLoading]);
+  }, [user, profile, isLoading]);
 
   const value = {
     user,

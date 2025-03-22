@@ -1,29 +1,31 @@
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
-import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Main Index page component
+ * 
+ * Handles the application's entry point, displaying either the dashboard
+ * for authenticated users or the welcome screen for unauthenticated users
+ */
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [localLoading, setLocalLoading] = useState(true);
   const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
 
-  // Handle authentication process
+  // Process authentication hash from URL if present
   useEffect(() => {
-    // Check if there's an auth hash that needs to be processed
     const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
     
     if (hasAuthHash && !authProcessed) {
-      // Clean the URL regardless of success/failure
+      log.info("Processing auth hash from URL");
       window.history.replaceState({}, document.title, window.location.pathname);
       setAuthProcessed(true);
       
-      // Let the page reload to get the latest auth state
       setTimeout(() => {
         window.location.reload();
       }, 100);
@@ -32,69 +34,61 @@ const Index = () => {
     }
   }, []);
 
-  // Set loading state based on auth status
+  // Handle loading states
   useEffect(() => {
     if (!authProcessed) return;
 
-    log.info("Processing regular page load", { 
+    log.info("Auth state processed", { 
       authenticated: !!user,
-      authLoading,
-      hasProfile: !!profile
+      hasProfile: !!profile,
+      authLoading
     });
 
-    // If auth is no longer loading, we can stop loading
+    // End loading when auth is no longer loading
     if (!authLoading) {
-      setLoading(false);
+      setLocalLoading(false);
     }
     
-    // Additional timeout to prevent infinite loading
+    // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      if (loading) {
-        log.warn("Auth loading timed out");
-        setLoadingTimedOut(true);
-        setLoading(false);
+      if (localLoading) {
+        log.warn("Loading timed out");
+        setLocalLoading(false);
       }
-    }, 800);
+    }, 1500);
     
     return () => clearTimeout(timeout);
-  }, [authLoading, user, profile, loading, authProcessed]);
+  }, [authLoading, user, profile, authProcessed]);
 
-  // Render the appropriate content based on auth state
-  const renderContent = () => {
-    // Show loading state if still loading
-    if ((loading || authLoading) && !loadingTimedOut) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
-          <div className="text-primary font-medium mb-4">טוען...</div>
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      );
-    }
+  // Loading state
+  if ((localLoading || authLoading) && authProcessed) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
+        <div className="text-primary font-medium mb-4">טוען...</div>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-    // User is authenticated and has a profile, show the dashboard
-    if (user && profile) {
-      log.info("Rendering dashboard for authenticated user");
-      return <Dashboard />;
-    }
+  // User is authenticated but profile is still loading
+  if (user && !profile) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-    // User is authenticated but no profile yet
-    if (user && !profile) {
-      log.warn("User authenticated but no profile found");
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
-          <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      );
-    }
+  // User is authenticated and has a profile
+  if (user && profile) {
+    log.info("Rendering dashboard for authenticated user");
+    return <Dashboard />;
+  }
 
-    // Default: user not authenticated, show welcome screen
-    log.info("Rendering welcome screen for unauthenticated user");
-    return <WelcomeScreen />;
-  };
-
-  // This ensures hooks are called unconditionally
-  return renderContent();
+  // Default: user not authenticated
+  log.info("Rendering welcome screen for unauthenticated user");
+  return <WelcomeScreen />;
 };
 
 export default Index;
