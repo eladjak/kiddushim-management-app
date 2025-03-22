@@ -13,12 +13,20 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
   const log = logger.createLogger({ component: 'useProfile' });
 
   useEffect(() => {
+    let isMounted = true;
+    
     if (user) {
       fetchProfile(user.id);
     } else {
-      setProfile(null);
-      setIsLoading(false);
+      if (isMounted) {
+        setProfile(null);
+        setIsLoading(false);
+      }
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   const fetchProfile = async (userId: string) => {
@@ -36,18 +44,18 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
           log.info("Profile not found, it may be created by the trigger soon");
           
           // Wait a moment and try again
-          if (retryCount < 3) {
+          if (retryCount < 2) {
             const newRetryCount = retryCount + 1;
             log.info("Retrying profile fetch...", { retryCount: newRetryCount });
             setRetryCount(newRetryCount);
             
             setTimeout(() => {
               fetchProfile(userId);
-            }, 2000);
+            }, 1500);
             return;
           } else {
-            // We've retried enough, try to create a profile
-            log.info("Max retries reached, attempting to create profile");
+            // We've retried enough, try to create a profile immediately
+            log.info("Max retries reached, creating profile immediately");
             await createBasicProfile(userId);
             return;
           }

@@ -48,20 +48,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     
     // Force loading to complete after a maximum time
-    if (isLoading) {
-      const timeout = setTimeout(() => {
-        if (isLoading) {
-          log.warn("Forcing auth loading to complete after timeout");
-          setIsLoading(false);
-        }
-      }, 2500); // 2.5 seconds max loading time
-      
-      return () => clearTimeout(timeout);
-    }
+    const timeoutDuration = 2000; // 2 seconds max loading time
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        log.warn("Forcing auth loading to complete after timeout");
+        setIsLoading(false);
+      }
+    }, timeoutDuration);
+    
+    return () => clearTimeout(timeout);
   }, [user, profile, isLoading, setIsLoading]);
 
+  const value = {
+    user,
+    session,
+    profile,
+    isLoading,
+    updateAvatar
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, updateAvatar }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
