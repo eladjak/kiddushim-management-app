@@ -6,6 +6,7 @@ import { logger } from "@/utils/logger";
 import { checkAndSetAdminStatus } from "@/lib/admin-utils";
 import { useSessionManager } from "@/hooks/auth/useSessionManager";
 import { useProfileManager } from "@/hooks/auth/useProfileManager";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useAuthCallback() {
   const [isProcessing, setIsProcessing] = useState(true);
@@ -16,21 +17,21 @@ export function useAuthCallback() {
   const processedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
-  // Import our modular hooks
+  // שימוש בהוקים המודולריים שלנו
   const { getSession, cleanUrlHash, error, setError } = useSessionManager();
   const { checkProfile, createProfile } = useProfileManager();
 
   useEffect(() => {
-    // Avoid double processing
+    // הימנעות מעיבוד כפול
     if (processedRef.current) return;
     processedRef.current = true;
     
-    // Handle the OAuth callback
+    // טיפול בקריאה חוזרת מאימות OAuth
     const handleAuthCallback = async () => {
       try {
-        log.info("Processing auth callback");
+        log.info("מעבד קריאה חוזרת מאימות");
         
-        // Try to get session
+        // ניסיון לקבל סשן
         const session = await getSession();
         
         if (!mountedRef.current) return;
@@ -39,7 +40,7 @@ export function useAuthCallback() {
           return;
         }
         
-        // Get user details for profile creation
+        // קבלת פרטי משתמש ליצירת פרופיל
         const userId = session.user.id;
         const userEmail = session.user.email;
         const userName = session.user.user_metadata?.name || 
@@ -48,55 +49,68 @@ export function useAuthCallback() {
         const avatarUrl = session.user.user_metadata?.avatar_url || 
                         session.user.user_metadata?.picture;
         
-        // Force wait for a moment to allow the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // המתנה קצרה כדי לאפשר לטריגר ליצור את הפרופיל
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // Get user profile
-        let profileData = await checkProfile(userId);
-          
-        if (!mountedRef.current) return;
-
-        // If profile doesn't exist, try to create it
-        if (!profileData) {
-          log.info("Profile not found, creating one");
-          
-          profileData = await createProfile(userId, userName, userEmail, avatarUrl);
-          
-          if (!profileData && mountedRef.current) {
-            // Wait a moment and try checking again before giving up
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            profileData = await checkProfile(userId);
+        // בדיקה אם הפרופיל כבר קיים
+        try {
+          // ניסיון ישיר לבדוק אם יש פרופיל
+          const { data: existingProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          if (profileError) {
+            log.error("שגיאה בבדיקת פרופיל:", { profileError });
           }
-        } else {
-          log.info("Profile already exists, proceeding");
+          
+          // אם אין פרופיל, ננסה ליצור אחד
+          if (!existingProfile && mountedRef.current) {
+            log.info("פרופיל לא נמצא, יוצר פרופיל חדש");
+            
+            // ניסיון ליצור פרופיל חדש
+            const { data: newProfile, error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                id: userId,
+                name: userName,
+                email: userEmail,
+                role: 'coordinator',
+                avatar_url: avatarUrl,
+                language: 'he',
+                shabbat_mode: false,
+                encoding_support: true
+              })
+              .select()
+              .single();
+              
+            if (insertError) {
+              log.error("שגיאה ביצירת פרופיל:", { insertError });
+            } else {
+              log.info("פרופיל נוצר בהצלחה:", { profileId: newProfile?.id });
+            }
+          } else {
+            log.info("פרופיל קיים, ממשיך");
+          }
+        } catch (profileErr) {
+          log.error("שגיאה לא צפויה בטיפול בפרופיל:", { profileErr });
         }
-        
-        // Check admin status if we have a profile
-        if (profileData) {
-          await checkAndSetAdminStatus(
-            userEmail || "",
-            profileData.id,
-            profileData.role,
-            toast
-          );
-        } else {
-          log.warn("Final profile check failed, proceeding without profile");
-        }
-        
+          
         if (!mountedRef.current) return;
 
-        // Clear any URL hash to prevent re-processing on page reload
+        // ניקוי URL hash למניעת עיבוד מחדש בטעינה מחדש של הדף
         cleanUrlHash();
 
-        // Successfully authenticated, show toast
+        // אימות מוצלח, הצגת הודעה
         toast({
           description: "התחברת בהצלחה!",
         });
         
-        // Ensure we redirect to the exact home page route with a proper full refresh
+        // ודא שאנחנו מפנים בדיוק לנתיב דף הבית עם רענון מלא
         window.location.href = "/";
       } catch (err: any) {
-        log.error("Unexpected auth callback error:", { error: err });
+        log.error("שגיאה לא צפויה בעיבוד קריאה חוזרת מאימות:", { error: err });
         if (mountedRef.current) {
           setError(err.message || "שגיאה לא צפויה התרחשה במהלך ההתחברות");
           setIsProcessing(false);

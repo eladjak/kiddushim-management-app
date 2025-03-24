@@ -7,7 +7,6 @@ import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import type { UserProfile } from '@/types/profile';
 import type { AuthCredentials } from '@/services/supabase/auth';
 
-// קבועים לשימוש כמפתחות query
 export const AUTH_KEYS = {
   session: () => ['auth', 'session'] as const,
   user: () => ['auth', 'user'] as const,
@@ -233,14 +232,35 @@ export const useAuthStateChange = () => {
 export const useAuthentication = () => {
   const { data: session, isLoading: isSessionLoading } = useSession();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
-  const { data: profile, isLoading: isProfileLoading } = useUserProfile(user?.id);
+  
+  const { 
+    data: profile, 
+    isLoading: isProfileLoading,
+    error: profileError
+  } = useUserProfile(user?.id);
+  
+  useEffect(() => {
+    if (profileError) {
+      console.error('Error loading user profile:', profileError);
+    }
+  }, [profileError]);
   
   useAuthStateChange();
   
   const signOut = useSignOut();
   const updateAvatar = useUpdateAvatar(user?.id);
   
-  const isLoading = isSessionLoading || isUserLoading || (!!user && isProfileLoading);
+  const isLoading = isSessionLoading || isUserLoading || 
+                   (!!user && isProfileLoading && !profileError);
+  
+  useEffect(() => {
+    console.log('Auth state:', { 
+      isLoading, 
+      user: !!user, 
+      profile: !!profile,
+      hasProfileError: !!profileError 
+    });
+  }, [isLoading, user, profile, profileError]);
   
   return {
     session,
@@ -251,4 +271,4 @@ export const useAuthentication = () => {
     signOut: signOut.mutate,
     updateAvatar: (url: string) => updateAvatar.mutate(url),
   };
-}; 
+};

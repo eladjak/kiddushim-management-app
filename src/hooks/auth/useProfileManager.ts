@@ -1,107 +1,92 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
-import { RoleType } from "@/types/profile";
+import type { RoleType } from "@/types/profile";
 
 /**
- * Hook to manage profile checking and creation
+ * Hook לניהול פרופיל משתמש
  */
 export function useProfileManager() {
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
   const log = logger.createLogger({ component: 'useProfileManager' });
 
   /**
-   * Check if profile exists for a user
+   * בדיקה אם פרופיל קיים
    */
   const checkProfile = async (userId: string) => {
     try {
-      log.info("Checking if profile exists for user:", { userId });
+      log.info("בודק פרופיל עבור משתמש:", { userId });
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, role")
+        .select("*")
         .eq("id", userId)
         .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
-        log.error("Error checking profile:", { error });
+      if (error) {
+        log.error("שגיאה בקבלת פרופיל:", { error });
+        setError(error.message);
         return null;
       }
       
+      log.info("תוצאת בדיקת פרופיל:", { hasProfile: !!data });
       return data;
-    } catch (error) {
-      log.error("Unexpected error checking profile:", { error });
+    } catch (err: any) {
+      log.error("שגיאה לא צפויה בבדיקת פרופיל:", { error: err });
+      setError(err.message || "שגיאה לא צפויה בבדיקת פרופיל");
       return null;
     }
   };
 
   /**
-   * Create a new user profile
+   * יצירת פרופיל חדש
    */
-  const createProfile = async (
-    userId: string, 
-    userName: string, 
-    userEmail: string | undefined, 
-    avatarUrl: string | null
-  ) => {
+  const createProfile = async (userId: string, userName: string, userEmail: string | undefined, avatarUrl: string | undefined) => {
     try {
-      log.info("Creating profile for user:", { userId });
-      setIsCreatingProfile(true);
+      log.info("יוצר פרופיל חדש עבור משתמש:", { userId });
       
-      // Force wait to ensure no race conditions with trigger
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Check if profile already exists (one more time)
+      // בדיקה שוב שהפרופיל לא קיים כבר
       const existingProfile = await checkProfile(userId);
       if (existingProfile) {
-        log.info("Profile already exists, no need to create");
-        setIsCreatingProfile(false);
+        log.info("פרופיל כבר קיים, אין צורך ליצור חדש");
         return existingProfile;
       }
       
       const defaultRole: RoleType = 'coordinator';
       
-      const { error, data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .insert({
           id: userId,
           name: userName,
           email: userEmail,
-          language: 'he', // Default to Hebrew
           role: defaultRole,
           avatar_url: avatarUrl,
-          shabbat_mode: false
+          language: 'he',
+          shabbat_mode: false,
+          encoding_support: true // חובה לפי הסכמה
         })
         .select()
         .single();
       
       if (error) {
-        // If not a duplicate key error
-        if (error.code !== '23505') {
-          log.error("Error creating profile:", { error });
-          toast({
-            variant: "destructive",
-            description: "שגיאה ביצירת פרופיל. מנסה שוב...",
-          });
-          setIsCreatingProfile(false);
-          return null;
-        } else {
-          log.info("Profile already exists (duplicate key)");
-          const existingProfile = await checkProfile(userId);
-          setIsCreatingProfile(false);
-          return existingProfile;
+        // אם השגיאה היא שהפרופיל כבר קיים, נבדוק שוב
+        if (error.code === '23505') { // שגיאת דופליקט
+          log.info("פרופיל נוצר כבר, מנסה לקבל אותו");
+          return await checkProfile(userId);
         }
+        
+        log.error("שגיאה ביצירת פרופיל:", { error });
+        setError(error.message);
+        return null;
       }
       
-      log.info("Profile created successfully");
-      setIsCreatingProfile(false);
+      log.info("פרופיל נוצר בהצלחה");
       return data;
-    } catch (error) {
-      log.error("Unexpected error creating profile:", { error });
-      setIsCreatingProfile(false);
+    } catch (err: any) {
+      log.error("שגיאה לא צפויה ביצירת פרופיל:", { error: err });
+      setError(err.message || "שגיאה לא צפויה ביצירת פרופיל");
       return null;
     }
   };
@@ -109,6 +94,7 @@ export function useProfileManager() {
   return {
     checkProfile,
     createProfile,
-    isCreatingProfile
+    error,
+    setError
   };
 }
