@@ -35,6 +35,7 @@ const Auth = () => {
         
         if (data.session) {
           // User is logged in, redirect to home
+          log.info("User already logged in, redirecting to home");
           navigate("/", { replace: true });
         } else {
           setIsLoading(false);

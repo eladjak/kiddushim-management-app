@@ -93,19 +93,9 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // Controlled redirect with timeout to ensure state updates are processed
-        timeoutRef.current = setTimeout(() => {
-          if (!mountedRef.current) return;
-          
-          try {
-            // Refresh the page to ensure clean state
-            window.location.href = "/";
-          } catch (redirectError) {
-            log.error("Error during redirect:", { error: redirectError });
-            // Fallback to simple redirect if something goes wrong
-            window.location.href = "/";
-          }
-        }, 1000);
+        // Redirect to home page - FIX: Use forced browser redirect instead of navigate
+        // Using window.location.href ensures a full page reload which helps with state issues
+        window.location.href = "/";
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         if (mountedRef.current) {

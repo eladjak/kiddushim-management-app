@@ -23,6 +23,7 @@ export const useAuthRedirect = () => {
       log.info("Detected auth hash, redirecting to callback page");
       
       // Redirect to the auth callback page to handle the login properly
+      // Use replace: true to avoid back button issues
       navigate("/auth/callback", { replace: true });
       return;
     }

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/auth";
+import { logger } from "@/utils/logger";
 
 /**
  * Hook to handle loading state and timeouts
@@ -14,6 +15,7 @@ export const useLoadingState = (
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const showProfileCreatingMessageRef = useRef(false);
+  const log = logger.createLogger({ component: 'useLoadingState' });
   
   // Handle loading timeouts
   useEffect(() => {
@@ -21,6 +23,7 @@ export const useLoadingState = (
     const loadingTimeout = setTimeout(() => {
       setLoadingTimedOut(true);
       setLoading(false);
+      log.info("Loading timed out");
     }, 7000); // 7 seconds timeout
     
     // Set a shorter timeout for profile creation message
@@ -32,6 +35,7 @@ export const useLoadingState = (
     if (!authLoading && (user || (!user && !authLoading))) {
       clearTimeout(loadingTimeout);
       setLoading(false);
+      log.info("Auth loaded, stopping loading state", { hasUser: !!user });
     }
     
     return () => {
