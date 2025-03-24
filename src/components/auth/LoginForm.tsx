@@ -41,7 +41,7 @@ export const LoginForm = ({
   const signIn = useSignIn();
   const [isRedirecting, setIsRedirecting] = useState(false);
   
-  // Initialize the form - this was missing and causing the errors
+  // Initialize the form with React Hook Form
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
