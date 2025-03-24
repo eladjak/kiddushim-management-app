@@ -16,6 +16,7 @@ export function useAuthCallback() {
   const mountedRef = useRef(true);
   const processedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileCreationAttemptRef = useRef(false);
 
   useEffect(() => {
     // Avoid double processing
@@ -48,6 +49,15 @@ export function useAuthCallback() {
         
         log.info("Session established during callback");
         
+        // Get user details for profile creation
+        const userId = data.session.user.id;
+        const userEmail = data.session.user.email;
+        const userName = data.session.user.user_metadata?.name || 
+                        data.session.user.user_metadata?.full_name || 
+                        userEmail?.split('@')[0] || 'משתמש';
+        const avatarUrl = data.session.user.user_metadata?.avatar_url || 
+                        data.session.user.user_metadata?.picture;
+        
         // Force wait for a moment to allow the trigger to create the profile
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -55,7 +65,7 @@ export function useAuthCallback() {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, role")
-          .eq("id", data.session.user.id)
+          .eq("id", userId)
           .maybeSingle();
           
         if (!mountedRef.current) return;
@@ -67,37 +77,75 @@ export function useAuthCallback() {
         
         // If profile doesn't exist, try to create it
         if (!profileData) {
-          log.info("Profile not found, creating one");
-          const defaultRole: RoleType = 'coordinator';
-          
-          const { error: createError } = await supabase
-            .from("profiles")
-            .insert({
-              id: data.session.user.id,
-              name: data.session.user.user_metadata?.name || 
-                   data.session.user.user_metadata?.full_name || 
-                   data.session.user.email?.split('@')[0] || 'משתמש',
-              email: data.session.user.email,
-              language: 'he', // Default to Hebrew
-              role: defaultRole,
-              avatar_url: data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture,
-              shabbat_mode: false
-            });
-          
-          if (createError) {
-            log.error("Error creating profile:", { error: createError });
-            // Continue anyway - the profile might be created by another process
-          } else {
-            log.info("Profile created successfully during auth callback");
+          if (!profileCreationAttemptRef.current) {
+            profileCreationAttemptRef.current = true;
+            log.info("Profile not found, creating one");
+            
+            const defaultRole: RoleType = 'coordinator';
+            
+            const { error: createError } = await supabase
+              .from("profiles")
+              .insert({
+                id: userId,
+                name: userName,
+                email: userEmail,
+                language: 'he', // Default to Hebrew
+                role: defaultRole,
+                avatar_url: avatarUrl,
+                shabbat_mode: false
+              });
+            
+            if (createError) {
+              log.error("Error creating profile:", { error: createError });
+              
+              // If it's not a duplicate key error, show an error
+              if (createError.code !== '23505') {
+                // Don't set error state, but show toast
+                toast({
+                  variant: "destructive",
+                  description: "שגיאה ביצירת פרופיל. מנסה שוב...",
+                });
+                
+                // Wait a moment and try fetching again
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Try to fetch profile again - maybe it was created by another process
+                const { data: retryProfile } = await supabase
+                  .from("profiles")
+                  .select("id, role")
+                  .eq("id", userId)
+                  .maybeSingle();
+                  
+                if (!retryProfile) {
+                  log.error("Still couldn't find or create profile");
+                  // Show more descriptive error but don't interrupt the flow
+                  toast({
+                    variant: "destructive",
+                    description: "שגיאה ביצירת פרופיל. אנא רענן את הדף אם תקלה זו נמשכת.",
+                  });
+                }
+              }
+            } else {
+              log.info("Profile created successfully during auth callback");
+            }
           }
+        } else {
+          log.info("Profile already exists, proceeding");
         }
         
+        // Try to get the profile one last time to check the role
+        const { data: finalProfileCheck } = await supabase
+          .from("profiles")
+          .select("id, role")
+          .eq("id", userId)
+          .maybeSingle();
+        
         // Check admin status if we have a profile
-        if (profileData) {
+        if (finalProfileCheck) {
           await checkAndSetAdminStatus(
-            data.session.user.email || "",
-            profileData.id,
-            profileData.role,
+            userEmail || "",
+            finalProfileCheck.id,
+            finalProfileCheck.role,
             toast
           );
         }

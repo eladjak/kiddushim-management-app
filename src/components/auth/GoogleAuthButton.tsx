@@ -35,6 +35,9 @@ export const GoogleAuthButton = () => {
       
       log.info('Using redirect URL:', { redirectUrl });
       
+      // Clear any existing auth data in localStorage (fixes some edge cases)
+      localStorage.removeItem('supabase.auth.token');
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {

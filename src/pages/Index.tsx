@@ -5,17 +5,24 @@ import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { RoleType } from "@/types/profile";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+  const [creationAttempts, setCreationAttempts] = useState(0);
   const log = logger.createLogger({ component: 'IndexPage' });
   const mountedRef = useRef(true);
   const navigate = useNavigate();
   const hashCheckedRef = useRef(false);
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showProfileCreatingMessageRef = useRef(false);
+  const { toast } = useToast();
 
   // Handle access token in URL hash - redirect to auth callback
   useEffect(() => {
@@ -82,6 +89,78 @@ const Index = () => {
     }
   }, [user, profile, authLoading]);
 
+  // Function to manually create a profile
+  const createProfileManually = async () => {
+    if (!user || isCreatingProfile) return;
+    
+    try {
+      setIsCreatingProfile(true);
+      setCreationAttempts(prev => prev + 1);
+      
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+        
+      if (existingProfile) {
+        toast({
+          description: "הפרופיל כבר קיים, מרענן את הדף...",
+        });
+        window.location.reload();
+        return;
+      }
+      
+      const defaultRole: RoleType = 'coordinator';
+      
+      // Create new profile
+      const { error } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          name: user.user_metadata?.name || 
+               user.user_metadata?.full_name || 
+               user.email?.split('@')[0] || 'משתמש',
+          email: user.email,
+          language: 'he',
+          role: defaultRole,
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+          shabbat_mode: false
+        });
+        
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            description: "הפרופיל כבר קיים, מרענן את הדף...",
+          });
+          window.location.reload();
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          description: "פרופיל נוצר בהצלחה, מרענן את הדף...",
+        });
+        
+        // Wait a moment for the profile to be properly saved
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    } catch (error: any) {
+      log.error("Error creating profile manually:", { error });
+      toast({
+        variant: "destructive",
+        description: `שגיאה ביצירת פרופיל: ${error.message}`,
+      });
+    } finally {
+      if (mountedRef.current) {
+        setIsCreatingProfile(false);
+      }
+    }
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -113,20 +192,41 @@ const Index = () => {
   }
 
   // User is authenticated but no profile yet, and we've waited long enough
-  if (user && !profile && showProfileCreatingMessageRef.current) {
+  if (user && !profile && (showProfileCreatingMessageRef.current || creationAttempts > 0)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
-        <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-6"></div>
-        <div className="text-sm text-gray-600 max-w-md text-center px-4">
-          זה עשוי לקחת מספר רגעים. אם ההמתנה נמשכת זמן רב, אנא רענן את הדף או התנתק והתחבר שוב.
+        <div className="text-primary font-medium mb-4 text-xl">מייצר פרופיל משתמש...</div>
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-8"></div>
+        
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <div className="text-sm text-gray-600 mb-6">
+            יצירת הפרופיל עשויה לקחת מספר רגעים. אם ההמתנה נמשכת זמן רב, ניתן ליצור את הפרופיל באופן ידני או לרענן את הדף.
+          </div>
+          
+          <div className="flex flex-col gap-3">
+            <Button 
+              onClick={createProfileManually}
+              disabled={isCreatingProfile}
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              {isCreatingProfile ? "יוצר פרופיל..." : "צור פרופיל באופן ידני"}
+            </Button>
+            
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="w-full"
+            >
+              רענן דף
+            </Button>
+          </div>
+          
+          {creationAttempts > 0 && (
+            <div className="mt-4 text-xs text-gray-500">
+              מספר ניסיונות: {creationAttempts}
+            </div>
+          )}
         </div>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-8 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-        >
-          רענן דף
-        </button>
       </div>
     );
   }
