@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndSetAdminStatus } from "@/lib/admin-utils";
 import { useToast } from "@/hooks/use-toast";
@@ -10,19 +10,23 @@ export function useAuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useAuthCallback' });
   const mountedRef = useRef(true);
+  const processedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Avoid double processing
+    if (processedRef.current) return;
+    processedRef.current = true;
+    
     // Handle the OAuth callback
     const handleAuthCallback = async () => {
       try {
-        log.info("Auth callback hook initialized, extracting session from URL...");
+        log.info("Processing auth callback");
         
-        // Try to get session without relying on the URL hash
+        // Try to get session
         const { data, error } = await supabase.auth.getSession();
         
         if (!mountedRef.current) return;
@@ -41,17 +45,14 @@ export function useAuthCallback() {
           return;
         }
         
-        log.info("Successfully established session for user:", { 
-          email: data.session.user.email,
-          userId: data.session.user.id.substring(0, 8) + '...' // Log only part of the ID for security
-        });
+        log.info("Session established during callback");
         
         // Get user profile
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, role")
           .eq("id", data.session.user.id)
-          .single();
+          .maybeSingle();
           
         if (!mountedRef.current) return;
 
@@ -77,28 +78,26 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // Clean URL by removing hash parameters
-        // Use a try-catch to handle any encoding issues with the URL
+        // Make sure to remove the hash
         try {
           window.history.replaceState({}, document.title, "/");
         } catch (historyError) {
           log.error("Error cleaning URL:", { error: historyError });
-          // Continue anyway
         }
         
-        // Important: Use a more robust redirect approach
+        // Controlled redirect with timeout to ensure state updates are processed
         timeoutRef.current = setTimeout(() => {
           if (!mountedRef.current) return;
           
           try {
-            // Force a full page reload to clean all states
-            window.location.replace("/");
+            // Navigate to home page
+            navigate("/", { replace: true });
           } catch (redirectError) {
             log.error("Error during redirect:", { error: redirectError });
-            // Fallback to simple navigation if something goes wrong
-            navigate("/");
+            // Fallback to simple redirect if something goes wrong
+            window.location.href = "/";
           }
-        }, 800);
+        }, 1000);
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         if (mountedRef.current) {
@@ -116,7 +115,7 @@ export function useAuthCallback() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [navigate, location, toast]);
+  }, [navigate, toast]);
 
   return { error, isProcessing };
 }

@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { logger } from "@/utils/logger";
 
 /**
  * Google authentication button component
@@ -12,6 +13,7 @@ export const GoogleAuthButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const authInProgressRef = useRef(false);
+  const log = logger.createLogger({ component: 'GoogleAuthButton' });
 
   /**
    * Initiates Google Sign In flow
@@ -20,7 +22,7 @@ export const GoogleAuthButton = () => {
     // Prevent multiple clicks
     if (authInProgressRef.current || isLoading) return;
     
-    console.log('Attempting Google sign in');
+    log.info('Initiating Google sign in');
     
     try {
       setIsLoading(true);
@@ -31,7 +33,7 @@ export const GoogleAuthButton = () => {
       const callbackPath = "/auth/callback";
       const redirectUrl = `${origin}${callbackPath}`;
       
-      console.log('Redirect URL:', redirectUrl);
+      log.info('Using redirect URL:', { redirectUrl });
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -41,26 +43,22 @@ export const GoogleAuthButton = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          skipBrowserRedirect: false, // Ensure browser redirects properly
+          skipBrowserRedirect: false,
         },
       });
       
       if (error) {
-        console.error("Google auth error:", error);
+        log.error("Google auth error:", { error });
         throw error;
       }
       
-      console.log('Google auth initiated successfully:', data);
+      log.info('Google auth initiated successfully');
+      
       toast({
         description: "מועבר להתחברות עם Google...",
       });
-      
-      // Wait a moment to ensure the toast is shown before redirect
-      setTimeout(() => {
-        // The actual redirect will be handled by Supabase
-      }, 500);
     } catch (error: any) {
-      console.error("Google auth error:", error);
+      log.error("Google auth error:", { error });
       
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       

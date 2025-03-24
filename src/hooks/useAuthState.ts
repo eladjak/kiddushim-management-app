@@ -10,62 +10,21 @@ export function useAuthState() {
   const [isLoading, setIsLoading] = useState(true);
   const log = logger.createLogger({ component: 'useAuthState' });
   const mountedRef = useRef(true);
+  const subscriptionRef = useRef<{ data: { subscription: { unsubscribe: () => void } } } | null>(null);
+  const initializeRef = useRef(false);
 
   useEffect(() => {
-    log.info("Auth state hook initialized, checking for session...");
+    if (initializeRef.current) return;
+    initializeRef.current = true;
     
-    let authStateSubscription: { data: { subscription: { unsubscribe: () => void } } };
-    let initialized = false;
+    log.info("Initializing auth state");
     
-    // Check active sessions and sets the user
-    const checkSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          log.error("Error getting session:", { error });
-          if (mountedRef.current) setIsLoading(false);
-          return;
-        }
-        
-        log.info("Session check result:", { 
-          hasSession: !!data.session,
-          userId: data.session?.user?.id ? `${data.session.user.id.substring(0, 8)}...` : 'none'
-        });
-        
-        if (data.session) {
-          // If we have a session, update state immediately
-          if (mountedRef.current) {
-            setSession(data.session);
-            setUser(data.session.user);
-            setIsLoading(false);
-          }
-          initialized = true;
-        } else {
-          if (mountedRef.current) {
-            setSession(null);
-            setUser(null);
-            
-            // Only set loading to false if this is our first check
-            if (!initialized) {
-              setIsLoading(false);
-              initialized = true;
-            }
-          }
-        }
-      } catch (err) {
-        log.error("Unexpected error checking session:", { error: err });
-        if (mountedRef.current) setIsLoading(false);
-      }
-    };
-    
-    // Listen for changes on auth state (logged in, signed out, etc.)
+    // Set up listener before checking session
     const setupAuthListener = () => {
-      authStateSubscription = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      const authListener = supabase.auth.onAuthStateChange(async (event, newSession) => {
         log.info("Auth state changed:", { 
           event, 
           hasSession: !!newSession,
-          userId: newSession?.user?.id ? `${newSession.user.id.substring(0, 8)}...` : 'none'
         });
         
         if (!mountedRef.current) return;
@@ -82,10 +41,43 @@ export function useAuthState() {
           setIsLoading(false);
         }
       });
+      
+      subscriptionRef.current = authListener;
     };
     
-    // Start session check and setup listeners
+    // Set up auth listener first
     setupAuthListener();
+    
+    // Then check for existing session
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          log.error("Error getting session:", { error });
+          if (mountedRef.current) setIsLoading(false);
+          return;
+        }
+        
+        log.info("Session check result:", { 
+          hasSession: !!data.session
+        });
+        
+        if (!mountedRef.current) return;
+        
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+        }
+        
+        // Set loading to false regardless of session status
+        setIsLoading(false);
+      } catch (err) {
+        log.error("Unexpected error checking session:", { error: err });
+        if (mountedRef.current) setIsLoading(false);
+      }
+    };
+    
     checkSession();
 
     // Set a backup timeout to ensure loading state doesn't get stuck
@@ -98,9 +90,11 @@ export function useAuthState() {
 
     return () => {
       mountedRef.current = false;
-      if (authStateSubscription?.data?.subscription) {
-        authStateSubscription.data.subscription.unsubscribe();
+      
+      if (subscriptionRef.current?.data?.subscription) {
+        subscriptionRef.current.data.subscription.unsubscribe();
       }
+      
       clearTimeout(loadingTimeout);
     };
   }, []);

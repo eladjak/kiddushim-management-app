@@ -19,28 +19,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [storageInitialized, setStorageInitialized] = useState(false);
   const mountedRef = useRef(true);
   
-  // Initialize storage for avatars - once only and early
+  // Initialize storage for avatars
   useEffect(() => {
-    if (!storageInitialized) {
-      setupStorage()
-        .then(() => {
-          if (mountedRef.current) {
-            setStorageInitialized(true);
-            log.info("Storage initialized");
-          }
-        })
-        .catch(error => {
-          log.error("Failed to setup storage:", { error });
-          if (mountedRef.current) {
-            setStorageInitialized(true); // Mark as initialized even on error
-          }
-        });
-    }
+    const initStorage = async () => {
+      if (storageInitialized) return;
+      
+      try {
+        await setupStorage();
+        if (mountedRef.current) {
+          setStorageInitialized(true);
+          log.info("Storage initialized");
+        }
+      } catch (error) {
+        log.error("Failed to setup storage:", { error });
+        if (mountedRef.current) {
+          setStorageInitialized(true); // Mark as initialized even on error
+        }
+      }
+    };
+    
+    initStorage();
 
     return () => {
       mountedRef.current = false;
     };
-  }, []);
+  }, [storageInitialized]);
   
   // Handle auth state - independent of storage initialization
   const { user, session, isLoading, setIsLoading } = useAuthState();

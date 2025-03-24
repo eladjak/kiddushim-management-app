@@ -1,118 +1,43 @@
 
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { logger } from "@/utils/logger";
-import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [authProcessed, setAuthProcessed] = useState(false);
   const log = logger.createLogger({ component: 'IndexPage' });
   const mountedRef = useRef(true);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
+  const hashCheckedRef = useRef(false);
 
-  // Handle access token in URL hash - process auth directly when present
+  // Handle access token in URL hash - redirect to auth callback
   useEffect(() => {
-    // This runs once on mount to check if there's an auth hash
-    if (window.location.hash && !authProcessed) {
-      try {
-        // Process authentication directly without parsing the hash
-        const processAuth = async () => {
-          if (mountedRef.current) setIsRedirecting(true);
-          log.info("Processing auth directly from Index page");
-          
-          try {
-            // Let Supabase handle the hash extraction
-            const { data, error } = await supabase.auth.getSession();
-            
-            if (!mountedRef.current) return;
-
-            if (error) {
-              log.error("Error getting session:", { error });
-              if (mountedRef.current) {
-                setIsRedirecting(false);
-                setAuthProcessed(true);
-              }
-              // Clean the URL regardless of error
-              window.history.replaceState({}, document.title, window.location.pathname);
-              return;
-            }
-
-            if (data.session) {
-              log.info("Auth successful, cleaning URL and reloading");
-              
-              // Successfully authenticated, clean the URL
-              window.history.replaceState({}, document.title, "/");
-              
-              // Mark as processed
-              if (mountedRef.current) setAuthProcessed(true);
-              
-              // Wait a moment before reload to ensure state is updated
-              timeoutRef.current = setTimeout(() => {
-                if (mountedRef.current) {
-                  window.location.reload();
-                }
-              }, 100);
-            } else {
-              log.warn("No session found after auth attempt");
-              if (mountedRef.current) {
-                setIsRedirecting(false);
-                setAuthProcessed(true);
-              }
-              // Clean URL anyway
-              window.history.replaceState({}, document.title, "/");
-            }
-          } catch (e) {
-            log.error("Error during auth processing:", e);
-            if (mountedRef.current) {
-              setIsRedirecting(false);
-              setAuthProcessed(true);
-            }
-            // Clean URL on error
-            window.history.replaceState({}, document.title, "/");
-          }
-        };
-        
-        // Run the auth processing
-        processAuth();
-      } catch (error) {
-        log.error("Auth processing failed:", error);
-        if (mountedRef.current) {
-          setIsRedirecting(false);
-          setAuthProcessed(true);
-        }
-        // Clean URL on outer error
-        window.history.replaceState({}, document.title, "/");
+    if (hashCheckedRef.current) return;
+    hashCheckedRef.current = true;
+    
+    // Check if there's an auth hash (OAuth callback)
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      log.info("Detected auth hash, redirecting to callback page");
+      
+      if (mountedRef.current) {
+        // Redirect to the auth callback page to handle the login properly
+        navigate("/auth/callback", { replace: true });
       }
-    } else {
-      // No hash or already processed, mark as processed
-      if (mountedRef.current) setAuthProcessed(true);
+      return;
     }
-
-    return () => {
-      mountedRef.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+    
+    log.info("No auth hash detected, proceeding with normal page load");
+  }, [navigate]);
 
   // Set loading state based on auth status
   useEffect(() => {
-    // Skip any loading logic if we're redirecting or haven't processed auth
-    if (isRedirecting || !authProcessed || !mountedRef.current) return;
-
-    log.info("Processing regular page load", { 
-      authenticated: !!user,
-      authLoading,
-      hasProfile: !!profile
-    });
-
+    if (!mountedRef.current) return;
+    
     // If auth is no longer loading, or we have a user, we can stop loading
     if (!authLoading || user) {
       if (mountedRef.current) setLoading(false);
@@ -125,30 +50,27 @@ const Index = () => {
         setLoadingTimedOut(true);
         setLoading(false);
       }
-    }, 800); // Shorter timeout
+    }, 800);
     
     return () => clearTimeout(timeout);
-  }, [authLoading, user, profile, loading, isRedirecting, authProcessed]);
+  }, [authLoading, user, loading]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // User is authenticated but no profile yet - warn about this unusual state
   useEffect(() => {
     if (user && !profile && !authLoading) {
       log.warn("User authenticated but no profile found", {
-        userId: user.id,
+        userId: user.id.substring(0, 8) + '...',
         email: user.email
       });
     }
   }, [user, profile, authLoading]);
-
-  // If we're redirecting, show a dedicated loading state
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
-        <div className="text-primary font-medium mb-4">מעבד פרטי התחברות...</div>
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   // Show loading state if still loading and not timed out
   if ((loading || authLoading) && !loadingTimedOut) {
