@@ -5,6 +5,7 @@ import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/auth";
+import type { RoleType } from "@/types/profile";
 
 export function useProfile(user: User | null, setIsLoading: (value: boolean) => void) {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -122,12 +123,15 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         // Try to determine language based on name - if contains Hebrew chars, use he
         const hasHebrewChars = /[\u0590-\u05FF]/.test(name);
         
+        // Ensure role is one of the valid enum values
+        const defaultRole: RoleType = 'coordinator';
+
         const newProfile = {
           id: userId,
           name: name,
           email: userData.user.email,
           language: hasHebrewChars ? 'he' : 'en',
-          role: 'coordinator', // Default role
+          role: defaultRole,
           shabbat_mode: false,
           avatar_url: avatarUrl
         };

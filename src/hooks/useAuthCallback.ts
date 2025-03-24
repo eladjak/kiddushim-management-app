@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAndSetAdminStatus } from "@/lib/admin-utils";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
+import { RoleType } from "@/types/profile";
 
 export function useAuthCallback() {
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,8 @@ export function useAuthCallback() {
         // If profile doesn't exist, try to create it
         if (!profileData) {
           log.info("Profile not found, creating one");
+          const defaultRole: RoleType = 'coordinator';
+          
           const { error: createError } = await supabase
             .from("profiles")
             .insert({
@@ -76,7 +79,7 @@ export function useAuthCallback() {
                    data.session.user.email?.split('@')[0] || 'משתמש',
               email: data.session.user.email,
               language: 'he', // Default to Hebrew
-              role: 'coordinator', // Default role
+              role: defaultRole,
               avatar_url: data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture,
               shabbat_mode: false
             });
