@@ -1,16 +1,15 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { EmailField } from "./form-fields/EmailField";
 import { PasswordField } from "./form-fields/PasswordField";
 import { NameField } from "./form-fields/NameField";
 import { PhoneField } from "./form-fields/PhoneField";
 import { AuthButtons } from "./form-actions/AuthButtons";
+import { useSignUp } from "@/services/query/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 const ISRAELI_PHONE_REGEX = /^(?:\+972|0)(?:[23489]|5[0-689]|7[246789])\d{7}$/;
 
@@ -39,8 +38,9 @@ export const SignUpForm = ({
 }: {
   setIsSignUp: (value: boolean) => void;
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const log = logger.createLogger({ component: 'SignUpForm' });
+  const signUp = useSignUp();
 
   // Initialize form with React Hook Form and zod validation
   const form = useForm<SignUpFormValues>({
@@ -57,11 +57,10 @@ export const SignUpForm = ({
    * Handle form submission for sign up
    */
   const onSubmit = async (values: SignUpFormValues) => {
-    console.log('Attempting sign up with:', { email: values.email, name: values.name });
+    log.info('Attempting sign up with:', { email: values.email, name: values.name });
     
-    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      await signUp.mutateAsync({
         email: values.email,
         password: values.password,
         options: {
@@ -73,23 +72,17 @@ export const SignUpForm = ({
         },
       });
       
-      if (error) {
-        console.error("Sign up error:", error);
-        throw error;
-      }
+      log.info('Sign up successful');
       
-      console.log('Sign up successful');
       toast({
         description: "נשלח אימייל אימות. נא לאשר את ההרשמה.",
       });
-    } catch (error: any) {
-      console.error("Auth error:", error);
+    } catch (error) {
+      log.error("Sign up submission error:", error);
       toast({
         variant: "destructive",
-        description: error.message,
+        description: error instanceof Error ? error.message : "אירעה שגיאה בעת ביצוע ההרשמה. נא לנסות מאוחר יותר.",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -102,7 +95,7 @@ export const SignUpForm = ({
         <PasswordField form={form} />
         
         <AuthButtons 
-          isLoading={isLoading}
+          isLoading={signUp.isPending}
           submitLabel="הרשמה"
           onToggleMode={() => setIsSignUp(false)}
           toggleModeLabel="כבר יש לך חשבון? התחבר"

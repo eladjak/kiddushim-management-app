@@ -1,25 +1,40 @@
-
-import { createContext, useContext, useEffect, useState, useRef } from "react";
-import { useAuthState } from "@/hooks/useAuthState";
-import { useProfile } from "@/hooks/useProfile";
+import { createContext, useContext, ReactNode } from "react";
+import { useAuthentication } from "@/services/query/hooks/useAuth";
 import { setupStorage } from "@/integrations/supabase/setupStorage";
 import { logger } from "@/utils/logger";
-import type { AuthContextType } from "@/types/auth";
+import { useEffect, useRef, useState } from "react";
+import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import type { UserProfile } from "@/types/profile";
 
+// טיפוס עבור קונטקסט האימות
+interface AuthContextType {
+  user: SupabaseUser | null;
+  session: Session | null;
+  profile: UserProfile | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  signOut: () => void;
+  updateAvatar: (url: string) => void;
+}
+
+// יצירת קונטקסט עם ערכי ברירת מחדל
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   profile: null,
   isLoading: true,
-  updateAvatar: async () => {},
+  isAuthenticated: false,
+  signOut: () => {},
+  updateAvatar: () => {},
 });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+// ספק האימות
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const log = logger.createLogger({ component: 'AuthContext' });
   const [storageInitialized, setStorageInitialized] = useState(false);
   const mountedRef = useRef(true);
   
-  // Initialize storage for avatars
+  // אתחול אחסון עבור אווטארים
   useEffect(() => {
     const initStorage = async () => {
       if (storageInitialized) return;
@@ -33,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         log.error("Failed to setup storage:", { error });
         if (mountedRef.current) {
-          setStorageInitialized(true); // Mark as initialized even on error
+          setStorageInitialized(true); // מסמן כמאותחל גם במקרה של שגיאה
         }
       }
     };
@@ -45,47 +60,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [storageInitialized]);
   
-  // Handle auth state - independent of storage initialization
-  const { user, session, isLoading, setIsLoading } = useAuthState();
-  
-  // Handle profile management - convert the updateAvatar return type to void
-  const { profile, updateAvatar: originalUpdateAvatar } = useProfile(user, setIsLoading);
-  
-  // Wrap the updateAvatar function to convert its return type from Promise<boolean> to Promise<void>
-  const updateAvatar = async (avatarUrl: string): Promise<void> => {
-    await originalUpdateAvatar(avatarUrl);
-  };
+  // שימוש בהוק האימות המשודרג שלנו
+  const auth = useAuthentication();
 
-  // Log auth state for debugging - super useful for debugging auth issues
+  // רישום מצב האימות לצורך דיבוג
   useEffect(() => {
     log.info("Auth state changed", { 
-      authenticated: !!user, 
-      userId: user?.id,
-      hasProfile: !!profile, 
-      profileId: profile?.id,
-      isLoading 
+      authenticated: auth.isAuthenticated, 
+      userId: auth.user?.id,
+      hasProfile: !!auth.profile, 
+      profileId: auth.profile?.id,
+      isLoading: auth.isLoading 
     });
-    
-    // Force loading to complete after a maximum time
-    if (isLoading) {
-      const timeout = setTimeout(() => {
-        if (isLoading && mountedRef.current) {
-          log.warn("Forcing auth loading to complete after timeout");
-          setIsLoading(false);
-        }
-      }, 2500); // 2.5 seconds max loading time
-      
-      return () => clearTimeout(timeout);
-    }
-  }, [user, profile, isLoading, setIsLoading]);
+  }, [auth.user, auth.profile, auth.isLoading, auth.isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, updateAvatar }}>
+    <AuthContext.Provider value={auth as AuthContextType}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// הוק לשימוש בקונטקסט האימות
 export const useAuth = () => {
   return useContext(AuthContext);
 };

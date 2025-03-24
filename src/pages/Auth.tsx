@@ -1,70 +1,30 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthHeader } from "@/components/auth/AuthHeader";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Image } from "@/components/ui/image";
 import { Footer } from "@/components/layout/Footer";
 import { logger } from "@/utils/logger";
+import { useAuth } from "@/context/AuthContext";
 
+/**
+ * דף אימות (התחברות/הרשמה) של המשתמש
+ */
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const log = logger.createLogger({ component: 'AuthPage' });
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      setIsLoading(true);
-      log.info("Auth page: Checking if user is already logged in");
-      
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          log.error("Error checking session:", { error });
-          setIsLoading(false);
-          return;
-        }
-        
-        log.info("Auth page session check:", { hasSession: !!data.session });
-        
-        if (data.session) {
-          // User is logged in, redirect to home
-          log.info("User already logged in, redirecting to home");
-          // Ensure we redirect to the root path to avoid 404 issues
-          window.location.href = "/";
-        } else {
-          setIsLoading(false);
-        }
-      } catch (err) {
-        log.error("Unexpected error checking user:", { error: err });
-        setIsLoading(false);
-      }
-    };
-    
-    // Only run checkUser once on mount
-    checkUser();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      log.info("Auth page auth state changed:", { event, hasSession: !!session });
-      
-      if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
-        log.info("User signed in, redirecting to home");
-        // Ensure we always go to the root path
-        window.location.href = "/";
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+    // אם המשתמש כבר מחובר, הפנה אותו לדף הבית
+    if (isAuthenticated) {
+      log.info("User already authenticated, redirecting to home");
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   if (isLoading) {
     return (

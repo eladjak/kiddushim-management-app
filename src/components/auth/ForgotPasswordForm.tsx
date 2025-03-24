@@ -1,16 +1,15 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { EmailField } from "./form-fields/EmailField";
+import { logger } from "@/utils/logger";
+import { authService } from "@/services/supabase/auth";
 
 /**
- * Schema for forgot password form validation
+ * סכמה לבדיקת תקינות טופס שכחתי סיסמה
  */
 const forgotPasswordSchema = z.object({
   email: z.string().email("נא להזין כתובת אימייל תקינה"),
@@ -19,7 +18,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 /**
- * Form component for password reset requests
+ * קומפוננט טופס לבקשת איפוס סיסמה
  */
 export const ForgotPasswordForm = ({
   setIsForgotPassword,
@@ -28,10 +27,10 @@ export const ForgotPasswordForm = ({
   setIsForgotPassword: (value: boolean) => void;
   setIsSignUp: (value: boolean) => void;
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const log = logger.createLogger({ component: 'ForgotPasswordForm' });
 
-  // Initialize form with React Hook Form and zod validation
+  // אתחול הטופס עם React Hook Form ובדיקת תקינות של zod
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -40,35 +39,25 @@ export const ForgotPasswordForm = ({
   });
 
   /**
-   * Handle form submission for password reset
+   * טיפול בשליחת טופס איפוס סיסמה
    */
   const onSubmit = async (values: ForgotPasswordValues) => {
-    console.log('Attempting password reset for:', values.email);
+    log.info('Attempting password reset for:', values.email);
     
-    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: window.location.origin + "/auth/reset-password",
-      });
+      await authService.resetPassword({ email: values.email });
       
-      if (error) {
-        console.error("Password reset error:", error);
-        throw error;
-      }
-      
-      console.log('Password reset email sent');
+      log.info('Password reset email sent');
       toast({
         description: "נשלח אימייל לאיפוס סיסמה. נא לבדוק את תיבת הדואר.",
       });
       setIsForgotPassword(false);
-    } catch (error: any) {
-      console.error("Auth error:", error);
+    } catch (error) {
+      log.error("Password reset error:", error);
       toast({
         variant: "destructive",
-        description: error.message,
+        description: error instanceof Error ? error.message : "אירעה שגיאה בעת שליחת בקשת איפוס הסיסמה",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -84,10 +73,10 @@ export const ForgotPasswordForm = ({
         <div className="flex flex-col gap-2 pt-2">
           <Button 
             type="submit" 
-            disabled={isLoading}
+            disabled={form.formState.isSubmitting}
             className="w-full h-10"
           >
-            {isLoading ? "טוען..." : "שלח קישור לאיפוס סיסמה"}
+            {form.formState.isSubmitting ? "טוען..." : "שלח קישור לאיפוס סיסמה"}
           </Button>
           
           <div className="flex flex-col items-center gap-1 mt-4">

@@ -1,6 +1,8 @@
-
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { queryClient } from "./lib/react-query";
 import { Toaster } from "./components/ui/toaster";
 import { useAdminCheck } from "./lib/admin-utils";
 import { Navigation } from "./components/Navigation";
@@ -95,12 +97,16 @@ function App() {
   document.body.dir = "rtl";
   
   return (
-    <AuthProvider>
-      <div dir="rtl" className="rtl-app">
-        <AppWithAdminCheck />
-        <Toaster />
-      </div>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <div dir="rtl" className="rtl-app">
+          <AppWithAdminCheck />
+          <Toaster />
+        </div>
+      </AuthProvider>
+      {/* React Query Devtools - only in development */}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />}
+    </QueryClientProvider>
   );
 }
 

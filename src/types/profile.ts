@@ -1,15 +1,23 @@
+/**
+ * טיפוסים עבור פרופיל משתמש
+ */
 
-export type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl" | "content_provider";
+import type { Database } from "@/integrations/supabase/types";
 
-export interface ProfileType {
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+
+export interface UserProfile {
   id: string;
-  name: string;
   email: string;
-  phone?: string;
-  avatar_url?: string;
-  role: RoleType;
-  language: string;
-  shabbat_mode: boolean;
-  created_at?: string;
+  name: string;
+  avatar_url?: string | null;
+  phone?: string | null;
+  role: Database["public"]["Enums"]["user_role"];
+  created_at: string;
   updated_at?: string;
+  settings?: Record<string, any> | null;
+  notification_settings?: Record<string, any> | null;
+  last_active?: string | null;
+  language?: string | null;
+  shabbat_mode?: boolean | null;
 }

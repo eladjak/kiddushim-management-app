@@ -1,9 +1,7 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { EmailField } from "./form-fields/EmailField";
@@ -11,6 +9,8 @@ import { PasswordField } from "./form-fields/PasswordField";
 import { RememberMeField } from "./form-fields/RememberMeField";
 import { AuthButtons } from "./form-actions/AuthButtons";
 import { logger } from "@/utils/logger";
+import { useSignIn } from "@/services/query/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Schema for login form validation
@@ -33,9 +33,10 @@ export const LoginForm = ({
   setIsSignUp: (value: boolean) => void;
   setIsForgotPassword: (value: boolean) => void;
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const log = logger.createLogger({ component: 'LoginForm' });
+  const signIn = useSignIn();
 
   // Initialize form with React Hook Form and zod validation
   const form = useForm<LoginFormValues>({
@@ -53,34 +54,17 @@ export const LoginForm = ({
   const onSubmit = async (values: LoginFormValues) => {
     log.info('Attempting login with:', { email: values.email, rememberMe: values.rememberMe });
     
-    setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      await signIn.mutateAsync({
         email: values.email,
         password: values.password,
       });
       
-      if (error) {
-        log.error("Login error:", error);
-        throw error;
-      }
-      
-      log.info('Login successful, redirecting to home', { session: !!data.session });
-      
-      if (data.session) {
-        // Force a complete page reload to ensure fresh auth state
-        // Use the explicit root path to avoid any 404 issues
-        window.location.href = "/";
-      } else {
-        throw new Error("התחברות נכשלה - לא התקבל מידע משתמש");
-      }
+      // אם ההתחברות הצליחה, נעבור לדף הבית
+      navigate("/");
     } catch (error: any) {
-      log.error("Auth error:", error);
-      toast({
-        variant: "destructive",
-        description: error.message || "שגיאה בהתחברות, אנא נסה שוב",
-      });
-      setIsLoading(false);
+      // הטיפול בשגיאות מתבצע בהוק useSignIn
+      log.error("Login submission error:", error);
     }
   };
 
@@ -92,7 +76,7 @@ export const LoginForm = ({
         <RememberMeField form={form} />
         
         <AuthButtons 
-          isLoading={isLoading}
+          isLoading={signIn.isPending}
           submitLabel="התחברות"
           onForgotPassword={() => setIsForgotPassword(true)}
           onToggleMode={() => setIsSignUp(true)}

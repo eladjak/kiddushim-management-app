@@ -1,50 +1,50 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/layout/Footer";
 import { UserProfileTabs } from "@/components/profile/UserProfileTabs";
+import { useUpdateUserProfile } from "@/services/query/hooks/useUsers";
 
+// טיפוס עבור ערכי הפרופיל שניתן לעדכן
+interface ProfileValues {
+  name?: string;
+  phone?: string;
+  language?: string;
+  shabbat_mode?: boolean;
+}
+
+/**
+ * דף פרופיל המשתמש
+ * מאפשר צפייה ועריכה של פרטי המשתמש
+ */
 const UserProfile = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const updateProfile = useUpdateUserProfile();
   
-  const onSaveProfile = async (values: any) => {
+  /**
+   * שמירת פרטי פרופיל משתמש
+   */
+  const onSaveProfile = async (values: ProfileValues) => {
     if (!user?.id) return;
     
     try {
-      setLoading(true);
-      
-      // Create safe-to-store versions of the values to prevent encoding issues
-      const safeValues = {
-        name: values.name,
-        phone: values.phone,
-        language: values.language,
-        shabbat_mode: values.shabbat_mode,
-        updated_at: new Date().toISOString(),
-      };
-      
-      const { error } = await supabase
-        .from("profiles")
-        .update(safeValues)
-        .eq("id", user.id);
-
-      if (error) throw error;
+      // עדכון פרטי הפרופיל באמצעות הוק React Query
+      await updateProfile.mutateAsync({
+        id: user.id,
+        data: {
+          ...values,
+          updated_at: new Date().toISOString(),
+        }
+      });
       
       toast({
         description: "הפרופיל עודכן בהצלחה",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Profile update error:", error);
-      toast({
-        variant: "destructive",
-        description: `שגיאה בעדכון הפרופיל: ${error.message}`,
-      });
-    } finally {
-      setLoading(false);
+      // הטיפול בשגיאות מתבצע בהוק useUpdateUserProfile
     }
   };
 
@@ -59,7 +59,7 @@ const UserProfile = () => {
           <UserProfileTabs 
             profile={profile} 
             userId={user.id}
-            loading={loading}
+            loading={updateProfile.isPending}
             onSaveProfile={onSaveProfile}
           />
         ) : (

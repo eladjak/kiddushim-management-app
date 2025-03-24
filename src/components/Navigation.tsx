@@ -1,10 +1,8 @@
-
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 import { Brand } from "./navigation/Brand";
@@ -13,57 +11,61 @@ import { MobileNav } from "./navigation/MobileNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
- * Main navigation component for the application
+ * קומפוננט ניווט ראשי של האפליקציה
  * 
- * Provides navigation links and authentication controls
- * Shown on all pages except the index page when the user is not logged in
+ * מספק קישורי ניווט ובקרות אימות
+ * מוצג בכל העמודים למעט עמוד הבית כאשר המשתמש אינו מחובר
  */
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, profile } = useAuth();
+  const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const log = logger.createLogger({ component: 'Navigation' });
   
-  // Check if we're on the index page
+  // בדיקה האם אנחנו בעמוד הבית
   const isIndexPage = location.pathname === "/";
   
-  // Don't render navigation on the index page IF the user is not logged in
-  if (isIndexPage && !user) {
-    return null;
-  }
-
-  // Close mobile menu when route changes
+  // סגירת תפריט נייד בעת שינוי נתיב
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
+  
+  // אין להציג ניווט בעמוד הבית אם המשתמש אינו מחובר
+  if (isIndexPage && !isAuthenticated) {
+    return null;
+  }
 
   /**
-   * Handle user logout
+   * טיפול ביציאת משתמש
    */
   const handleLogout = async () => {
     try {
       log.info('Logout initiated', { userId: user?.id });
-      await supabase.auth.signOut();
+      
+      // שימוש בפונקציית signOut מהקונטקסט
+      signOut();
+      
       navigate("/");
       toast({
         description: "התנתקת בהצלחה",
       });
-      log.info('Logout successful', { userId: user?.id });
-    } catch (error: any) {
-      log.error('Logout failed', { error: error.message });
+      
+      log.info('Logout successful');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+      log.error('Logout failed', { error: errorMessage });
       toast({
         variant: "destructive",
-        description: error.message,
+        description: errorMessage,
       });
     }
   };
 
   const isAdmin = profile?.role === "admin";
   const isCoordinator = profile?.role === "coordinator";
-  const isLoggedIn = !!user;
 
   return (
     <nav className="fixed top-0 right-0 left-0 bg-white shadow-sm z-50" dir="rtl">
@@ -92,7 +94,7 @@ export const Navigation = () => {
 
       <MobileNav 
         isOpen={isOpen}
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={isAuthenticated}
         isAdmin={isAdmin}
         isCoordinator={isCoordinator}
         onLogout={handleLogout}
