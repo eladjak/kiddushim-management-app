@@ -74,8 +74,7 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          },
-          skipBrowserRedirect: false,
+          }
         },
       });
       
@@ -84,7 +83,10 @@ export const GoogleAuthButton = () => {
         throw error;
       }
       
-      log.info('Google auth initiated successfully');
+      log.info('Google auth initiated successfully', { 
+        url: data?.url,
+        provider: data?.provider
+      });
       
       toast({
         description: "מועבר להתחברות עם Google...",
