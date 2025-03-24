@@ -37,6 +37,12 @@ export const GoogleAuthButton = () => {
       
       // Clear any existing auth data in localStorage (fixes some edge cases)
       localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('supabase.auth.expires_at');
+      localStorage.removeItem('supabase.auth.refresh_token');
+      
+      // Perform explicit signOut before starting a new sign in flow
+      // This helps to clear any stale session state
+      await supabase.auth.signOut();
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",

@@ -23,6 +23,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       setProfile(null);
       if (mountedRef.current) setIsLoading(false);
       profileCreationAttemptedRef.current = false;
+      setRetryCount(0);
     }
 
     return () => {
@@ -50,7 +51,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
           log.info("Profile not found, it may be created by the trigger soon");
           
           // Wait a moment and try again
-          if (retryCount < 2) {
+          if (retryCount < 3) {
             const newRetryCount = retryCount + 1;
             log.info("Retrying profile fetch...", { retryCount: newRetryCount });
             if (mountedRef.current) setRetryCount(newRetryCount);

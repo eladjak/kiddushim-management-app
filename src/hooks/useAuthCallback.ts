@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,10 +58,10 @@ export function useAuthCallback() {
                         data.session.user.user_metadata?.picture;
         
         // Force wait for a moment to allow the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Get user profile
-        const { data: profileData, error: profileError } = await supabase
+        // Get user profile - first attempt
+        let { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, role")
           .eq("id", userId)
@@ -77,57 +76,41 @@ export function useAuthCallback() {
         
         // If profile doesn't exist, try to create it
         if (!profileData) {
-          if (!profileCreationAttemptRef.current) {
-            profileCreationAttemptRef.current = true;
-            log.info("Profile not found, creating one");
+          log.info("Profile not found, creating one");
+          profileCreationAttemptRef.current = true;
+          
+          const defaultRole: RoleType = 'coordinator';
+          
+          const { error: createError } = await supabase
+            .from("profiles")
+            .insert({
+              id: userId,
+              name: userName,
+              email: userEmail,
+              language: 'he', // Default to Hebrew
+              role: defaultRole,
+              avatar_url: avatarUrl,
+              shabbat_mode: false
+            });
+          
+          if (createError) {
+            log.error("Error creating profile:", { error: createError });
             
-            const defaultRole: RoleType = 'coordinator';
-            
-            const { error: createError } = await supabase
-              .from("profiles")
-              .insert({
-                id: userId,
-                name: userName,
-                email: userEmail,
-                language: 'he', // Default to Hebrew
-                role: defaultRole,
-                avatar_url: avatarUrl,
-                shabbat_mode: false
+            // If it's not a duplicate key error, show an error
+            if (createError.code !== '23505') {
+              // Don't set error state, but show toast
+              toast({
+                variant: "destructive",
+                description: "שגיאה ביצירת פרופיל. מנסה שוב...",
               });
-            
-            if (createError) {
-              log.error("Error creating profile:", { error: createError });
               
-              // If it's not a duplicate key error, show an error
-              if (createError.code !== '23505') {
-                // Don't set error state, but show toast
-                toast({
-                  variant: "destructive",
-                  description: "שגיאה ביצירת פרופיל. מנסה שוב...",
-                });
-                
-                // Wait a moment and try fetching again
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // Try to fetch profile again - maybe it was created by another process
-                const { data: retryProfile } = await supabase
-                  .from("profiles")
-                  .select("id, role")
-                  .eq("id", userId)
-                  .maybeSingle();
-                  
-                if (!retryProfile) {
-                  log.error("Still couldn't find or create profile");
-                  // Show more descriptive error but don't interrupt the flow
-                  toast({
-                    variant: "destructive",
-                    description: "שגיאה ביצירת פרופיל. אנא רענן את הדף אם תקלה זו נמשכת.",
-                  });
-                }
-              }
-            } else {
-              log.info("Profile created successfully during auth callback");
+              // Wait a moment and try fetching again
+              await new Promise(resolve => setTimeout(resolve, 1500));
             }
+          } else {
+            log.info("Profile created successfully during auth callback");
+            // Explicitly fetch the newly created profile
+            profileData = { id: userId, role: defaultRole };
           }
         } else {
           log.info("Profile already exists, proceeding");
@@ -148,29 +131,32 @@ export function useAuthCallback() {
             finalProfileCheck.role,
             toast
           );
+        } else {
+          log.warn("Final profile check failed, proceeding without profile");
         }
         
         if (!mountedRef.current) return;
+
+        // Clear any URL hash to prevent re-processing on page reload
+        try {
+          // Remove the hash and keep only the base URL
+          window.history.replaceState({}, document.title, "/");
+        } catch (historyError) {
+          log.error("Error cleaning URL:", { error: historyError });
+        }
 
         // Successfully authenticated, show toast
         toast({
           description: "התחברת בהצלחה!",
         });
         
-        // Make sure to remove the hash
-        try {
-          window.history.replaceState({}, document.title, "/");
-        } catch (historyError) {
-          log.error("Error cleaning URL:", { error: historyError });
-        }
-        
         // Controlled redirect with timeout to ensure state updates are processed
         timeoutRef.current = setTimeout(() => {
           if (!mountedRef.current) return;
           
           try {
-            // Navigate to home page
-            navigate("/", { replace: true });
+            // Refresh the page to ensure clean state
+            window.location.href = "/";
           } catch (redirectError) {
             log.error("Error during redirect:", { error: redirectError });
             // Fallback to simple redirect if something goes wrong

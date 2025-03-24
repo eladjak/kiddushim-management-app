@@ -22,6 +22,7 @@ const Index = () => {
   const hashCheckedRef = useRef(false);
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showProfileCreatingMessageRef = useRef(false);
+  const profileTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
 
   // Handle access token in URL hash - redirect to auth callback
@@ -30,7 +31,10 @@ const Index = () => {
     hashCheckedRef.current = true;
     
     // Check if there's an auth hash (OAuth callback)
-    if (window.location.hash && window.location.hash.includes('access_token')) {
+    if (window.location.hash && (
+      window.location.hash.includes('access_token') || 
+      window.location.hash.includes('error')
+    )) {
       log.info("Detected auth hash, redirecting to callback page");
       
       if (mountedRef.current) {
@@ -70,6 +74,18 @@ const Index = () => {
 
   // Set a timeout to show profile creating message if needed
   useEffect(() => {
+    // Clear any existing timeout
+    if (profileTimeoutRef.current) {
+      clearTimeout(profileTimeoutRef.current);
+      profileTimeoutRef.current = null;
+    }
+
+    // Reset refs when profile is loaded
+    if (profile) {
+      showProfileCreatingMessageRef.current = false;
+      return;
+    }
+
     if (user && !profile && !authLoading) {
       log.warn("User authenticated but no profile found", {
         userId: user.id.substring(0, 8) + '...',
@@ -77,15 +93,19 @@ const Index = () => {
       });
       
       // After 3 seconds of waiting for profile, show the profile creating message
-      const timeoutId = setTimeout(() => {
+      profileTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current && user && !profile) {
           showProfileCreatingMessageRef.current = true;
-          // Force re-render by updating some state
+          // Force re-render
           setLoading(prev => !prev);
         }
       }, 3000);
       
-      return () => clearTimeout(timeoutId);
+      return () => {
+        if (profileTimeoutRef.current) {
+          clearTimeout(profileTimeoutRef.current);
+        }
+      };
     }
   }, [user, profile, authLoading]);
 
@@ -114,7 +134,7 @@ const Index = () => {
       
       const defaultRole: RoleType = 'coordinator';
       
-      // Create new profile
+      // Create new profile with explicit role type
       const { error } = await supabase
         .from("profiles")
         .insert({
@@ -160,11 +180,32 @@ const Index = () => {
       }
     }
   };
+  
+  // Function to handle sign out and retry
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      // Clear any local storage items that might be causing issues
+      localStorage.clear();
+      // Redirect to auth page
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Force reload as a fallback
+      window.location.href = "/auth";
+    }
+  };
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       mountedRef.current = false;
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      if (profileTimeoutRef.current) {
+        clearTimeout(profileTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -218,6 +259,14 @@ const Index = () => {
               className="w-full"
             >
               רענן דף
+            </Button>
+            
+            <Button 
+              onClick={handleSignOut}
+              variant="ghost"
+              className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+            >
+              התנתק ונסה שוב
             </Button>
           </div>
           
