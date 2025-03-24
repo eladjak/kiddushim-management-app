@@ -1,3 +1,4 @@
+
 import { createContext, useContext, ReactNode } from "react";
 import { useAuthentication } from "@/services/query/hooks/useAuth";
 import { setupStorage } from "@/integrations/supabase/setupStorage";
@@ -5,6 +6,7 @@ import { logger } from "@/utils/logger";
 import { useEffect, useRef, useState } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import type { UserProfile } from "@/types/profile";
+import { supabase } from "@/integrations/supabase/client";
 
 // טיפוס עבור קונטקסט האימות
 interface AuthContextType {
@@ -32,7 +34,38 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const log = logger.createLogger({ component: 'AuthContext' });
   const [storageInitialized, setStorageInitialized] = useState(false);
+  const [initialSessionChecked, setInitialSessionChecked] = useState(false);
   const mountedRef = useRef(true);
+  
+  // בדיקת סשן פעיל בטעינה - לסייע בבעיות של החלפת עמודים
+  useEffect(() => {
+    if (initialSessionChecked) return;
+    
+    const checkInitialSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          log.error("Error checking initial session:", error);
+        } else {
+          log.info("Initial session check:", { 
+            hasSession: !!data.session, 
+            userId: data.session?.user?.id
+          });
+        }
+        
+        if (mountedRef.current) {
+          setInitialSessionChecked(true);
+        }
+      } catch (err) {
+        log.error("Unexpected error in initial session check:", err);
+        if (mountedRef.current) {
+          setInitialSessionChecked(true); 
+        }
+      }
+    };
+    
+    checkInitialSession();
+  }, []);
   
   // אתחול אחסון עבור אווטארים
   useEffect(() => {

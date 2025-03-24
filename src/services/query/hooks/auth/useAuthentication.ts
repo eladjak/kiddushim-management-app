@@ -6,11 +6,13 @@ import { useUserProfile } from './useUserProfile';
 import { useSignOut } from './useSignOut';
 import { useUpdateAvatar } from './useUpdateAvatar';
 import { useAuthStateChange } from './useAuthStateChange';
+import { logger } from '@/utils/logger';
 
 /**
  * הוק מאוחד לניהול אימות
  */
 export const useAuthentication = () => {
+  const log = logger.createLogger({ component: 'useAuthentication' });
   const { data: session, isLoading: isSessionLoading } = useSession();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   
@@ -22,7 +24,7 @@ export const useAuthentication = () => {
   
   useEffect(() => {
     if (profileError) {
-      console.error('Error loading user profile:', profileError);
+      log.error('Error loading user profile:', profileError);
     }
   }, [profileError]);
   
@@ -35,13 +37,15 @@ export const useAuthentication = () => {
                    (!!user && isProfileLoading && !profileError);
   
   useEffect(() => {
-    console.log('Auth state:', { 
+    log.info('Auth state:', { 
       isLoading, 
-      user: !!user, 
-      profile: !!profile,
-      hasProfileError: !!profileError 
+      sessionExists: !!session, 
+      userExists: !!user, 
+      profileExists: !!profile,
+      hasProfileError: !!profileError,
+      userId: user?.id
     });
-  }, [isLoading, user, profile, profileError]);
+  }, [isLoading, user, profile, profileError, session]);
   
   return {
     session,

@@ -1,9 +1,10 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EmailField } from "./form-fields/EmailField";
 import { PasswordField } from "./form-fields/PasswordField";
 import { RememberMeField } from "./form-fields/RememberMeField";
@@ -11,6 +12,7 @@ import { AuthButtons } from "./form-actions/AuthButtons";
 import { logger } from "@/utils/logger";
 import { useSignIn } from "@/services/query/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Schema for login form validation
@@ -37,34 +39,52 @@ export const LoginForm = ({
   const navigate = useNavigate();
   const log = logger.createLogger({ component: 'LoginForm' });
   const signIn = useSignIn();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Initialize form with React Hook Form and zod validation
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      rememberMe: true,
-    },
-  });
+  // בדיקה אם המשתמש כבר מחובר
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (data?.session) {
+          log.info("User already has a session, redirecting to home");
+          navigate("/", { replace: true });
+        }
+      } catch (err) {
+        log.error("Error checking session:", err);
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   /**
    * Handle form submission for login
    */
   const onSubmit = async (values: LoginFormValues) => {
+    if (isRedirecting) return;
+    
     log.info('Attempting login with:', { email: values.email, rememberMe: values.rememberMe });
     
     try {
-      await signIn.mutateAsync({
+      setIsRedirecting(true);
+      
+      const result = await signIn.mutateAsync({
         email: values.email,
         password: values.password,
       });
       
+      log.info("Login successful, redirecting to home", { userId: result.user?.id });
+      
       // אם ההתחברות הצליחה, נעבור לדף הבית
-      navigate("/");
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 500);
+      
     } catch (error: any) {
       // הטיפול בשגיאות מתבצע בהוק useSignIn
       log.error("Login submission error:", error);
+      setIsRedirecting(false);
     }
   };
 
@@ -76,7 +96,7 @@ export const LoginForm = ({
         <RememberMeField form={form} />
         
         <AuthButtons 
-          isLoading={signIn.isPending}
+          isLoading={signIn.isPending || isRedirecting}
           submitLabel="התחברות"
           onForgotPassword={() => setIsForgotPassword(true)}
           onToggleMode={() => setIsSignUp(true)}
