@@ -111,7 +111,7 @@ const Index = () => {
 
   // User is authenticated but no profile yet - shorter wait
   if (user && !profile) {
-    log.warn("User authenticated but no profile found");
+    log.info("User authenticated but no profile found");
     return <LoadingScreen message="טוען פרופיל משתמש..." />;
   }
 

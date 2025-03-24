@@ -16,11 +16,15 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     // Check if there's an auth hash (OAuth callback)
-    if (window.location.hash && (
+    const hasAuthHash = window.location.hash && (
       window.location.hash.includes('access_token') || 
-      window.location.hash.includes('error')
-    )) {
-      log.info("Detected auth hash, redirecting to callback page");
+      window.location.hash.includes('error') ||
+      window.location.hash.includes('type=recovery') ||
+      window.location.hash.includes('provider=')
+    );
+    
+    if (hasAuthHash) {
+      log.info("Detected auth hash, redirecting to callback page:", { hash: window.location.hash });
       
       // Redirect to the auth callback page to handle the login properly
       // Use replace: true to avoid back button issues

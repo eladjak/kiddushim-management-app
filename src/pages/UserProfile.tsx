@@ -1,76 +1,75 @@
 
-import { useState } from "react";
-import { Navigation } from "@/components/Navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { Footer } from "@/components/layout/Footer";
 import { UserProfileTabs } from "@/components/profile/UserProfileTabs";
-import { useUpdateUserProfile } from "@/services/query/hooks/useUsers";
-
-// טיפוס עבור ערכי הפרופיל שניתן לעדכן
-interface ProfileValues {
-  name?: string;
-  phone?: string;
-  language?: string;
-  shabbat_mode?: boolean;
-}
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { LoadingScreen } from "@/components/dashboard/LoadingScreen";
+import { logger } from "@/utils/logger";
+import { usersService } from "@/services/entity/users";
+import type { UserProfile as UserProfileType } from "@/types/profile";
 
 /**
- * דף פרופיל המשתמש
- * מאפשר צפייה ועריכה של פרטי המשתמש
+ * עמוד פרופיל המשתמש
  */
 const UserProfile = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const { toast } = useToast();
-  const updateProfile = useUpdateUserProfile();
-  
-  /**
-   * שמירת פרטי פרופיל משתמש
-   */
-  const onSaveProfile = async (values: ProfileValues) => {
+  const log = logger.createLogger({ component: 'UserProfilePage' });
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // בדיקת נתוני משתמש בטעינה
+  useEffect(() => {
+    log.info("User profile page loaded", { isLoggedIn: !!user, hasProfile: !!profile });
+  }, [user, profile]);
+
+  // מוטציה לעדכון פרופיל משתמש
+  const updateProfileMutation = useMutation({
+    mutationFn: ({ userId, data }: { userId: string; data: Partial<UserProfileType> }) => 
+      usersService.updateProfile(userId, data),
+    onSuccess: () => {
+      toast({
+        title: "הפרופיל עודכן בהצלחה",
+        variant: "default",
+      });
+      setIsUpdating(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה בעדכון הפרופיל",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsUpdating(false);
+    }
+  });
+
+  // פונקציית עדכון פרופיל
+  const handleUpdateProfile = async (data: Partial<UserProfileType>) => {
     if (!user?.id) return;
     
-    try {
-      // עדכון פרטי הפרופיל באמצעות הוק React Query
-      await updateProfile.mutateAsync({
-        userId: user.id,
-        data: {
-          ...values,
-          updated_at: new Date().toISOString(),
-        }
-      });
-      
-      toast({
-        description: "הפרופיל עודכן בהצלחה",
-      });
-    } catch (error) {
-      console.error("Profile update error:", error);
-      // הטיפול בשגיאות מתבצע בהוק useUpdateUserProfile
-    }
+    log.info("Updating profile", { userId: user.id, data });
+    setIsUpdating(true);
+    updateProfileMutation.mutate({ 
+      userId: user.id, 
+      data 
+    });
   };
 
+  // הצגת מסך טעינה אם אין נתונים עדיין
+  if (isLoading || !user || !profile) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
-      <Navigation />
+    <div className="container mx-auto py-6">
+      <h1 className="text-2xl font-bold mb-6">פרופיל משתמש</h1>
       
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
-        <h1 className="text-3xl font-bold mb-6 text-right">פרופיל משתמש</h1>
-        
-        {user && profile ? (
-          <UserProfileTabs 
-            profile={profile} 
-            userId={user.id}
-            loading={updateProfile.isPending}
-            onSaveProfile={onSaveProfile}
-          />
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-lg">יש להתחבר כדי לצפות בפרופיל</p>
-          </div>
-        )}
-      </main>
-      
-      <Footer />
+      <UserProfileTabs 
+        profile={profile} 
+        onUpdateProfile={handleUpdateProfile}
+        isUpdating={isUpdating} 
+      />
     </div>
   );
 };

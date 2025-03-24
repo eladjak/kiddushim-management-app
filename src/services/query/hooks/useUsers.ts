@@ -1,28 +1,32 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/services/entity/users';
-import type { User } from '@/types/users';
-import type { UserProfile, RoleType } from '@/types/profile';
 import { toast } from '@/components/ui/use-toast';
+import type { User, UserCreate, UserUpdate } from '@/types/users';
+import type { UserProfile, RoleType } from '@/types/profile';
 
-// קבועים לשימוש כמפתחות query
-export const USERS_KEYS = {
-  all: ['users'] as const,
-  lists: () => [...USERS_KEYS.all, 'list'] as const,
-  list: (filters: string) => [...USERS_KEYS.lists(), { filters }] as const,
-  search: (search: string) => [...USERS_KEYS.lists(), { search }] as const,
-  details: () => [...USERS_KEYS.all, 'detail'] as const,
-  detail: (id: string) => [...USERS_KEYS.details(), id] as const,
-  profile: (id: string) => [...USERS_KEYS.detail(id), 'profile'] as const,
+const USERS_KEYS = {
+  all: () => ['users'] as const,
+  lists: () => ['users', 'list'] as const,
+  list: (filters: string) => ['users', 'list', { filters }] as const,
+  details: () => ['users', 'detail'] as const,
+  detail: (id: string) => ['users', 'detail', id] as const,
+  profiles: () => ['users', 'profile'] as const,
+  profile: (id: string) => ['users', 'profile', id] as const,
 };
 
 /**
- * הוק לקבלת כל המשתמשים
+ * Hook לקבלת רשימת משתמשים
  */
-export const useUsers = (filters = '') => {
+export const useUsers = (filters?: string) => {
+  const queryKey = filters 
+    ? USERS_KEYS.list(filters)
+    : USERS_KEYS.lists();
+    
   return useQuery({
-    queryKey: USERS_KEYS.list(filters),
-    queryFn: () => usersService.getAll(),
+    queryKey,
+    queryFn: usersService.getAll,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     meta: {
       onError: (error: Error) => {
         console.error('Error fetching users:', error);
@@ -37,33 +41,12 @@ export const useUsers = (filters = '') => {
 };
 
 /**
- * הוק לחיפוש משתמשים
+ * Hook לקבלת פרטי משתמש
  */
-export const useSearchUsers = (search: string) => {
+export const useUser = (id?: string) => {
   return useQuery({
-    queryKey: USERS_KEYS.search(search),
-    queryFn: () => usersService.search(search),
-    enabled: search.length > 2,
-    meta: {
-      onError: (error: Error) => {
-        console.error('Error searching users:', error);
-        toast({
-          title: 'שגיאה בחיפוש משתמשים',
-          description: error.message,
-          variant: 'destructive',
-        });
-      }
-    }
-  });
-};
-
-/**
- * הוק לקבלת משתמש ספציפי
- */
-export const useUser = (id: string) => {
-  return useQuery({
-    queryKey: USERS_KEYS.detail(id),
-    queryFn: () => usersService.getById(id),
+    queryKey: USERS_KEYS.detail(id || ''),
+    queryFn: () => usersService.getById(id!),
     enabled: !!id,
     meta: {
       onError: (error: Error) => {
@@ -79,16 +62,16 @@ export const useUser = (id: string) => {
 };
 
 /**
- * הוק לקבלת פרופיל משתמש
+ * Hook לקבלת פרופיל משתמש
  */
-export const useUserProfile = (id: string) => {
+export const useUserProfile = (id?: string) => {
   return useQuery({
-    queryKey: USERS_KEYS.profile(id),
-    queryFn: () => usersService.getProfile(id),
+    queryKey: USERS_KEYS.profile(id || ''),
+    queryFn: () => usersService.getProfile(id!),
     enabled: !!id,
     meta: {
       onError: (error: Error) => {
-        console.error(`Error fetching profile for user ${id}:`, error);
+        console.error(`Error fetching user profile ${id}:`, error);
         toast({
           title: 'שגיאה בטעינת פרופיל משתמש',
           description: error.message,
@@ -100,25 +83,105 @@ export const useUserProfile = (id: string) => {
 };
 
 /**
- * הוק לעדכון תפקיד משתמש
+ * Hook ליצירת משתמש חדש
+ */
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (userData: UserCreate) => usersService.create(userData),
+    onSuccess: (newUser) => {
+      queryClient.invalidateQueries({ queryKey: USERS_KEYS.lists() });
+      
+      toast({
+        title: 'משתמש נוצר בהצלחה',
+        description: `משתמש ${newUser.email} נוצר בהצלחה`,
+        variant: 'default',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'שגיאה ביצירת משתמש',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+};
+
+/**
+ * Hook לעדכון משתמש קיים
+ */
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, userData }: { id: string; userData: UserUpdate }) => 
+      usersService.update(id, userData),
+    onSuccess: (updatedUser) => {
+      queryClient.invalidateQueries({ queryKey: USERS_KEYS.detail(updatedUser.id) });
+      queryClient.invalidateQueries({ queryKey: USERS_KEYS.lists() });
+      
+      toast({
+        title: 'משתמש עודכן בהצלחה',
+        variant: 'default',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'שגיאה בעדכון משתמש',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+};
+
+/**
+ * Hook לעדכון פרופיל משתמש
+ */
+export const useUpdateUserProfile = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, profileData }: { id: string; profileData: Partial<UserProfile> }) => 
+      usersService.updateProfile(id, profileData),
+    onSuccess: (updatedProfile) => {
+      queryClient.invalidateQueries({ queryKey: USERS_KEYS.profile(updatedProfile.id) });
+      
+      toast({
+        title: 'פרופיל עודכן בהצלחה',
+        variant: 'default',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'שגיאה בעדכון פרופיל',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+};
+
+/**
+ * Hook לעדכון תפקיד משתמש
  */
 export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: RoleType }) => 
-      usersService.updateRole(userId, role),
-    onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: USERS_KEYS.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: USERS_KEYS.profile(userId) });
-      queryClient.invalidateQueries({ queryKey: USERS_KEYS.lists() });
+    mutationFn: ({ id, role }: { id: string; role: RoleType }) => 
+      usersService.updateRole(id, role),
+    onSuccess: (updatedProfile) => {
+      queryClient.invalidateQueries({ queryKey: USERS_KEYS.profile(updatedProfile.id) });
+      
       toast({
-        title: 'תפקיד המשתמש עודכן בהצלחה',
+        title: 'תפקיד משתמש עודכן בהצלחה',
         variant: 'default',
       });
     },
     onError: (error: Error) => {
-      console.error('Error updating user role:', error);
       toast({
         title: 'שגיאה בעדכון תפקיד משתמש',
         description: error.message,
@@ -129,26 +192,25 @@ export const useUpdateUserRole = () => {
 };
 
 /**
- * הוק לעדכון פרופיל משתמש
+ * Hook למחיקת משתמש
  */
-export const useUpdateUserProfile = () => {
+export const useDeleteUser = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: Partial<UserProfile> }) => 
-      usersService.updateProfile(userId, data),
-    onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: USERS_KEYS.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: USERS_KEYS.profile(userId) });
+    mutationFn: (id: string) => usersService.delete(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: USERS_KEYS.lists() });
+      queryClient.removeQueries({ queryKey: USERS_KEYS.detail(id) });
+      
       toast({
-        title: 'פרופיל המשתמש עודכן בהצלחה',
+        title: 'משתמש נמחק בהצלחה',
         variant: 'default',
       });
     },
     onError: (error: Error) => {
-      console.error('Error updating user profile:', error);
       toast({
-        title: 'שגיאה בעדכון פרופיל משתמש',
+        title: 'שגיאה במחיקת משתמש',
         description: error.message,
         variant: 'destructive',
       });
@@ -157,25 +219,16 @@ export const useUpdateUserProfile = () => {
 };
 
 /**
- * הוק להפיכת משתמש למנהל
+ * הוק המשלב מספר פונקציות ניהול משתמשים
  */
-export const usePromoteToAdmin = () => {
-  const updateUserRole = useUpdateUserRole();
+export const useUserManagement = () => {
+  const setUserAsAdmin = useUpdateUserRole();
+  const setUserAsCoordinator = useUpdateUserRole();
   
   return {
-    mutate: (userId: string) => updateUserRole.mutate({ userId, role: "admin" as RoleType }),
-    isLoading: updateUserRole.isPending
-  };
-};
-
-/**
- * הוק להורדת הרשאות מנהל
- */
-export const useDemoteFromAdmin = () => {
-  const updateUserRole = useUpdateUserRole();
-  
-  return {
-    mutate: (userId: string) => updateUserRole.mutate({ userId, role: "coordinator" as RoleType }),
-    isLoading: updateUserRole.isPending
+    setUserAsAdmin: (id: string) => setUserAsAdmin.mutate({ id, role: 'admin' }),
+    setUserAsCoordinator: (id: string) => setUserAsCoordinator.mutate({ id, role: 'coordinator' }),
+    isSettingAdmin: setUserAsAdmin.isPending,
+    isSettingCoordinator: setUserAsCoordinator.isPending,
   };
 };

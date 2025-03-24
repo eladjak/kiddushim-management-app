@@ -55,18 +55,25 @@ export function useProfileManager() {
       
       const defaultRole: RoleType = 'coordinator';
       
+      // יצירת אובייקט פרופיל חדש עם כל השדות החובה
+      const profileData = {
+        id: userId,
+        name: userName,
+        email: userEmail,
+        role: defaultRole,
+        avatar_url: avatarUrl || null,
+        language: 'he',
+        shabbat_mode: false,
+        encoding_support: true,
+        settings: {},
+        notification_settings: {}
+      };
+      
+      log.info("מנסה ליצור פרופיל עם נתונים:", profileData);
+      
       const { data, error } = await supabase
         .from("profiles")
-        .insert({
-          id: userId,
-          name: userName,
-          email: userEmail,
-          role: defaultRole,
-          avatar_url: avatarUrl,
-          language: 'he',
-          shabbat_mode: false,
-          encoding_support: true // חובה לפי הסכמה
-        })
+        .insert(profileData)
         .select()
         .single();
       

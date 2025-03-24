@@ -36,6 +36,7 @@ export function useAuthCallback() {
         
         if (!mountedRef.current) return;
         if (!session) {
+          log.error("לא התקבל סשן תקין בקריאה חוזרת");
           setIsProcessing(false);
           return;
         }
@@ -49,52 +50,55 @@ export function useAuthCallback() {
         const avatarUrl = session.user.user_metadata?.avatar_url || 
                         session.user.user_metadata?.picture;
         
+        log.info("פרטי משתמש התקבלו:", { userId, userEmail, userName });
+        
         // המתנה קצרה כדי לאפשר לטריגר ליצור את הפרופיל
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // בדיקה אם הפרופיל כבר קיים
-        try {
-          // ניסיון ישיר לבדוק אם יש פרופיל
-          const { data: existingProfile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .maybeSingle();
-            
-          if (profileError) {
-            log.error("שגיאה בבדיקת פרופיל:", { profileError });
-          }
+        const existingProfile = await checkProfile(userId);
+        
+        if (!mountedRef.current) return;
+        
+        // אם אין פרופיל, ננסה ליצור אחד
+        if (!existingProfile) {
+          log.info("פרופיל לא נמצא, יוצר פרופיל חדש");
           
-          // אם אין פרופיל, ננסה ליצור אחד
-          if (!existingProfile && mountedRef.current) {
-            log.info("פרופיל לא נמצא, יוצר פרופיל חדש");
+          try {
+            // ניסיון ישיר ליצור פרופיל חדש
+            const newProfile = await createProfile(userId, userName, userEmail, avatarUrl);
             
-            // ניסיון ליצור פרופיל חדש
-            const { data: newProfile, error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                id: userId,
-                name: userName,
-                email: userEmail,
-                role: 'coordinator',
-                avatar_url: avatarUrl,
-                language: 'he',
-                shabbat_mode: false,
-                encoding_support: true
-              })
-              .select()
-              .single();
+            if (!newProfile) {
+              log.error("נכשל ביצירת פרופיל חדש");
               
-            if (insertError) {
-              log.error("שגיאה ביצירת פרופיל:", { insertError });
+              // ניסיון נוסף דרך supabase ישירות
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: userId,
+                  name: userName,
+                  email: userEmail,
+                  role: 'coordinator',
+                  avatar_url: avatarUrl,
+                  language: 'he',
+                  shabbat_mode: false,
+                  encoding_support: true
+                })
+                .single();
+                
+              if (insertError) {
+                log.error("ניסיון ישיר נכשל גם הוא:", { insertError });
+              } else {
+                log.info("פרופיל נוצר בהצלחה בניסיון ישיר");
+              }
             } else {
-              log.info("פרופיל נוצר בהצלחה:", { profileId: newProfile?.id });
+              log.info("פרופיל נוצר בהצלחה");
             }
-          } else {
-            log.info("פרופיל קיים, ממשיך");
+          } catch (profileErr) {
+            log.error("שגיאה לא צפויה ביצירת פרופיל:", { profileErr });
           }
-        } catch (profileErr) {
-          log.error("שגיאה לא צפויה בטיפול בפרופיל:", { profileErr });
+        } else {
+          log.info("פרופיל קיים, ממשיך");
         }
           
         if (!mountedRef.current) return;
@@ -107,8 +111,16 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // ודא שאנחנו מפנים בדיוק לנתיב דף הבית עם רענון מלא
-        window.location.href = "/";
+        // רענון דף הבית באופן מסודר
+        log.info("מנווט לדף הבית עם החלפת היסטוריה");
+        navigate("/", { replace: true });
+        
+        // עיכוב קטן להשלמת הניווט לפני רענון המצב
+        setTimeout(() => {
+          // אופציונלי: אם יש בעיות בזיהוי מצב ההתחברות, נרענן את הדף לאחר עיכוב קצר
+          // window.location.href = "/";
+          log.info("ניווט הושלם בהצלחה");
+        }, 100);
       } catch (err: any) {
         log.error("שגיאה לא צפויה בעיבוד קריאה חוזרת מאימות:", { error: err });
         if (mountedRef.current) {
