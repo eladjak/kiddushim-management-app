@@ -16,6 +16,28 @@ export const GoogleAuthButton = () => {
   const log = logger.createLogger({ component: 'GoogleAuthButton' });
 
   /**
+   * Clear all auth data from localStorage to avoid stale state
+   */
+  const clearAuthData = () => {
+    log.info('Clearing auth data from localStorage');
+    // Clear any existing auth data in localStorage (fixes some edge cases)
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('supabase.auth.expires_at');
+    localStorage.removeItem('supabase.auth.refresh_token');
+    
+    // Also clear any other supabase auth related items
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('supabase.auth.')) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  };
+
+  /**
    * Initiates Google Sign In flow
    */
   const signInWithGoogle = async () => {
@@ -35,14 +57,15 @@ export const GoogleAuthButton = () => {
       
       log.info('Using redirect URL:', { redirectUrl });
       
-      // Clear any existing auth data in localStorage (fixes some edge cases)
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('supabase.auth.expires_at');
-      localStorage.removeItem('supabase.auth.refresh_token');
+      // Clear any existing auth data
+      clearAuthData();
       
       // Perform explicit signOut before starting a new sign in flow
       // This helps to clear any stale session state
       await supabase.auth.signOut();
+      
+      // Wait a moment to ensure signOut is processed
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",

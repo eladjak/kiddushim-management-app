@@ -12,6 +12,7 @@ export function useAuthState() {
   const mountedRef = useRef(true);
   const subscriptionRef = useRef<{ data: { subscription: { unsubscribe: () => void } } } | null>(null);
   const initializeRef = useRef(false);
+  const checkSessionCalledRef = useRef(false);
 
   useEffect(() => {
     if (initializeRef.current) return;
@@ -21,28 +22,33 @@ export function useAuthState() {
     
     // Set up listener before checking session
     const setupAuthListener = () => {
-      const authListener = supabase.auth.onAuthStateChange(async (event, newSession) => {
-        log.info("Auth state changed:", { 
-          event, 
-          hasSession: !!newSession,
-        });
-        
-        if (!mountedRef.current) return;
-        
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (newSession) {
-            setSession(newSession);
-            setUser(newSession.user);
+      try {
+        const authListener = supabase.auth.onAuthStateChange(async (event, newSession) => {
+          log.info("Auth state changed:", { 
+            event, 
+            hasSession: !!newSession,
+          });
+          
+          if (!mountedRef.current) return;
+          
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            if (newSession) {
+              setSession(newSession);
+              setUser(newSession.user);
+              setIsLoading(false);
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setSession(null);
+            setUser(null);
             setIsLoading(false);
           }
-        } else if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setUser(null);
-          setIsLoading(false);
-        }
-      });
-      
-      subscriptionRef.current = authListener;
+        });
+        
+        subscriptionRef.current = authListener;
+      } catch (error) {
+        log.error("Error setting up auth listener:", { error });
+        setIsLoading(false);
+      }
     };
     
     // Set up auth listener first
@@ -50,6 +56,9 @@ export function useAuthState() {
     
     // Then check for existing session
     const checkSession = async () => {
+      if (checkSessionCalledRef.current) return;
+      checkSessionCalledRef.current = true;
+      
       try {
         const { data, error } = await supabase.auth.getSession();
         
@@ -92,12 +101,16 @@ export function useAuthState() {
       mountedRef.current = false;
       
       if (subscriptionRef.current?.data?.subscription) {
-        subscriptionRef.current.data.subscription.unsubscribe();
+        try {
+          subscriptionRef.current.data.subscription.unsubscribe();
+        } catch (error) {
+          log.error("Error unsubscribing from auth state changes:", { error });
+        }
       }
       
       clearTimeout(loadingTimeout);
     };
-  }, []);
+  }, [isLoading]);
 
   return { user, session, setIsLoading, isLoading };
 }

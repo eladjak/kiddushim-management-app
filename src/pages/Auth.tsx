@@ -7,51 +7,55 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Image } from "@/components/ui/image";
 import { Footer } from "@/components/layout/Footer";
+import { logger } from "@/utils/logger";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const log = logger.createLogger({ component: 'AuthPage' });
 
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
       setIsLoading(true);
-      console.log("Auth page: Checking if user is already logged in");
+      log.info("Auth page: Checking if user is already logged in");
       
       try {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("Error checking session:", error);
+          log.error("Error checking session:", error);
           setIsLoading(false);
           return;
         }
         
-        console.log("Auth page session check:", data.session ? "User is logged in" : "No active session");
+        log.info("Auth page session check:", data.session ? "User is logged in" : "No active session");
         
         if (data.session) {
           // User is logged in, redirect to home
-          navigate("/");
+          navigate("/", { replace: true });
         } else {
           setIsLoading(false);
         }
       } catch (err) {
-        console.error("Unexpected error checking user:", err);
+        log.error("Unexpected error checking user:", err);
         setIsLoading(false);
       }
     };
     
+    // Only run checkUser once on mount
     checkUser();
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth page auth state changed:", event);
+      log.info("Auth page auth state changed:", event);
       
       if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
-        console.log("User signed in, redirecting to home");
-        navigate("/");
+        log.info("User signed in, redirecting to home");
+        // Use replace to avoid adding to history stack
+        navigate("/", { replace: true });
       }
     });
     
