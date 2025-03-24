@@ -26,12 +26,12 @@ const Auth = () => {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          log.error("Error checking session:", error);
+          log.error("Error checking session:", { error });
           setIsLoading(false);
           return;
         }
         
-        log.info("Auth page session check:", data.session ? "User is logged in" : "No active session");
+        log.info("Auth page session check:", { hasSession: !!data.session });
         
         if (data.session) {
           // User is logged in, redirect to home
@@ -40,7 +40,7 @@ const Auth = () => {
           setIsLoading(false);
         }
       } catch (err) {
-        log.error("Unexpected error checking user:", err);
+        log.error("Unexpected error checking user:", { error: err });
         setIsLoading(false);
       }
     };
@@ -50,7 +50,7 @@ const Auth = () => {
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      log.info("Auth page auth state changed:", event);
+      log.info("Auth page auth state changed:", { event });
       
       if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
         log.info("User signed in, redirecting to home");

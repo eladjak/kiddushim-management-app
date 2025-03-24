@@ -48,8 +48,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Handle auth state - independent of storage initialization
   const { user, session, isLoading, setIsLoading } = useAuthState();
   
-  // Handle profile management
-  const { profile, updateAvatar } = useProfile(user, setIsLoading);
+  // Handle profile management - convert the updateAvatar return type to void
+  const { profile, updateAvatar: originalUpdateAvatar } = useProfile(user, setIsLoading);
+  
+  // Wrap the updateAvatar function to convert its return type from Promise<boolean> to Promise<void>
+  const updateAvatar = async (avatarUrl: string): Promise<void> => {
+    await originalUpdateAvatar(avatarUrl);
+  };
 
   // Log auth state for debugging
   useEffect(() => {

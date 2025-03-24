@@ -45,19 +45,27 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
 
     // If we have a profile, update state and check for avatar
     if (profileData) {
-      // Update profile with Google avatar if available and profile doesn't have one
-      if (!profileData.avatar_url && user?.app_metadata?.provider === 'google') {
-        const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+      // Type guard to check if profileData has necessary properties
+      if (typeof profileData === 'object' && profileData !== null) {
+        const typedProfile = profileData as Profile;
         
-        if (googleAvatarUrl) {
-          await updateProfileWithGoogleAvatar(userId, googleAvatarUrl);
-          profileData.avatar_url = googleAvatarUrl;
+        // Update profile with Google avatar if available and profile doesn't have one
+        if (!typedProfile.avatar_url && user?.app_metadata?.provider === 'google') {
+          const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+          
+          if (googleAvatarUrl) {
+            await updateProfileWithGoogleAvatar(userId, googleAvatarUrl);
+            typedProfile.avatar_url = googleAvatarUrl;
+          }
         }
-      }
-      
-      if (mountedRef.current) {
-        setProfile(profileData);
-        setIsLoading(false);
+        
+        if (mountedRef.current) {
+          setProfile(typedProfile);
+          setIsLoading(false);
+        }
+      } else {
+        log.error("Profile data is not in expected format:", { profileData });
+        if (mountedRef.current) setIsLoading(false);
       }
       return;
     }
@@ -72,7 +80,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (!mountedRef.current) return;
       
       if (createdProfile) {
-        setProfile(createdProfile);
+        setProfile(createdProfile as Profile);
       }
       
       setIsLoading(false);
