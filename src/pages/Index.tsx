@@ -9,12 +9,47 @@ import { logger } from "@/utils/logger";
 import { useAuthRedirect } from "@/hooks/index/useAuthRedirect";
 import { useProfileCreation } from "@/hooks/index/useProfileCreation";
 import { useLoadingState } from "@/hooks/index/useLoadingState";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const log = logger.createLogger({ component: 'IndexPage' });
   const navigate = useNavigate();
+  const sessionCheckedRef = useRef(false);
+
+  // First, perform an immediate session check - this is necessary because sometimes
+  // the auth context doesn't get updated correctly
+  useEffect(() => {
+    if (sessionCheckedRef.current) return;
+    sessionCheckedRef.current = true;
+    
+    const checkSession = async () => {
+      log.info("Performing initial session check on index page");
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          log.error("Error checking session on index page:", error);
+          return;
+        }
+        
+        log.info("Index page direct session check:", { 
+          hasSession: !!data.session,
+          currentUser: !!user
+        });
+        
+        // If we have a session but user isn't set in context, force reload
+        if (data.session && !user) {
+          log.info("Session exists but user not in context, forcing reload");
+          window.location.reload();
+        }
+      } catch (err) {
+        log.error("Error in direct session check:", err);
+      }
+    };
+    
+    checkSession();
+  }, [user]);
 
   // Handle redirects for OAuth callback URLs
   useAuthRedirect();

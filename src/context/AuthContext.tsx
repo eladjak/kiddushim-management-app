@@ -56,11 +56,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await originalUpdateAvatar(avatarUrl);
   };
 
-  // Log auth state for debugging
+  // Log auth state for debugging - super useful for debugging auth issues
   useEffect(() => {
     log.info("Auth state changed", { 
       authenticated: !!user, 
+      userId: user?.id,
       hasProfile: !!profile, 
+      profileId: profile?.id,
       isLoading 
     });
     

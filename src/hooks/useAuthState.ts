@@ -27,11 +27,12 @@ export function useAuthState() {
           log.info("Auth state changed:", { 
             event, 
             hasSession: !!newSession,
+            userId: newSession?.user?.id
           });
           
           if (!mountedRef.current) return;
           
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
             if (newSession) {
               setSession(newSession);
               setUser(newSession.user);
@@ -69,7 +70,8 @@ export function useAuthState() {
         }
         
         log.info("Session check result:", { 
-          hasSession: !!data.session
+          hasSession: !!data.session,
+          userId: data.session?.user?.id
         });
         
         if (!mountedRef.current) return;
@@ -79,8 +81,12 @@ export function useAuthState() {
           setUser(data.session.user);
         }
         
-        // Set loading to false regardless of session status
-        setIsLoading(false);
+        // Short delay before completing loading to ensure profiles have time to load
+        setTimeout(() => {
+          if (mountedRef.current) {
+            setIsLoading(false);
+          }
+        }, 300);
       } catch (err) {
         log.error("Unexpected error checking session:", { error: err });
         if (mountedRef.current) setIsLoading(false);

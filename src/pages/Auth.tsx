@@ -34,10 +34,10 @@ const Auth = () => {
         log.info("Auth page session check:", { hasSession: !!data.session });
         
         if (data.session) {
-          // User is logged in, redirect to home with timestamp to avoid caching
-          const timestamp = new Date().getTime();
-          log.info("User already logged in, redirecting to home with timestamp", { timestamp });
-          window.location.href = `/?t=${timestamp}`;
+          // User is logged in, redirect to home
+          log.info("User already logged in, redirecting to home");
+          // Force a complete page reload to ensure fresh auth state
+          window.location.href = "/";
         } else {
           setIsLoading(false);
         }
@@ -52,13 +52,12 @@ const Auth = () => {
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      log.info("Auth page auth state changed:", { event });
+      log.info("Auth page auth state changed:", { event, hasSession: !!session });
       
       if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
-        log.info("User signed in, redirecting to home with timestamp");
-        // Redirect with timestamp to avoid caching issues
-        const timestamp = new Date().getTime();
-        window.location.href = `/?t=${timestamp}`;
+        log.info("User signed in, redirecting to home");
+        // Force a complete page reload to ensure fresh auth state
+        window.location.href = "/";
       }
     });
     

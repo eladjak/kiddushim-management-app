@@ -55,7 +55,7 @@ export const LoginForm = ({
     
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
@@ -65,10 +65,14 @@ export const LoginForm = ({
         throw error;
       }
       
-      log.info('Login successful, redirecting to home');
-      // Use timestamp to ensure fresh state
-      const timestamp = new Date().getTime();
-      window.location.href = `/?t=${timestamp}`;
+      log.info('Login successful, redirecting to home', { session: !!data.session });
+      
+      if (data.session) {
+        // Force a complete page reload to ensure fresh auth state
+        window.location.href = "/";
+      } else {
+        throw new Error("התחברות נכשלה - לא התקבל מידע משתמש");
+      }
     } catch (error: any) {
       log.error("Auth error:", error);
       toast({

@@ -16,7 +16,7 @@ export function useAuthCallback() {
   const processedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
-  // Import our new modular hooks
+  // Import our modular hooks
   const { getSession, cleanUrlHash, error, setError } = useSessionManager();
   const { checkProfile, createProfile } = useProfileManager();
 
@@ -93,10 +93,8 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // CRITICAL FIX: Use a full page reload with timestamp to force fresh state
-        // This ensures we don't have stale state in the app
-        const timestamp = new Date().getTime();
-        window.location.href = `/?t=${timestamp}`;
+        // CRITICAL: Just redirect to the home page with a full refresh to ensure all state is fresh
+        window.location.href = "/";
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         if (mountedRef.current) {
