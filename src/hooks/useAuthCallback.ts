@@ -47,6 +47,9 @@ export function useAuthCallback() {
         
         log.info("Session established during callback");
         
+        // Force wait for a moment to allow the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Get user profile
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
@@ -58,7 +61,32 @@ export function useAuthCallback() {
 
         if (profileError && profileError.code !== 'PGRST116') {
           log.error("Error fetching profile:", { error: profileError });
-          // Continue anyway - the trigger should create the profile
+          // Continue anyway - we'll try to create the profile
+        }
+        
+        // If profile doesn't exist, try to create it
+        if (!profileData) {
+          log.info("Profile not found, creating one");
+          const { error: createError } = await supabase
+            .from("profiles")
+            .insert({
+              id: data.session.user.id,
+              name: data.session.user.user_metadata?.name || 
+                   data.session.user.user_metadata?.full_name || 
+                   data.session.user.email?.split('@')[0] || 'משתמש',
+              email: data.session.user.email,
+              language: 'he', // Default to Hebrew
+              role: 'coordinator', // Default role
+              avatar_url: data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture,
+              shabbat_mode: false
+            });
+          
+          if (createError) {
+            log.error("Error creating profile:", { error: createError });
+            // Continue anyway - the profile might be created by another process
+          } else {
+            log.info("Profile created successfully during auth callback");
+          }
         }
         
         // Check admin status if we have a profile

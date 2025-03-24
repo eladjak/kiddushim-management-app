@@ -14,6 +14,8 @@ const Index = () => {
   const mountedRef = useRef(true);
   const navigate = useNavigate();
   const hashCheckedRef = useRef(false);
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showProfileCreatingMessageRef = useRef(false);
 
   // Handle access token in URL hash - redirect to auth callback
   useEffect(() => {
@@ -44,7 +46,7 @@ const Index = () => {
     }
     
     // Additional timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
+    timeoutIdRef.current = setTimeout(() => {
       if (loading && mountedRef.current) {
         log.warn("Auth loading timed out");
         setLoadingTimedOut(true);
@@ -52,8 +54,33 @@ const Index = () => {
       }
     }, 800);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+    };
   }, [authLoading, user, loading]);
+
+  // Set a timeout to show profile creating message if needed
+  useEffect(() => {
+    if (user && !profile && !authLoading) {
+      log.warn("User authenticated but no profile found", {
+        userId: user.id.substring(0, 8) + '...',
+        email: user.email
+      });
+      
+      // After 3 seconds of waiting for profile, show the profile creating message
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current && user && !profile) {
+          showProfileCreatingMessageRef.current = true;
+          // Force re-render by updating some state
+          setLoading(prev => !prev);
+        }
+      }, 3000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [user, profile, authLoading]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -61,16 +88,6 @@ const Index = () => {
       mountedRef.current = false;
     };
   }, []);
-
-  // User is authenticated but no profile yet - warn about this unusual state
-  useEffect(() => {
-    if (user && !profile && !authLoading) {
-      log.warn("User authenticated but no profile found", {
-        userId: user.id.substring(0, 8) + '...',
-        email: user.email
-      });
-    }
-  }, [user, profile, authLoading]);
 
   // Show loading state if still loading and not timed out
   if ((loading || authLoading) && !loadingTimedOut) {
@@ -95,12 +112,31 @@ const Index = () => {
     return <Dashboard />;
   }
 
-  // User is authenticated but no profile yet
+  // User is authenticated but no profile yet, and we've waited long enough
+  if (user && !profile && showProfileCreatingMessageRef.current) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
+        <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-6"></div>
+        <div className="text-sm text-gray-600 max-w-md text-center px-4">
+          זה עשוי לקחת מספר רגעים. אם ההמתנה נמשכת זמן רב, אנא רענן את הדף או התנתק והתחבר שוב.
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-8 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+        >
+          רענן דף
+        </button>
+      </div>
+    );
+  }
+
+  // User is authenticated but no profile yet - shorter wait
   if (user && !profile) {
     log.warn("User authenticated but no profile found");
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="text-primary font-medium mb-4">מייצר פרופיל משתמש...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
+        <div className="text-primary font-medium mb-4">טוען פרופיל משתמש...</div>
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );

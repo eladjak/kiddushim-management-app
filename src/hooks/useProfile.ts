@@ -13,6 +13,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
   const log = logger.createLogger({ component: 'useProfile' });
   const mountedRef = useRef(true);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileCreationAttemptedRef = useRef(false);
 
   useEffect(() => {
     if (user) {
@@ -20,6 +21,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
     } else {
       setProfile(null);
       if (mountedRef.current) setIsLoading(false);
+      profileCreationAttemptedRef.current = false;
     }
 
     return () => {
@@ -47,7 +49,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
           log.info("Profile not found, it may be created by the trigger soon");
           
           // Wait a moment and try again
-          if (retryCount < 3) {
+          if (retryCount < 2) {
             const newRetryCount = retryCount + 1;
             log.info("Retrying profile fetch...", { retryCount: newRetryCount });
             if (mountedRef.current) setRetryCount(newRetryCount);
@@ -56,13 +58,20 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
               if (mountedRef.current) {
                 fetchProfile(userId);
               }
-            }, 2000);
+            }, 1500);
             return;
           } else {
             // We've retried enough, try to create a profile
-            log.info("Max retries reached, attempting to create profile");
-            await createBasicProfile(userId);
-            return;
+            if (!profileCreationAttemptedRef.current) {
+              log.info("Max retries reached, attempting to create profile");
+              profileCreationAttemptedRef.current = true;
+              await createProfile(userId);
+              return;
+            } else {
+              log.warn("Profile creation was already attempted but still no profile");
+              if (mountedRef.current) setIsLoading(false);
+              return;
+            }
           }
         }
         
@@ -71,7 +80,7 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         return;
       }
 
-      log.info("Profile fetched:", { profileFound: !!data });
+      log.info("Profile fetched successfully");
       
       // Update profile with Google avatar if available and profile doesn't have one
       if (data && !data.avatar_url && user?.app_metadata?.provider === 'google') {
@@ -93,9 +102,9 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
     }
   };
 
-  const createBasicProfile = async (userId: string) => {
+  const createProfile = async (userId: string) => {
     try {
-      log.info("Creating basic profile for user", { userId });
+      log.info("Creating profile for user", { userId });
       const { data: userData } = await supabase.auth.getUser();
       
       if (!mountedRef.current) return;
@@ -106,48 +115,68 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
                     userData.user.user_metadata?.full_name || 
                     userData.user.email?.split('@')[0] || 'משתמש';
         
+        const avatarUrl = userData.user.user_metadata?.avatar_url || 
+                        userData.user.user_metadata?.picture || 
+                        null;
+        
         // Try to determine language based on name - if contains Hebrew chars, use he
         const hasHebrewChars = /[\u0590-\u05FF]/.test(name);
         
+        const newProfile = {
+          id: userId,
+          name: name,
+          email: userData.user.email,
+          language: hasHebrewChars ? 'he' : 'en',
+          role: 'coordinator', // Default role
+          shabbat_mode: false,
+          avatar_url: avatarUrl
+        };
+
+        log.info("Creating profile with data:", { profile: newProfile });
+        
         const { error: insertError } = await supabase
           .from("profiles")
-          .insert({
-            id: userId,
-            name: name,
-            email: userData.user.email,
-            language: hasHebrewChars ? 'he' : 'en',
-            role: 'coordinator', // Default role
-            shabbat_mode: false
-          });
+          .insert(newProfile);
         
         if (!mountedRef.current) return;
 
-        if (!insertError) {
-          log.info("Created basic profile for user", { userId });
+        if (insertError) {
+          log.error("Error creating profile:", { error: insertError });
           
-          // Fetch the newly created profile
-          const { data: newProfile, error: fetchError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
-            
-          if (!mountedRef.current) return;
-
-          if (!fetchError && newProfile) {
-            log.info("Fetched newly created profile", { profile: newProfile });
-            setProfile(newProfile);
-          } else {
-            log.error("Failed to fetch newly created profile", { error: fetchError });
+          // If it's a duplicate key error, try to fetch the profile again
+          // This can happen if the trigger created the profile in the meantime
+          if (insertError.code === '23505') { // Duplicate key violation
+            log.info("Profile may have been created by trigger, fetching again");
+            fetchProfile(userId);
+            return;
           }
-        } else {
-          log.error("Error creating basic profile:", { error: insertError });
+          
           if (mountedRef.current) {
             toast({
               variant: "destructive",
               description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
             });
+            setIsLoading(false);
           }
+          return;
+        }
+        
+        log.info("Profile created successfully");
+        
+        // Fetch the newly created profile
+        const { data: newProfileData, error: fetchError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+          
+        if (!mountedRef.current) return;
+
+        if (!fetchError && newProfileData) {
+          log.info("Fetched newly created profile");
+          setProfile(newProfileData);
+        } else {
+          log.error("Failed to fetch newly created profile", { error: fetchError });
         }
       }
       if (mountedRef.current) setIsLoading(false);
