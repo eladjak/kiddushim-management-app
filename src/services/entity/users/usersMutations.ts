@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/supabase/auth';
 import type { User, UserCreate, UserUpdate } from '@/types/users';
+import type { RoleType } from '@/types/profile';
 
 /**
  * יצירת משתמש חדש
@@ -29,7 +30,7 @@ export async function create(userData: UserCreate) {
     name: userData.full_name,
     email: userData.email,
     phone: userData.phone,
-    role: userData.role.toLowerCase(),
+    role: userData.role.toLowerCase() as RoleType, // Casting to RoleType
   };
   
   const { data, error } = await supabase
@@ -60,7 +61,7 @@ export async function update(id: string, userData: UserUpdate) {
   if (userData.full_name) profileData.name = userData.full_name;
   if (userData.email) profileData.email = userData.email;
   if (userData.phone) profileData.phone = userData.phone;
-  if (userData.role) profileData.role = userData.role.toLowerCase();
+  if (userData.role) profileData.role = userData.role.toLowerCase() as RoleType; // Casting to RoleType
   if (userData.avatar_url) profileData.avatar_url = userData.avatar_url;
   
   const { data, error } = await supabase
