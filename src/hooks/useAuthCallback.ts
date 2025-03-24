@@ -93,9 +93,10 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // Redirect to home page - FIX: Use forced browser redirect instead of navigate
-        // Using window.location.href ensures a full page reload which helps with state issues
-        window.location.href = "/";
+        // CRITICAL FIX: Use a full page reload with timestamp to force fresh state
+        // This ensures we don't have stale state in the app
+        const timestamp = new Date().getTime();
+        window.location.href = `/?t=${timestamp}`;
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
         if (mountedRef.current) {

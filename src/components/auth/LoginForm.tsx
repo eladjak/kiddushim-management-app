@@ -5,12 +5,12 @@ import { z } from "zod";
 import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { EmailField } from "./form-fields/EmailField";
 import { PasswordField } from "./form-fields/PasswordField";
 import { RememberMeField } from "./form-fields/RememberMeField";
 import { AuthButtons } from "./form-actions/AuthButtons";
+import { logger } from "@/utils/logger";
 
 /**
  * Schema for login form validation
@@ -34,8 +34,8 @@ export const LoginForm = ({
   setIsForgotPassword: (value: boolean) => void;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const log = logger.createLogger({ component: 'LoginForm' });
 
   // Initialize form with React Hook Form and zod validation
   const form = useForm<LoginFormValues>({
@@ -51,7 +51,7 @@ export const LoginForm = ({
    * Handle form submission for login
    */
   const onSubmit = async (values: LoginFormValues) => {
-    console.log('Attempting login with:', { email: values.email, rememberMe: values.rememberMe });
+    log.info('Attempting login with:', { email: values.email, rememberMe: values.rememberMe });
     
     setIsLoading(true);
     try {
@@ -61,19 +61,20 @@ export const LoginForm = ({
       });
       
       if (error) {
-        console.error("Login error:", error);
+        log.error("Login error:", error);
         throw error;
       }
       
-      console.log('Login successful, navigating to home');
-      navigate("/");
+      log.info('Login successful, redirecting to home');
+      // Use timestamp to ensure fresh state
+      const timestamp = new Date().getTime();
+      window.location.href = `/?t=${timestamp}`;
     } catch (error: any) {
-      console.error("Auth error:", error);
+      log.error("Auth error:", error);
       toast({
         variant: "destructive",
-        description: error.message,
+        description: error.message || "שגיאה בהתחברות, אנא נסה שוב",
       });
-    } finally {
       setIsLoading(false);
     }
   };

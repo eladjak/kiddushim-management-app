@@ -34,9 +34,10 @@ const Auth = () => {
         log.info("Auth page session check:", { hasSession: !!data.session });
         
         if (data.session) {
-          // User is logged in, redirect to home
-          log.info("User already logged in, redirecting to home");
-          navigate("/", { replace: true });
+          // User is logged in, redirect to home with timestamp to avoid caching
+          const timestamp = new Date().getTime();
+          log.info("User already logged in, redirecting to home with timestamp", { timestamp });
+          window.location.href = `/?t=${timestamp}`;
         } else {
           setIsLoading(false);
         }
@@ -54,16 +55,17 @@ const Auth = () => {
       log.info("Auth page auth state changed:", { event });
       
       if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
-        log.info("User signed in, redirecting to home");
-        // Use replace to avoid adding to history stack
-        navigate("/", { replace: true });
+        log.info("User signed in, redirecting to home with timestamp");
+        // Redirect with timestamp to avoid caching issues
+        const timestamp = new Date().getTime();
+        window.location.href = `/?t=${timestamp}`;
       }
     });
     
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   if (isLoading) {
     return (

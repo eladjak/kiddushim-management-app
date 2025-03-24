@@ -9,6 +9,7 @@ import { logger } from "@/utils/logger";
 import { useAuthRedirect } from "@/hooks/index/useAuthRedirect";
 import { useProfileCreation } from "@/hooks/index/useProfileCreation";
 import { useLoadingState } from "@/hooks/index/useLoadingState";
+import { useEffect } from "react";
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
@@ -32,6 +33,15 @@ const Index = () => {
     loadingTimedOut, 
     showProfileCreatingMessageRef 
   } = useLoadingState(user, profile, authLoading);
+
+  // Force reset history after login to prevent back-button issues
+  useEffect(() => {
+    if (user && profile) {
+      log.info("User authenticated and has profile, updating history state");
+      // Replace the current history entry to prevent going back to auth pages
+      window.history.replaceState({}, document.title, "/");
+    }
+  }, [user, profile]);
 
   // Show loading state if still loading and not timed out
   if ((loading || authLoading) && !loadingTimedOut) {
