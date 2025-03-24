@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/services/entity/users';
 import type { User, UserCreate, UserUpdate, UserProfile } from '@/types/users';
@@ -194,4 +195,7 @@ export const useDeleteUser = () => {
         title: 'שגיאה במחיקת משתמש',
         description: error.message,
         variant: 'destructive',
- 
+      });
+    }
+  });
+};
