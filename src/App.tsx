@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -105,7 +106,7 @@ function App() {
         </div>
       </AuthProvider>
       {/* React Query Devtools - only in development */}
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
 }

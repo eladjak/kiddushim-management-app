@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -42,7 +43,7 @@ export const ForgotPasswordForm = ({
    * טיפול בשליחת טופס איפוס סיסמה
    */
   const onSubmit = async (values: ForgotPasswordValues) => {
-    log.info('Attempting password reset for:', values.email);
+    log.info('Attempting password reset for:', { email: values.email });
     
     try {
       await authService.resetPassword({ email: values.email });

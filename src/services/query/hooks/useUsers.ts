@@ -1,7 +1,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/services/entity/users';
-import type { User, UserCreate, UserUpdate, UserProfile } from '@/types/users';
+import type { User, UserCreate, UserUpdate } from '@/types/users';
+import type { UserProfile } from '@/types/profile';
 import { toast } from '@/components/ui/use-toast';
 
 // קבועים לשימוש כמפתחות query
@@ -22,13 +23,15 @@ export const useUsers = (filters = '') => {
   return useQuery({
     queryKey: USERS_KEYS.list(filters),
     queryFn: () => usersService.getAll(),
-    onError: (error: Error) => {
-      console.error('Error fetching users:', error);
-      toast({
-        title: 'שגיאה בטעינת משתמשים',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error fetching users:', error);
+        toast({
+          title: 'שגיאה בטעינת משתמשים',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };
@@ -41,13 +44,15 @@ export const useSearchUsers = (query: string) => {
     queryKey: USERS_KEYS.search(query),
     queryFn: () => usersService.search(query),
     enabled: query.length > 2, // רק אם הוזנו לפחות 3 תווים
-    onError: (error: Error) => {
-      console.error('Error searching users:', error);
-      toast({
-        title: 'שגיאה בחיפוש משתמשים',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error searching users:', error);
+        toast({
+          title: 'שגיאה בחיפוש משתמשים',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };
@@ -60,13 +65,15 @@ export const useUser = (id?: string) => {
     queryKey: USERS_KEYS.detail(id || ''),
     queryFn: () => usersService.getById(id!),
     enabled: !!id,
-    onError: (error: Error) => {
-      console.error(`Error fetching user ${id}:`, error);
-      toast({
-        title: 'שגיאה בטעינת פרטי משתמש',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error(`Error fetching user ${id}:`, error);
+        toast({
+          title: 'שגיאה בטעינת פרטי משתמש',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };
@@ -79,13 +86,15 @@ export const useUserProfile = (id?: string) => {
     queryKey: USERS_KEYS.profile(id || ''),
     queryFn: () => usersService.getProfile(id!),
     enabled: !!id,
-    onError: (error: Error) => {
-      console.error(`Error fetching user profile ${id}:`, error);
-      toast({
-        title: 'שגיאה בטעינת פרופיל משתמש',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error(`Error fetching user profile ${id}:`, error);
+        toast({
+          title: 'שגיאה בטעינת פרופיל משתמש',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };

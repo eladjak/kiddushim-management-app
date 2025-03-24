@@ -44,7 +44,8 @@ export function useProfileCreator() {
         language: hasHebrewChars ? 'he' : 'en',
         role: defaultRole,
         shabbat_mode: false,
-        avatar_url: avatarUrl
+        avatar_url: avatarUrl,
+        encoding_support: true // הוספת שדה חסר
       };
 
       log.info("Creating profile with data:", { profile: newProfile });

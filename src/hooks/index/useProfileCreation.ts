@@ -51,7 +51,8 @@ export const useProfileCreation = (user: User | null) => {
           language: 'he',
           role: defaultRole,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
-          shabbat_mode: false
+          shabbat_mode: false,
+          encoding_support: true // הוספת שדה חסר
         });
         
       if (error) {

@@ -11,10 +11,10 @@ import {
   FormField, 
   FormItem
 } from "@/components/ui/form";
-import { ProfileType } from "@/types/profile";
+import { UserProfile } from "@/types/profile";
 
 interface SettingsTabProps {
-  profile: ProfileType;
+  profile: UserProfile;
   loading: boolean;
   onSaveProfile: (values: any) => Promise<void>;
 }

@@ -4,10 +4,10 @@ import { User, Settings, Shield } from "lucide-react";
 import { ProfileTab } from "./tabs/ProfileTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { AdminTab } from "./tabs/AdminTab";
-import { ProfileType } from "@/types/profile";
+import { UserProfile } from "@/types/profile";
 
 interface UserProfileTabsProps {
-  profile: ProfileType;
+  profile: UserProfile;
   userId: string;
   loading: boolean;
   onSaveProfile: (values: any) => Promise<void>;

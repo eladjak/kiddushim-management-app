@@ -21,11 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProfileType } from "@/types/profile";
+import { UserProfile } from "@/types/profile";
 import { AvatarUpload } from "../avatar/AvatarUpload";
 
 interface ProfileTabProps {
-  profile: ProfileType;
+  profile: UserProfile;
   loading: boolean;
   onSaveProfile: (values: any) => Promise<void>;
 }
