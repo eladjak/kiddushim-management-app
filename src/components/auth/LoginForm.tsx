@@ -40,6 +40,16 @@ export const LoginForm = ({
   const log = logger.createLogger({ component: 'LoginForm' });
   const signIn = useSignIn();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  // Initialize the form - this was missing and causing the errors
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
 
   // בדיקה אם המשתמש כבר מחובר
   useEffect(() => {
