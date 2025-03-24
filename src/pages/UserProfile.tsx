@@ -67,8 +67,9 @@ const UserProfile = () => {
       
       <UserProfileTabs 
         profile={profile} 
-        onUpdateProfile={handleUpdateProfile}
-        isUpdating={isUpdating} 
+        userId={user.id}
+        onSaveProfile={handleUpdateProfile}
+        loading={isUpdating} 
       />
     </div>
   );

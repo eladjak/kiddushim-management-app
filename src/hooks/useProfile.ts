@@ -49,6 +49,11 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (typeof profileData === 'object' && profileData !== null) {
         const typedProfile = profileData as Profile;
         
+        // Ensure avatar_url is always set to at least null (not undefined)
+        if (typedProfile.avatar_url === undefined) {
+          typedProfile.avatar_url = null;
+        }
+        
         // Update profile with Google avatar if available and profile doesn't have one
         if (!typedProfile.avatar_url && user?.app_metadata?.provider === 'google') {
           const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
@@ -80,6 +85,11 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (!mountedRef.current) return;
       
       if (createdProfile) {
+        // Ensure avatar_url is always set to at least null (not undefined)
+        if (createdProfile.avatar_url === undefined) {
+          createdProfile.avatar_url = null;
+        }
+        
         setProfile(createdProfile as Profile);
       }
       

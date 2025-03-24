@@ -1,4 +1,3 @@
-
 import { supabase } from '../supabase/client';
 import type { User, UserCreate, UserUpdate, UserRole } from '@/types/users';
 import type { UserProfile, RoleType } from '@/types/profile';
@@ -61,21 +60,21 @@ export const usersService = {
       throw error;
     }
     
-    // המרה לטיפוס UserProfile
+    // המרה לטיפוס UserProfile עם כל השדות הנדרשים
     return {
       id: data.id,
-      email: data.email || '',
+      email: data.email || null,
       name: data.name,
-      avatar_url: data.avatar_url,
-      phone: data.phone,
+      avatar_url: data.avatar_url || null,
+      phone: data.phone || null,
       role: data.role,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      settings: data.settings,
-      notification_settings: data.notification_settings,
-      last_active: data.last_active,
-      language: data.language,
-      shabbat_mode: data.shabbat_mode,
+      settings: data.settings || {},
+      notification_settings: data.notification_settings || {},
+      last_active: data.last_active || null,
+      language: data.language || 'he',
+      shabbat_mode: data.shabbat_mode || false,
       encoding_support: data.encoding_support || true
     };
   },
@@ -156,21 +155,21 @@ export const usersService = {
       throw error;
     }
     
-    // המרה לטיפוס UserProfile
+    // המרה לטיפוס UserProfile עם כל השדות הנדרשים
     return {
       id: data.id,
-      email: data.email || '',
+      email: data.email || null,
       name: data.name,
-      avatar_url: data.avatar_url,
-      phone: data.phone,
+      avatar_url: data.avatar_url || null,
+      phone: data.phone || null,
       role: data.role,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      settings: data.settings,
-      notification_settings: data.notification_settings,
-      last_active: data.last_active,
-      language: data.language,
-      shabbat_mode: data.shabbat_mode,
+      settings: data.settings || {},
+      notification_settings: data.notification_settings || {},
+      last_active: data.last_active || null,
+      language: data.language || 'he',
+      shabbat_mode: data.shabbat_mode || false,
       encoding_support: data.encoding_support || true
     };
   },
@@ -196,21 +195,21 @@ export const usersService = {
       throw error;
     }
     
-    // המרה לטיפוס UserProfile
+    // המרה לטיפוס UserProfile עם כל השדות הנדרשים
     return {
       id: data.id,
-      email: data.email || '',
+      email: data.email || null,
       name: data.name,
-      avatar_url: data.avatar_url,
-      phone: data.phone,
+      avatar_url: data.avatar_url || null,
+      phone: data.phone || null,
       role: data.role,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      settings: data.settings,
-      notification_settings: data.notification_settings,
-      last_active: data.last_active,
-      language: data.language,
-      shabbat_mode: data.shabbat_mode,
+      settings: data.settings || {},
+      notification_settings: data.notification_settings || {},
+      last_active: data.last_active || null,
+      language: data.language || 'he',
+      shabbat_mode: data.shabbat_mode || false,
       encoding_support: data.encoding_support || true
     };
   },
@@ -259,3 +258,4 @@ export const usersService = {
     return data as User[];
   },
 };
+

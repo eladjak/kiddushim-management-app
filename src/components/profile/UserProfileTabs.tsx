@@ -8,9 +8,9 @@ import { UserProfile } from "@/types/profile";
 
 interface UserProfileTabsProps {
   profile: UserProfile;
-  userId: string;
   loading: boolean;
   onSaveProfile: (values: any) => Promise<void>;
+  userId?: string; // Making userId optional
 }
 
 export const UserProfileTabs = ({ profile, userId, loading, onSaveProfile }: UserProfileTabsProps) => {
@@ -55,7 +55,7 @@ export const UserProfileTabs = ({ profile, userId, loading, onSaveProfile }: Use
       
       {isAdmin && (
         <TabsContent value="admin">
-          <AdminTab userId={userId} />
+          <AdminTab userId={userId || profile.id} />
         </TabsContent>
       )}
     </Tabs>
