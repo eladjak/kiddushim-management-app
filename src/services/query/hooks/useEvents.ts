@@ -21,13 +21,15 @@ export const useEvents = (filters = '') => {
   return useQuery({
     queryKey: EVENTS_KEYS.list(filters),
     queryFn: () => eventsService.getAll(),
-    onError: (error: Error) => {
-      console.error('Error fetching events:', error);
-      toast({
-        title: 'שגיאה בטעינת אירועים',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error fetching events:', error);
+        toast({
+          title: 'שגיאה בטעינת אירועים',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };
@@ -39,13 +41,15 @@ export const useUpcomingEvents = () => {
   return useQuery({
     queryKey: EVENTS_KEYS.upcoming(),
     queryFn: () => eventsService.getUpcoming(),
-    onError: (error: Error) => {
-      console.error('Error fetching upcoming events:', error);
-      toast({
-        title: 'שגיאה בטעינת אירועים עתידיים',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error fetching upcoming events:', error);
+        toast({
+          title: 'שגיאה בטעינת אירועים עתידיים',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };
@@ -58,13 +62,15 @@ export const useEvent = (id: string) => {
     queryKey: EVENTS_KEYS.detail(id),
     queryFn: () => eventsService.getById(id),
     enabled: !!id,
-    onError: (error: Error) => {
-      console.error(`Error fetching event ${id}:`, error);
-      toast({
-        title: 'שגיאה בטעינת פרטי אירוע',
-        description: error.message,
-        variant: 'destructive',
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error(`Error fetching event ${id}:`, error);
+        toast({
+          title: 'שגיאה בטעינת פרטי אירוע',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   });
 };
@@ -204,4 +210,4 @@ export const useCancelParticipation = () => {
       });
     }
   });
-}; 
+};

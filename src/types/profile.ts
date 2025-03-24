@@ -14,15 +14,15 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  avatar_url?: string | null;
+  avatar_url: string | null;  // שינוי מ-optional ל-nullable
   phone?: string | null;
   role: RoleType;
   created_at: string;
-  updated_at?: string;
+  updated_at?: string | null;
   settings?: Record<string, any> | null;
   notification_settings?: Record<string, any> | null;
   last_active?: string | null;
-  language?: string | null;
-  shabbat_mode?: boolean | null;
-  encoding_support?: boolean; // הוספת שדה חסר
+  language: string | null;  // שינוי מ-optional ל-nullable
+  shabbat_mode: boolean | null;  // שינוי מ-optional ל-nullable
+  encoding_support: boolean;  // שדה חובה
 }
