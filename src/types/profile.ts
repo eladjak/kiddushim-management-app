@@ -7,9 +7,9 @@ export type RoleType = 'admin' | 'coordinator' | 'service_girl' | 'youth_volunte
 export interface UserProfile {
   id: string;
   name: string;
-  email?: string | null;
-  phone?: string | null;
-  avatar_url: string | null; // Changed from optional to required with null as possible value
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
   role: RoleType;
   created_at: string;
   updated_at: string;

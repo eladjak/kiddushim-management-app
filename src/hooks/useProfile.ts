@@ -49,23 +49,32 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (typeof profileData === 'object' && profileData !== null) {
         const typedProfile = profileData as Profile;
         
-        // Ensure avatar_url is always set to at least null (not undefined)
-        if (typedProfile.avatar_url === undefined) {
-          typedProfile.avatar_url = null;
-        }
+        // Ensure all required fields have valid values
+        const normalizedProfile: Profile = {
+          ...typedProfile,
+          avatar_url: typedProfile.avatar_url ?? null,
+          email: typedProfile.email ?? null,
+          phone: typedProfile.phone ?? null,
+          last_active: typedProfile.last_active ?? null,
+          notification_settings: typedProfile.notification_settings ?? {},
+          settings: typedProfile.settings ?? {},
+          language: typedProfile.language ?? 'he',
+          shabbat_mode: typedProfile.shabbat_mode ?? false,
+          encoding_support: typedProfile.encoding_support ?? true
+        };
         
         // Update profile with Google avatar if available and profile doesn't have one
-        if (!typedProfile.avatar_url && user?.app_metadata?.provider === 'google') {
+        if (!normalizedProfile.avatar_url && user?.app_metadata?.provider === 'google') {
           const googleAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
           
           if (googleAvatarUrl) {
             await updateProfileWithGoogleAvatar(userId, googleAvatarUrl);
-            typedProfile.avatar_url = googleAvatarUrl;
+            normalizedProfile.avatar_url = googleAvatarUrl;
           }
         }
         
         if (mountedRef.current) {
-          setProfile(typedProfile);
+          setProfile(normalizedProfile);
           setIsLoading(false);
         }
       } else {
@@ -85,12 +94,21 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (!mountedRef.current) return;
       
       if (createdProfile) {
-        // Ensure avatar_url is always set to at least null (not undefined)
-        if (createdProfile.avatar_url === undefined) {
-          createdProfile.avatar_url = null;
-        }
+        // Ensure all required fields have valid values
+        const normalizedProfile: Profile = {
+          ...createdProfile,
+          avatar_url: createdProfile.avatar_url ?? null,
+          email: createdProfile.email ?? null,
+          phone: createdProfile.phone ?? null,
+          last_active: createdProfile.last_active ?? null,
+          notification_settings: createdProfile.notification_settings ?? {},
+          settings: createdProfile.settings ?? {},
+          language: createdProfile.language ?? 'he',
+          shabbat_mode: createdProfile.shabbat_mode ?? false,
+          encoding_support: createdProfile.encoding_support ?? true
+        };
         
-        setProfile(createdProfile as Profile);
+        setProfile(normalizedProfile as Profile);
       }
       
       setIsLoading(false);

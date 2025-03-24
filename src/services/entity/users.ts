@@ -258,4 +258,3 @@ export const usersService = {
     return data as User[];
   },
 };
-
