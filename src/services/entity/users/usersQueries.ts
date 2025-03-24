@@ -8,16 +8,16 @@ import type { User } from '@/types/users';
 export async function getAll() {
   console.log('Fetching all users');
   const { data, error } = await supabase
-    .from('users')
+    .from('profiles')
     .select('*')
-    .order('full_name', { ascending: true });
+    .order('name', { ascending: true });
     
   if (error) {
     console.error('Error fetching users:', error);
     throw error;
   }
   
-  return data as User[];
+  return data as unknown as User[];
 }
 
 /**
@@ -26,7 +26,7 @@ export async function getAll() {
 export async function getById(id: string) {
   console.log(`Fetching user with id: ${id}`);
   const { data, error } = await supabase
-    .from('users')
+    .from('profiles')
     .select('*')
     .eq('id', id)
     .single();
@@ -36,7 +36,7 @@ export async function getById(id: string) {
     throw error;
   }
   
-  return data as User;
+  return data as unknown as User;
 }
 
 /**
@@ -45,15 +45,15 @@ export async function getById(id: string) {
 export async function search(query: string) {
   console.log(`Searching users with query: ${query}`);
   const { data, error } = await supabase
-    .from('users')
+    .from('profiles')
     .select('*')
-    .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
-    .order('full_name', { ascending: true });
+    .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
+    .order('name', { ascending: true });
     
   if (error) {
     console.error('Error searching users:', error);
     throw error;
   }
   
-  return data as User[];
+  return data as unknown as User[];
 }

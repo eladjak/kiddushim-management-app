@@ -20,14 +20,21 @@ export async function create(userData: UserCreate) {
     throw new Error('שגיאה ביצירת משתמש באימות');
   }
   
-  // יצירת רשומת משתמש בטבלת users
+  // יצירת רשומת משתמש בטבלת profiles
   const userId = authData.user.id;
+  
+  // המרה משדות User לשדות המתאימים לטבלת profiles
+  const profileData = {
+    id: userId,
+    name: userData.full_name,
+    email: userData.email,
+    phone: userData.phone,
+    role: userData.role.toLowerCase(),
+  };
+  
   const { data, error } = await supabase
-    .from('users')
-    .insert({
-      ...userDataWithoutPassword,
-      id: userId,
-    })
+    .from('profiles')
+    .upsert(profileData)
     .select()
     .single();
     
@@ -38,7 +45,7 @@ export async function create(userData: UserCreate) {
     throw error;
   }
   
-  return data as User;
+  return data as unknown as User;
 }
 
 /**
@@ -46,9 +53,19 @@ export async function create(userData: UserCreate) {
  */
 export async function update(id: string, userData: UserUpdate) {
   console.log(`Updating user ${id}`);
+  
+  // המרה משדות User לשדות המתאימים לטבלת profiles
+  const profileData: Record<string, any> = {};
+  
+  if (userData.full_name) profileData.name = userData.full_name;
+  if (userData.email) profileData.email = userData.email;
+  if (userData.phone) profileData.phone = userData.phone;
+  if (userData.role) profileData.role = userData.role.toLowerCase();
+  if (userData.avatar_url) profileData.avatar_url = userData.avatar_url;
+  
   const { data, error } = await supabase
-    .from('users')
-    .update(userData)
+    .from('profiles')
+    .update(profileData)
     .eq('id', id)
     .select()
     .single();
@@ -58,7 +75,7 @@ export async function update(id: string, userData: UserUpdate) {
     throw error;
   }
   
-  return data as User;
+  return data as unknown as User;
 }
 
 /**
@@ -67,21 +84,16 @@ export async function update(id: string, userData: UserUpdate) {
 export async function deleteUser(id: string) {
   console.log(`Deleting user ${id}`);
   
-  // מחיקת נתוני משתמש מבסיס הנתונים
-  const { error: dbError } = await supabase
-    .from('users')
-    .delete()
-    .eq('id', id);
-    
-  if (dbError) {
-    console.error(`Error deleting user ${id} from database:`, dbError);
-    throw dbError;
-  }
+  // מחיקת נתוני משתמש מבסיס הנתונים (לא נדרש למחוק מטבלת profiles 
+  // כי יש הגדרת CASCADE DELETION מטבלת auth.users)
   
   // מחיקת המשתמש ממערכת האימות
-  await supabase.auth.admin.deleteUser(id).catch(err => {
-    console.error(`Error deleting user ${id} from auth:`, err);
-  });
+  const { error } = await supabase.auth.admin.deleteUser(id);
+  
+  if (error) {
+    console.error(`Error deleting user ${id} from auth:`, error);
+    throw error;
+  }
   
   return true;
 }
