@@ -36,7 +36,7 @@ const Auth = () => {
         if (data.session) {
           // User is logged in, redirect to home
           log.info("User already logged in, redirecting to home");
-          // Force a complete page reload to ensure fresh auth state
+          // Ensure we redirect to the root path to avoid 404 issues
           window.location.href = "/";
         } else {
           setIsLoading(false);
@@ -56,7 +56,7 @@ const Auth = () => {
       
       if (session && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
         log.info("User signed in, redirecting to home");
-        // Force a complete page reload to ensure fresh auth state
+        // Ensure we always go to the root path
         window.location.href = "/";
       }
     });

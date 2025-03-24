@@ -69,6 +69,7 @@ export const LoginForm = ({
       
       if (data.session) {
         // Force a complete page reload to ensure fresh auth state
+        // Use the explicit root path to avoid any 404 issues
         window.location.href = "/";
       } else {
         throw new Error("התחברות נכשלה - לא התקבל מידע משתמש");

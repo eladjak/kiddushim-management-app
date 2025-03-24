@@ -93,7 +93,7 @@ export function useAuthCallback() {
           description: "התחברת בהצלחה!",
         });
         
-        // CRITICAL: Just redirect to the home page with a full refresh to ensure all state is fresh
+        // Ensure we redirect to the exact home page route with a proper full refresh
         window.location.href = "/";
       } catch (err: any) {
         log.error("Unexpected auth callback error:", { error: err });
