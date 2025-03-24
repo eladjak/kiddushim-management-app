@@ -1,6 +1,7 @@
+
 import { supabase } from '../supabase/client';
-import type { User, UserCreate, UserUpdate } from '@/types/users';
-import type { UserProfile } from '@/types/profile';
+import type { User, UserCreate, UserUpdate, UserRole } from '@/types/users';
+import type { UserProfile, RoleType } from '@/types/profile';
 import { authService } from '../supabase/auth';
 
 /**
@@ -74,7 +75,8 @@ export const usersService = {
       notification_settings: data.notification_settings,
       last_active: data.last_active,
       language: data.language,
-      shabbat_mode: data.shabbat_mode
+      shabbat_mode: data.shabbat_mode,
+      encoding_support: data.encoding_support || true
     };
   },
   
@@ -168,7 +170,48 @@ export const usersService = {
       notification_settings: data.notification_settings,
       last_active: data.last_active,
       language: data.language,
-      shabbat_mode: data.shabbat_mode
+      shabbat_mode: data.shabbat_mode,
+      encoding_support: data.encoding_support || true
+    };
+  },
+
+  /**
+   * עדכון תפקיד משתמש
+   */
+  async updateRole(id: string, role: RoleType): Promise<UserProfile> {
+    console.log(`Updating role for user ${id} to ${role}`);
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ 
+        role,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error(`Error updating user role ${id}:`, error);
+      throw error;
+    }
+    
+    // המרה לטיפוס UserProfile
+    return {
+      id: data.id,
+      email: data.email || '',
+      name: data.name,
+      avatar_url: data.avatar_url,
+      phone: data.phone,
+      role: data.role,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      settings: data.settings,
+      notification_settings: data.notification_settings,
+      last_active: data.last_active,
+      language: data.language,
+      shabbat_mode: data.shabbat_mode,
+      encoding_support: data.encoding_support || true
     };
   },
   

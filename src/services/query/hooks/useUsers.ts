@@ -1,8 +1,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/services/entity/users';
-import type { User, UserRole } from '@/types/users';
-import type { UserProfile } from '@/types/profile';
+import type { User } from '@/types/users';
+import type { UserProfile, RoleType } from '@/types/profile';
 import { toast } from '@/components/ui/use-toast';
 
 // קבועים לשימוש כמפתחות query
@@ -106,7 +106,7 @@ export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: UserRole }) => 
+    mutationFn: ({ userId, role }: { userId: string; role: RoleType }) => 
       usersService.updateRole(userId, role),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: USERS_KEYS.detail(userId) });
@@ -163,7 +163,7 @@ export const usePromoteToAdmin = () => {
   const updateUserRole = useUpdateUserRole();
   
   return {
-    mutate: (userId: string) => updateUserRole.mutate({ userId, role: 'admin' }),
+    mutate: (userId: string) => updateUserRole.mutate({ userId, role: "admin" as RoleType }),
     isLoading: updateUserRole.isPending
   };
 };
@@ -175,7 +175,7 @@ export const useDemoteFromAdmin = () => {
   const updateUserRole = useUpdateUserRole();
   
   return {
-    mutate: (userId: string) => updateUserRole.mutate({ userId, role: 'coordinator' }),
+    mutate: (userId: string) => updateUserRole.mutate({ userId, role: "coordinator" as RoleType }),
     isLoading: updateUserRole.isPending
   };
 };

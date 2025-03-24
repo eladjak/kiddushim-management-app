@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -32,7 +33,7 @@ const UserProfile = () => {
     try {
       // עדכון פרטי הפרופיל באמצעות הוק React Query
       await updateProfile.mutateAsync({
-        id: user.id,
+        userId: user.id,
         data: {
           ...values,
           updated_at: new Date().toISOString(),
