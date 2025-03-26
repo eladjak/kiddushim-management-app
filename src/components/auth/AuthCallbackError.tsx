@@ -1,6 +1,8 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { logger } from "@/utils/logger";
+import { useEffect } from "react";
 
 interface AuthCallbackErrorProps {
   error: string;
@@ -8,12 +10,32 @@ interface AuthCallbackErrorProps {
 
 export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
   const navigate = useNavigate();
+  const log = logger.createLogger({ component: 'AuthCallbackError' });
+  
+  useEffect(() => {
+    // Log the error for debugging purposes
+    log.error("Authentication callback failed with error:", { error });
+    
+    // Clean up the URL to remove any sensitive tokens
+    if (window.location.hash && window.history.replaceState) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+    }
+  }, [error]);
   
   // Function to extract and display token from error message if present
   const formatErrorMessage = (error: string) => {
     // Check if the error contains sensitive information like tokens
     if (error.includes('access_token') || error.includes('refresh_token')) {
       return "שגיאה בעיבוד פרטי ההתחברות. נא לנסות שוב.";
+    }
+    
+    // Handle common error cases
+    if (error.includes("No session found") || error.includes("session")) {
+      return "לא נמצאה סשן משתמש. ייתכן כי פג תוקף הסשן או שהתהליך לא הושלם כראוי.";
+    }
+    
+    if (error.includes("invalid_grant")) {
+      return "הרשאת הגישה פגה או אינה תקפה. נא להתחבר מחדש.";
     }
     
     return error;

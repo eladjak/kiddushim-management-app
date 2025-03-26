@@ -20,8 +20,6 @@ export function useAuthCallback() {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
-        const expiresIn = hashParams.get("expires_in");
-        const tokenType = hashParams.get("token_type");
         
         // If we have tokens in the URL hash, set the session manually
         if (accessToken && refreshToken) {
@@ -44,11 +42,16 @@ export function useAuthCallback() {
               userId: data.session.user.id 
             });
             
+            // Clear the URL hash to avoid exposing tokens
+            if (window.history.replaceState) {
+              window.history.replaceState(null, document.title, window.location.pathname);
+            }
+            
             // Wait a bit before redirecting to make sure session is saved
             setTimeout(() => {
               navigate("/", { replace: true });
               setLoading(false);
-            }, 500);
+            }, 800);
             return;
           }
         } else {
@@ -96,7 +99,7 @@ export function useAuthCallback() {
                 setError("התחברות נכשלה - לא נמצאה סשן משתמש");
               }
               setLoading(false);
-            }, 1000);
+            }, 1500);
             return;
           }
           
@@ -114,7 +117,7 @@ export function useAuthCallback() {
         setTimeout(() => {
           navigate("/", { replace: true });
           setLoading(false);
-        }, 500);
+        }, 800);
       } catch (err: any) {
         log.error("Unexpected error in auth callback:", err);
         setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");

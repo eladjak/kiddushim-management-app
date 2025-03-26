@@ -25,11 +25,13 @@ export const useAuthRedirect = () => {
       );
       
       if (hasAuthHash) {
-        log.info("Detected auth hash, redirecting to callback page:", { hash: window.location.hash });
+        log.info("Detected auth hash, redirecting to callback page:", { 
+          hashLength: window.location.hash.length 
+        });
         
         // Redirect to the auth callback page to handle the login properly
         // Use replace: true to avoid back button issues
-        navigate("/auth/callback", { replace: true });
+        navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
         return;
       }
       
@@ -37,7 +39,7 @@ export const useAuthRedirect = () => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('access_token') || urlParams.has('error') || urlParams.has('code')) {
         log.info("Detected auth params in URL, redirecting to callback page");
-        navigate("/auth/callback", { replace: true });
+        navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
         return;
       }
       
