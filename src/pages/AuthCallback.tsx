@@ -18,13 +18,19 @@ const AuthCallback = () => {
       loading, 
       hasError: !!error, 
       hash: !!window.location.hash, 
-      search: !!window.location.search
+      search: !!window.location.search,
+      code: new URLSearchParams(window.location.search).get('code')
     });
     
     // Log search and hash params for debugging (sanitized)
     const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
     const searchKeys = Array.from(searchParams.keys());
+    const hashKeys = Array.from(hashParams.keys());
+    
     log.info("URL search params keys:", { keys: searchKeys });
+    log.info("URL hash params keys:", { keys: hashKeys });
     
     return () => {
       log.info("Auth callback page unmounted");

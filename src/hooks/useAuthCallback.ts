@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
@@ -8,6 +8,7 @@ export function useAuthCallback() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const log = logger.createLogger({ component: 'useAuthCallback' });
 
   useEffect(() => {
@@ -16,7 +17,52 @@ export function useAuthCallback() {
         log.info("Handling auth callback");
         setLoading(true);
         
-        // First check if we have an access_token in the URL hash (case for OAuth providers)
+        // First check for an auth code in the URL query parameters (PKCE flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get("code");
+        
+        if (authCode) {
+          log.info("Found auth code in URL, waiting for Supabase to process it");
+          
+          // The code is handled internally by Supabase's PKCE flow
+          // Wait for Supabase to process the code and establish session
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Check if session was established
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            log.error("Error getting session after code exchange:", sessionError);
+            setError(sessionError.message);
+            setLoading(false);
+            return;
+          }
+          
+          if (sessionData.session) {
+            log.info("Session established after code exchange", { 
+              userId: sessionData.session.user.id 
+            });
+            
+            // Clear URL parameters to remove code
+            if (window.history.replaceState) {
+              window.history.replaceState(null, document.title, window.location.pathname);
+            }
+            
+            // Navigate to home page
+            setTimeout(() => {
+              navigate("/", { replace: true });
+              setLoading(false);
+            }, 800);
+            return;
+          } else {
+            log.warn("No session found after code exchange");
+            setError("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // Then check for access_token in the URL hash (old flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
@@ -54,14 +100,11 @@ export function useAuthCallback() {
             }, 800);
             return;
           }
-        } else {
-          log.info("No tokens in URL hash, checking for session");
         }
         
         // Check URL for errors
-        const url = new URL(window.location.href);
-        const errorParam = url.searchParams.get("error");
-        const errorDescription = url.searchParams.get("error_description");
+        const errorParam = urlParams.get("error");
+        const errorDescription = urlParams.get("error_description");
         
         if (errorParam) {
           const errorMsg = errorDescription || `שגיאת אימות: ${errorParam}`;
@@ -71,7 +114,7 @@ export function useAuthCallback() {
           return;
         }
         
-        // If no tokens in hash, try to get session normally
+        // If we reach here, we don't have tokens or code, try to get session normally
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -81,43 +124,24 @@ export function useAuthCallback() {
           return;
         }
         
-        if (!data.session) {
-          log.warn("No session found in auth callback");
+        if (data.session) {
+          // Successfully authenticated
+          log.info("Auth callback successful, redirecting to home", { 
+            userId: data.session.user.id 
+          });
           
-          // Try to extract session via URL code parameter (for some OAuth flows)
-          const code = url.searchParams.get("code");
-          if (code) {
-            log.info("Found code in URL, might be handled by Supabase internal");
-            
-            // The code is handled internally by Supabase, give it a moment
-            setTimeout(async () => {
-              const { data: sessionData } = await supabase.auth.getSession();
-              if (sessionData.session) {
-                log.info("Session retrieved after code exchange");
-                navigate("/", { replace: true });
-              } else {
-                setError("התחברות נכשלה - לא נמצאה סשן משתמש");
-              }
-              setLoading(false);
-            }, 1500);
-            return;
-          }
-          
-          setError("התחברות נכשלה - לא נמצאה סשן משתמש");
-          setLoading(false);
+          // Force reload to ensure session is properly set in all components
+          setTimeout(() => {
+            navigate("/", { replace: true });
+            setLoading(false);
+          }, 800);
           return;
         }
         
-        // Successfully authenticated
-        log.info("Auth callback successful, redirecting to home", { 
-          userId: data.session.user.id 
-        });
-        
-        // Force reload to ensure session is properly set in all components
-        setTimeout(() => {
-          navigate("/", { replace: true });
-          setLoading(false);
-        }, 800);
+        // If we still don't have a session, show an error
+        log.warn("No session found in auth callback");
+        setError("התחברות נכשלה - לא נמצאה סשן משתמש");
+        setLoading(false);
       } catch (err: any) {
         log.error("Unexpected error in auth callback:", err);
         setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");

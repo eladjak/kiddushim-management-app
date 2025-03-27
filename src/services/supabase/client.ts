@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // נתוני התחברות שיועברו למשתני סביבה בשלב מאוחר יותר
@@ -9,12 +10,22 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase environment variables. Check your .env file.');
 }
 
+// Create a unique key for this domain to avoid storage conflicts
+const getStorageKey = () => {
+  const hostname = window.location.hostname;
+  return `kidushishi-auth-token-${hostname}`;
+};
+
 // יצירת לקוח Supabase
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: localStorage,
+    storageKey: getStorageKey(),
+    flowType: 'pkce'
   },
 });
 
-export default supabase; 
+export default supabase;

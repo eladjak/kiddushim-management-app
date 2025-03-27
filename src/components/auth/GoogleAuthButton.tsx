@@ -21,15 +21,13 @@ export const GoogleAuthButton = () => {
   const clearAuthData = () => {
     log.info('Clearing auth data from localStorage');
     // Clear any existing auth data in localStorage (fixes some edge cases)
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('supabase.auth.expires_at');
-    localStorage.removeItem('supabase.auth.refresh_token');
+    const storageKey = localStorage.getItem('supabase.auth.token.storage-key') || 'kidushishi-auth-token';
     
-    // Also clear any other supabase auth related items
+    // Remove all auth related items
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('supabase.auth.')) {
+      if (key && (key.startsWith('supabase.auth.') || key.includes(storageKey))) {
         keysToRemove.push(key);
       }
     }
@@ -62,10 +60,10 @@ export const GoogleAuthButton = () => {
       
       // Perform explicit signOut before starting a new sign in flow
       // This helps to clear any stale session state
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'global' });
       
       // Wait a moment to ensure signOut is processed
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -74,7 +72,8 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          skipBrowserRedirect: false,
         },
       });
       
@@ -88,9 +87,19 @@ export const GoogleAuthButton = () => {
         provider: data?.provider
       });
       
+      // For PKCE flow, Supabase will handle the redirect automatically
+      // But we should update the UI to show a loading state
       toast({
         description: "מועבר להתחברות עם Google...",
       });
+      
+      // If supabase didn't redirect automatically, do it manually after a short delay
+      setTimeout(() => {
+        if (data?.url && authInProgressRef.current) {
+          window.location.href = data.url;
+        }
+      }, 500);
+      
     } catch (error: any) {
       log.error("Google auth error:", { error });
       

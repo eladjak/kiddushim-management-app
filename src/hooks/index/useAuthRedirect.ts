@@ -16,6 +16,16 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
+      // Check if there's an auth code (PKCE flow)
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasAuthCode = urlParams.has('code');
+      
+      if (hasAuthCode) {
+        log.info("Detected auth code in URL, redirecting to callback page");
+        navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
+        return;
+      }
+      
       // Check if there's an auth hash (OAuth callback)
       const hasAuthHash = window.location.hash && (
         window.location.hash.includes('access_token') || 
@@ -36,14 +46,13 @@ export const useAuthRedirect = () => {
       }
       
       // Check URL search params as well (some providers use query params instead of hash)
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('access_token') || urlParams.has('error') || urlParams.has('code')) {
+      if (urlParams.has('access_token') || urlParams.has('error')) {
         log.info("Detected auth params in URL, redirecting to callback page");
         navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
         return;
       }
       
-      log.info("No auth hash or params detected, proceeding with normal page load");
+      log.info("No auth hash, code or params detected, proceeding with normal page load");
     } catch (error) {
       log.error("Error checking for auth redirect:", error);
     }
