@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getAuthStorageKey } from "@/services/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
@@ -20,8 +20,8 @@ export const GoogleAuthButton = () => {
    */
   const clearAuthData = () => {
     log.info('Clearing auth data from localStorage');
-    // Clear any existing auth data in localStorage (fixes some edge cases)
-    const storageKey = localStorage.getItem('supabase.auth.token.storage-key') || 'kidushishi-auth-token';
+    // Get the current storage key
+    const storageKey = getAuthStorageKey();
     
     // Remove all auth related items
     const keysToRemove = [];
@@ -33,6 +33,7 @@ export const GoogleAuthButton = () => {
     }
     
     keysToRemove.forEach(key => localStorage.removeItem(key));
+    log.info('Cleared auth data, keys removed:', keysToRemove.length);
   };
 
   /**
@@ -87,8 +88,6 @@ export const GoogleAuthButton = () => {
         provider: data?.provider
       });
       
-      // For PKCE flow, Supabase will handle the redirect automatically
-      // But we should update the UI to show a loading state
       toast({
         description: "מועבר להתחברות עם Google...",
       });

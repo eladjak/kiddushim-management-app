@@ -16,7 +16,7 @@ const getStorageKey = () => {
   return `kidushishi-auth-token-${hostname}`;
 };
 
-// יצירת לקוח Supabase
+// יצירת לקוח Supabase יחיד ושימוש בו בכל האפליקציה
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
@@ -27,5 +27,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     flowType: 'pkce'
   },
 });
+
+// Export a function to get the storage key for other components
+export const getAuthStorageKey = getStorageKey;
 
 export default supabase;

@@ -22,7 +22,7 @@ export const useAuthRedirect = () => {
       
       if (hasAuthCode) {
         log.info("Detected auth code in URL, redirecting to callback page");
-        navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
+        navigate("/auth/callback", { replace: true });
         return;
       }
       
@@ -39,16 +39,14 @@ export const useAuthRedirect = () => {
           hashLength: window.location.hash.length 
         });
         
-        // Redirect to the auth callback page to handle the login properly
-        // Use replace: true to avoid back button issues
-        navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
+        navigate("/auth/callback", { replace: true });
         return;
       }
       
       // Check URL search params as well (some providers use query params instead of hash)
       if (urlParams.has('access_token') || urlParams.has('error')) {
         log.info("Detected auth params in URL, redirecting to callback page");
-        navigate("/auth/callback", { replace: true, state: { fromRedirect: true } });
+        navigate("/auth/callback", { replace: true });
         return;
       }
       

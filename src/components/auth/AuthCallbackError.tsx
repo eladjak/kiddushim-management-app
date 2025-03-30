@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
 import { useEffect } from "react";
+import { supabase } from "@/services/supabase/client";
 
 interface AuthCallbackErrorProps {
   error: string;
@@ -16,8 +17,8 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     // Log the error for debugging purposes
     log.error("Authentication callback failed with error:", { error });
     
-    // Clean up the URL to remove any sensitive tokens
-    if (window.location.hash && window.history.replaceState) {
+    // Make sure to clean up sensitive URL params/hashes
+    if ((window.location.hash || window.location.search) && window.history.replaceState) {
       window.history.replaceState(null, document.title, window.location.pathname);
     }
   }, [error]);
@@ -41,6 +42,13 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     return error;
   };
   
+  const handleTryAgain = async () => {
+    // Sign out first to clear any problematic state
+    await supabase.auth.signOut();
+    // Clear URL parameters
+    window.location.href = "/auth";
+  };
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/10">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
@@ -57,10 +65,10 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
           
           <Button 
             variant="outline"
-            onClick={() => window.location.reload()}
+            onClick={handleTryAgain}
             className="w-full"
           >
-            רענן ונסה שוב
+            נסה להתחבר מחדש
           </Button>
         </div>
       </div>

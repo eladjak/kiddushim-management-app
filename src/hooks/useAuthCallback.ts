@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/services/supabase/client";
 import { logger } from "@/utils/logger";
 
 export function useAuthCallback() {
@@ -24,11 +24,11 @@ export function useAuthCallback() {
         if (authCode) {
           log.info("Found auth code in URL, waiting for Supabase to process it");
           
-          // The code is handled internally by Supabase's PKCE flow
-          // Wait for Supabase to process the code and establish session
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // For PKCE flow, the code is processed automatically by Supabase
+          // But we need to give it some time as there's a race condition
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // Check if session was established
+          // Now check if session is established
           const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
@@ -39,20 +39,20 @@ export function useAuthCallback() {
           }
           
           if (sessionData.session) {
-            log.info("Session established after code exchange", { 
+            log.info("Session established successfully after code exchange", { 
               userId: sessionData.session.user.id 
             });
             
-            // Clear URL parameters to remove code
+            // Clear URL parameters
             if (window.history.replaceState) {
               window.history.replaceState(null, document.title, window.location.pathname);
             }
             
-            // Navigate to home page
+            // Instead of directly navigating, reload the page to ensure all contexts are properly initialized
             setTimeout(() => {
-              navigate("/", { replace: true });
-              setLoading(false);
-            }, 800);
+              log.info("Reloading page to ensure proper session initialization");
+              window.location.href = "/";
+            }, 500);
             return;
           } else {
             log.warn("No session found after code exchange");
@@ -62,7 +62,7 @@ export function useAuthCallback() {
           }
         }
         
-        // Then check for access_token in the URL hash (old flow)
+        // Check for access_token in the URL hash (old flow or implicit flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
@@ -88,16 +88,16 @@ export function useAuthCallback() {
               userId: data.session.user.id 
             });
             
-            // Clear the URL hash to avoid exposing tokens
+            // Clear the URL hash
             if (window.history.replaceState) {
               window.history.replaceState(null, document.title, window.location.pathname);
             }
             
-            // Wait a bit before redirecting to make sure session is saved
+            // Reload the page to ensure all contexts are properly initialized
             setTimeout(() => {
-              navigate("/", { replace: true });
-              setLoading(false);
-            }, 800);
+              log.info("Reloading page to ensure proper session initialization");
+              window.location.href = "/";
+            }, 500);
             return;
           }
         }
@@ -114,7 +114,7 @@ export function useAuthCallback() {
           return;
         }
         
-        // If we reach here, we don't have tokens or code, try to get session normally
+        // If we reach here without a code or tokens, try to get the session normally
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -126,11 +126,11 @@ export function useAuthCallback() {
         
         if (data.session) {
           // Successfully authenticated
-          log.info("Auth callback successful, redirecting to home", { 
+          log.info("Auth callback successful, already has session", { 
             userId: data.session.user.id 
           });
           
-          // Force reload to ensure session is properly set in all components
+          // Redirect to home
           setTimeout(() => {
             navigate("/", { replace: true });
             setLoading(false);
