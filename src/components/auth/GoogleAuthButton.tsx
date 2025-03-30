@@ -33,7 +33,7 @@ export const GoogleAuthButton = () => {
     }
     
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    log.info('Cleared auth data, keys removed:', keysToRemove.length);
+    log.info('Cleared auth data, keys removed:', { count: keysToRemove.length }); // Fix: Passed an object instead of a number
   };
 
   /**
