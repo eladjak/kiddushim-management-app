@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { eventsService } from "@/services/entity/events";
 import { logger } from "@/utils/logger";
 
 export const useReportEvents = () => {
@@ -12,20 +12,13 @@ export const useReportEvents = () => {
       try {
         log.info("Fetching events for reports");
         
-        const { data, error } = await supabase
-          .from('events')
-          .select('id, title, main_time, location_name, date, status, parasha')
-          .order('main_time', { ascending: true });
+        // Use our updated event service
+        const events = await eventsService.getUpcoming();
         
-        if (error) {
-          log.error("Error fetching events:", { error });
-          throw error;
-        }
-        
-        log.info("Fetched events successfully", { count: data?.length || 0 });
+        log.info("Fetched events successfully", { count: events?.length || 0 });
         
         // If there are no events, return an empty array
-        if (!data || data.length === 0) {
+        if (!events || events.length === 0) {
           return [];
         }
         
@@ -34,17 +27,17 @@ export const useReportEvents = () => {
         today.setHours(0, 0, 0, 0);
         
         // Process and filter past events
-        const filteredEvents = data
+        const filteredEvents = events
           .filter(event => {
-            if (!event.main_time) return true; // Keep events without main_time
-            const eventDate = new Date(event.main_time);
+            if (!event.time_start) return true; // Keep events without time_start
+            const eventDate = new Date(event.time_start);
             return eventDate >= today;
           })
           .map(event => ({
             ...event,
             title: event.title,
-            location_name: event.location_name,
-            parasha: event.parasha
+            location_name: event.location,
+            parasha: event.description
           }));
           
         if (filteredEvents.length === 0) {
@@ -52,11 +45,19 @@ export const useReportEvents = () => {
           return [{
             id: 'no-events',
             title: 'אין אירועים זמינים',
-            main_time: null,
+            time_start: null,
             location_name: null,
             date: null,
             status: 'draft',
-            parasha: null
+            parasha: null,
+            description: '',
+            location: '',
+            time_end: '',
+            type: 'other',
+            max_participants: 0,
+            created_at: '',
+            updated_at: '',
+            created_by: ''
           }];
         }
         
@@ -67,11 +68,19 @@ export const useReportEvents = () => {
         return [{
           id: 'no-events',
           title: 'אין אירועים זמינים',
-          main_time: null,
+          time_start: null,
           location_name: null,
           date: null,
           status: 'draft',
-          parasha: null
+          parasha: null,
+          description: '',
+          location: '',
+          time_end: '',
+          type: 'other',
+          max_participants: 0,
+          created_at: '',
+          updated_at: '',
+          created_by: ''
         }];
       }
     },

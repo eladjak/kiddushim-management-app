@@ -4,13 +4,12 @@ import { Navigation } from "@/components/Navigation";
 import { CreateEventForm } from "@/components/events/CreateEventForm";
 import { useAuth } from "@/context/AuthContext";
 import { Footer } from "@/components/layout/Footer";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { EventsList } from "@/components/events/EventsList";
 import { CalendarInfoAccordion } from "@/components/events/CalendarInfoAccordion";
 import { EmptyEventsState } from "@/components/events/EmptyEventsState";
 import { EventsPageHeader } from "@/components/events/EventsPageHeader";
 import { EventsLoadingState } from "@/components/events/EventsLoadingState";
+import { EventsList } from "@/components/events/EventsList";
+import { useEvents } from "@/services/query/hooks/useEvents";
 
 const Events = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -20,22 +19,8 @@ const Events = () => {
   const isCoordinator = profile?.role === "coordinator";
   const canCreateEvents = isAdmin || isCoordinator;
   
-  // Fetch events
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['events_page'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('main_time', { ascending: true });
-      
-      if (error) {
-        throw error;
-      }
-      
-      return data || [];
-    },
-  });
+  // Fetch events using our updated hook
+  const { data: events = [], isLoading } = useEvents();
   
   const hasEvents = events.length > 0;
   const toggleCreateForm = () => setShowCreateForm(!showCreateForm);

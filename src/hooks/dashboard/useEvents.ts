@@ -1,30 +1,20 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { eventsService } from "@/services/entity/events";
 
 export const useEvents = (userId?: string) => {
   return useQuery({
     queryKey: ['events', userId],
     queryFn: async () => {
-      // Skip if there's no user ID
-      if (!userId) return [];
-      
       try {
-        const { data, error } = await supabase
-          .from('events')
-          .select('id, title, main_time, location_name, date, status, parasha')
-          .order('main_time', { ascending: true })
-          .limit(6);
-        
-        if (error) throw error;
-        
-        return data || [];
+        // Use our updated service
+        const events = await eventsService.getUpcoming();
+        return events.slice(0, 6); // Limit to 6 events
       } catch (error) {
         console.error('Error fetching events:', error);
         return [];
       }
     },
-    // Only run if we have a user ID
-    enabled: !!userId,
+    enabled: true, // Always fetch events
   });
 };
