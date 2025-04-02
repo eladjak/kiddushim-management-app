@@ -1,10 +1,55 @@
 
 import { supabase } from '../supabase/client';
-import type { 
+import { 
   Event, EventCreate, EventUpdate, EventWithDetails, 
-  EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB,
-  convertDBEventToEvent, convertDBEventToEventWithDetails, convertDBEventsToEvents
+  EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB
 } from '@/types/events';
+
+/**
+ * Helper function to convert DB event format to application Event format
+ */
+function convertDBEventToEvent(dbEvent: EventDB): Event {
+  return {
+    id: dbEvent.id,
+    title: dbEvent.title,
+    description: dbEvent.title, // Using title as fallback for description
+    location: dbEvent.location_name,
+    date: dbEvent.date,
+    time_start: dbEvent.main_time,
+    time_end: dbEvent.cleanup_time,
+    status: (dbEvent.status as any) || 'draft',
+    type: 'kidush', // Default type
+    max_participants: dbEvent.required_service_girls || 0,
+    created_at: dbEvent.created_at,
+    updated_at: dbEvent.updated_at,
+    created_by: dbEvent.created_by,
+    // Add required properties for the dashboard and events page components
+    main_time: dbEvent.main_time,
+    location_name: dbEvent.location_name,
+    parasha: dbEvent.parasha
+  };
+}
+
+/**
+ * Helper function to convert DB event with details to application EventWithDetails format
+ */
+function convertDBEventToEventWithDetails(dbEvent: EventWithDetailsDB): EventWithDetails {
+  const baseEvent = convertDBEventToEvent(dbEvent);
+  
+  return {
+    ...baseEvent,
+    participants: dbEvent.event_participants,
+    equipment: dbEvent.event_equipment,
+    assignments: dbEvent.event_assignments
+  };
+}
+
+/**
+ * Helper function to convert array of DB events to application Events
+ */
+function convertDBEventsToEvents(dbEvents: EventDB[]): Event[] {
+  return dbEvents.map(convertDBEventToEvent);
+}
 
 /**
  * שירות לניהול אירועים
@@ -228,7 +273,6 @@ export const eventsService = {
   async getParticipants(eventId: string) {
     console.log(`Fetching participants for event ${eventId}`);
     
-    // בדיקה אם טבלת משתתפים קיימת
     try {
       const { data, error } = await supabase
         .from('event_assignments')

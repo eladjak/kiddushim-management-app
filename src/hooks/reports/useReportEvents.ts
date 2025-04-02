@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { eventsService } from "@/services/entity/events";
 import { logger } from "@/utils/logger";
+import { Event } from "@/types/events";
 
 export const useReportEvents = () => {
   const log = logger.createLogger({ component: 'useReportEvents' });
@@ -36,8 +37,8 @@ export const useReportEvents = () => {
           .map(event => ({
             ...event,
             title: event.title,
-            location_name: event.location,
-            parasha: event.description
+            location_name: event.location_name || event.location,
+            parasha: event.parasha || event.description
           }));
           
         if (filteredEvents.length === 0) {
@@ -57,8 +58,9 @@ export const useReportEvents = () => {
             max_participants: 0,
             created_at: '',
             updated_at: '',
-            created_by: ''
-          }];
+            created_by: '',
+            main_time: ''
+          } as unknown as Event];
         }
         
         return filteredEvents;
@@ -80,8 +82,9 @@ export const useReportEvents = () => {
           max_participants: 0,
           created_at: '',
           updated_at: '',
-          created_by: ''
-        }];
+          created_by: '',
+          main_time: ''
+        } as unknown as Event];
       }
     },
   });

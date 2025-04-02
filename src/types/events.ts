@@ -63,13 +63,17 @@ export interface Event {
   date: string;
   time_start: string;
   time_end: string;
-  status: EventStatus;
-  type: EventType;
+  status: EventStatus | string;
+  type: EventType | string;
   max_participants: number;
   image_url?: string;
   created_at: string;
   updated_at: string;
   created_by: string;
+  // Adding properties used by Dashboard and Events components
+  main_time: string;
+  location_name: string;
+  parasha?: string;
 }
 
 export type EventCreate = Omit<Event, 'id' | 'created_at' | 'updated_at'>;
