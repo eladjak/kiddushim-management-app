@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
 import { useEffect } from "react";
-import { supabase } from "@/services/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
+import { getAuthStorageKey } from "@/integrations/supabase/client";
 
 interface AuthCallbackErrorProps {
   error: string;
@@ -17,13 +18,13 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     // Log the error for debugging purposes
     log.error("Authentication callback failed with error:", { error });
     
-    // Make sure to clean up sensitive URL params/hashes
-    if ((window.location.hash || window.location.search) && window.history.replaceState) {
+    // Make sure to clean up sensitive URL params
+    if (window.location.search && window.history.replaceState) {
       window.history.replaceState(null, document.title, window.location.pathname);
     }
   }, [error]);
   
-  // Function to extract and display token from error message if present
+  // Format error message to be user-friendly
   const formatErrorMessage = (error: string) => {
     // Check if the error contains sensitive information like tokens
     if (error.includes('access_token') || error.includes('refresh_token')) {
@@ -43,10 +44,32 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
   };
   
   const handleTryAgain = async () => {
-    // Sign out first to clear any problematic state
-    await supabase.auth.signOut();
-    // Clear URL parameters
-    window.location.href = "/auth";
+    try {
+      log.info("User clicked try again, cleaning up auth state");
+      
+      // Sign out to clear auth state
+      await supabase.auth.signOut({ scope: 'global' });
+      
+      // Clean local storage
+      const storageKey = getAuthStorageKey();
+      const keysToRemove = [];
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('supabase.auth.') || key.includes(storageKey))) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      log.info("Cleaned up auth data from localStorage", { count: keysToRemove.length });
+      
+      // Redirect to auth page
+      navigate("/auth", { replace: true });
+    } catch (err) {
+      log.error("Error in try again handler:", { error: err });
+      window.location.href = "/auth";
+    }
   };
   
   return (

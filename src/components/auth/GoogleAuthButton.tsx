@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { supabase, getAuthStorageKey } from "@/services/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
@@ -20,20 +20,17 @@ export const GoogleAuthButton = () => {
    */
   const clearAuthData = () => {
     log.info('Clearing auth data from localStorage');
-    // Get the current storage key
-    const storageKey = getAuthStorageKey();
-    
     // Remove all auth related items
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith('supabase.auth.') || key.includes(storageKey))) {
+      if (key && key.startsWith('supabase.auth.')) {
         keysToRemove.push(key);
       }
     }
     
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    log.info('Cleared auth data, keys removed:', { count: keysToRemove.length }); // Fix: Passed an object instead of a number
+    log.info('Cleared auth data, keys removed:', { count: keysToRemove.length });
   };
 
   /**
@@ -60,7 +57,6 @@ export const GoogleAuthButton = () => {
       clearAuthData();
       
       // Perform explicit signOut before starting a new sign in flow
-      // This helps to clear any stale session state
       await supabase.auth.signOut({ scope: 'global' });
       
       // Wait a moment to ensure signOut is processed
@@ -73,8 +69,7 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          },
-          skipBrowserRedirect: false,
+          }
         },
       });
       
@@ -92,12 +87,10 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // If supabase didn't redirect automatically, do it manually after a short delay
-      setTimeout(() => {
-        if (data?.url && authInProgressRef.current) {
-          window.location.href = data.url;
-        }
-      }, 500);
+      // Redirect to Google auth
+      if (data?.url) {
+        window.location.href = data.url;
+      }
       
     } catch (error: any) {
       log.error("Google auth error:", { error });

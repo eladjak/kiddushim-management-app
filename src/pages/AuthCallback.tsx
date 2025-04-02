@@ -4,7 +4,7 @@ import { logger } from "@/utils/logger";
 import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
 import { useEffect } from "react";
-import { supabase } from "@/services/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * This page handles OAuth callback and session establishment
@@ -16,27 +16,29 @@ const AuthCallback = () => {
   
   useEffect(() => {
     const logInfo = async () => {
-      const sessionCheck = await supabase.auth.getSession();
-      
-      log.info("Auth callback page loaded", { 
-        loading, 
-        hasError: !!error, 
-        hash: !!window.location.hash, 
-        search: !!window.location.search,
-        code: new URLSearchParams(window.location.search).get('code'),
-        hasSession: !!sessionCheck.data.session,
-        sessionUser: sessionCheck.data.session?.user?.id
-      });
-      
-      // Log search and hash params for debugging (sanitized)
-      const searchParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      
-      const searchKeys = Array.from(searchParams.keys());
-      const hashKeys = Array.from(hashParams.keys());
-      
-      log.info("URL search params keys:", { keys: searchKeys });
-      log.info("URL hash params keys:", { keys: hashKeys });
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          log.error("Error checking session in callback page:", { error: sessionError });
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const errorParam = urlParams.get('error');
+        
+        log.info("Auth callback page loaded", { 
+          loading, 
+          hasError: !!error, 
+          hasCode: !!code,
+          codeLength: code?.length,
+          errorParam,
+          hasSession: !!session,
+          sessionUser: session?.user?.id
+        });
+      } catch (err) {
+        log.error("Error logging auth callback info:", { error: err });
+      }
     };
     
     logInfo();
