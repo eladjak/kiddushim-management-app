@@ -20,7 +20,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     detectSessionInUrl: false, // IMPORTANT: Set to false to prevent automatic processing
     storageKey: getStorageKey(),
     storage: localStorage,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    debug: import.meta.env.DEV // Enable debug mode in development
   }
 });
 

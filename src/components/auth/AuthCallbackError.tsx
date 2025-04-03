@@ -5,6 +5,8 @@ import { logger } from "@/utils/logger";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthStorageKey } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface AuthCallbackErrorProps {
   error: string;
@@ -40,7 +42,15 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       return "הרשאת הגישה פגה או אינה תקפה. נא להתחבר מחדש.";
     }
     
-    return error;
+    if (error.includes("code exchange")) {
+      return "שגיאה בהחלפת קוד אימות. ייתכן שפג תוקף הקוד או שכבר נעשה בו שימוש. נא לנסות להתחבר מחדש.";
+    }
+
+    if (error.includes("התחברות נכשלה")) {
+      return error;
+    }
+    
+    return `שגיאה בתהליך ההתחברות: ${error}`;
   };
   
   const handleTryAgain = async () => {
@@ -74,12 +84,28 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/10">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <div className="text-red-500 mb-4 text-xl font-medium">שגיאה בהתחברות</div>
-        <p className="mb-6 text-gray-700">{formatErrorMessage(error)}</p>
+      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <div className="text-center mb-6">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
+          <h2 className="text-2xl font-medium text-red-600">שגיאה בהתחברות</h2>
+        </div>
+        
+        <Alert className="mb-6 border-red-200 bg-red-50">
+          <AlertDescription className="text-gray-700">
+            {formatErrorMessage(error)}
+          </AlertDescription>
+        </Alert>
         
         <div className="space-y-3">
           <Button 
+            onClick={handleTryAgain}
+            className="w-full"
+          >
+            נסה להתחבר מחדש
+          </Button>
+          
+          <Button 
+            variant="outline"
             onClick={() => navigate("/auth")}
             className="w-full"
           >
@@ -87,11 +113,11 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
           </Button>
           
           <Button 
-            variant="outline"
-            onClick={handleTryAgain}
+            variant="ghost"
+            onClick={() => navigate("/")}
             className="w-full"
           >
-            נסה להתחבר מחדש
+            חזרה לדף הראשי
           </Button>
         </div>
       </div>

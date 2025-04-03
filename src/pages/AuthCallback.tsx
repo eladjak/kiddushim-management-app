@@ -26,15 +26,19 @@ const AuthCallback = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         
         log.info("Auth callback page loaded", { 
           loading, 
           hasError: !!error, 
+          errorMessage: error,
           hasCode: !!code,
           codeLength: code?.length,
           errorParam,
+          errorDescription,
           hasSession: !!session,
-          sessionUser: session?.user?.id
+          sessionUser: session?.user?.id,
+          fullUrl: window.location.href
         });
       } catch (err) {
         log.error("Error logging auth callback info:", { error: err });

@@ -46,10 +46,15 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
+      // Get the current hostname - works for both development and production
+      const hostname = window.location.hostname;
+      const protocol = window.location.protocol;
+      const port = window.location.port ? `:${window.location.port}` : '';
+      const baseUrl = `${protocol}//${hostname}${port}`;
+      
       // Create full app URL for redirect
-      const origin = window.location.origin;
       const callbackPath = "/auth/callback";
-      const redirectUrl = `${origin}${callbackPath}`;
+      const redirectUrl = `${baseUrl}${callbackPath}`;
       
       log.info('Using redirect URL:', { redirectUrl });
       
