@@ -33,6 +33,11 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       return "שגיאה בעיבוד פרטי ההתחברות. נא לנסות שוב.";
     }
     
+    // Handle PKCE-specific error
+    if (error.includes("both auth code and code verifier should be non-empty")) {
+      return "שגיאה בתהליך האימות: אחד מפרטי האימות חסר. נסה להתחבר מחדש.";
+    }
+    
     // Handle common error cases
     if (error.includes("No session found") || error.includes("session")) {
       return "לא נמצאה סשן משתמש. ייתכן כי פג תוקף הסשן או שהתהליך לא הושלם כראוי.";
@@ -64,7 +69,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       // Sign out to clear auth state
       await supabase.auth.signOut({ scope: 'global' });
       
-      // Clean local storage
+      // Clean all auth data from local storage
       const storageKey = getAuthStorageKey();
       const keysToRemove = [];
       

@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
@@ -42,17 +43,13 @@ export const GoogleAuthButton = () => {
     const protocol = window.location.protocol;
     const port = window.location.port ? `:${window.location.port}` : '';
     
-    // Handle specific case for kidushishi-menegment-app.co.il
-    // Use the www version which has the valid certificate
+    // Always use the www version for the production domain
+    // This is critical for certificate validation and avoiding redirect issues
     let domain = hostname;
     
-    // Ensure we use the www version for the production domain
     if (hostname === 'kidushishi-menegment-app.co.il') {
       domain = 'www.kidushishi-menegment-app.co.il';
       log.info('Domain normalized to www version for certificate validity');
-    } else if (hostname.includes('lovableproject.com')) {
-      // For development domains, keep as is
-      domain = hostname;
     }
     
     const baseUrl = `${protocol}//${domain}${port}`;
@@ -97,7 +94,8 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          skipBrowserRedirect: false, // Ensure browser redirection happens
         },
       });
       
@@ -119,6 +117,13 @@ export const GoogleAuthButton = () => {
       toast({
         description: "מועבר להתחברות עם Google...",
       });
+      
+      // Save original URL for detection in callback
+      try {
+        sessionStorage.setItem('auth_redirect_url', data.url);
+      } catch (e) {
+        log.warn('Could not save auth URL to sessionStorage', { error: e });
+      }
       
       // Redirect to Google auth
       window.location.href = data.url;
