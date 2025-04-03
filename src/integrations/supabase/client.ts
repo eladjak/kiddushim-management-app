@@ -8,10 +8,16 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJh
 
 // Create a unique key for this domain to avoid storage conflicts
 const getStorageKey = () => {
-  const hostname = window.location.hostname;
-  // Handle both www and non-www versions to use the same storage key
-  const normalizedHostname = hostname.replace(/^www\./, '');
-  return `kidushishi-auth-token-${normalizedHostname}`;
+  try {
+    const hostname = window.location.hostname;
+    // Handle both www and non-www versions to use the same storage key
+    // Strip www prefix for consistency and to avoid SSL issues
+    const normalizedHostname = hostname.replace(/^www\./, '');
+    return `kidushishi-auth-token-${normalizedHostname}`;
+  } catch (e) {
+    // Fallback if window is not available (SSR)
+    return 'kidushishi-auth-token-default';
+  }
 };
 
 // Create a single supabase client instance for the entire app
@@ -23,9 +29,35 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storageKey: getStorageKey(),
     storage: localStorage,
     flowType: 'implicit', // Use implicit flow which is more reliable across browsers
-    debug: import.meta.env.DEV // Enable debug mode in development
+    debug: import.meta.env.DEV, // Enable debug mode in development
+    // Fixed cookie options to ensure consistent behavior across domains
+    cookieOptions: {
+      path: '/',
+      sameSite: 'lax',
+      domain: undefined, // Let the browser determine the domain
+      secure: window.location.protocol === 'https:'
+    }
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'lovable-web-app'
+    }
   }
 });
 
 // Export a function to get the storage key for other components
 export const getAuthStorageKey = getStorageKey;
+
+// Export a domain normalization function to help with URL redirection issues
+export const getNormalizedDomain = () => {
+  try {
+    const hostname = window.location.hostname;
+    // Ensure we use www for the production domain to match SSL certificate
+    if (hostname === 'kidushishi-menegment-app.co.il') {
+      return 'www.kidushishi-menegment-app.co.il';
+    }
+    return hostname;
+  } catch (e) {
+    return '';
+  }
+};

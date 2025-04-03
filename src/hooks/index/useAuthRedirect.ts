@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "@/utils/logger";
+import { getNormalizedDomain } from "@/integrations/supabase/client";
 
 /**
  * Hook to handle OAuth redirects when an auth code or hash is present in the URL
@@ -16,6 +17,30 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
+      // Check for domain mismatch
+      const currentDomain = window.location.hostname;
+      const normalizedDomain = getNormalizedDomain();
+      
+      // If we're on the wrong domain, redirect to the correct one
+      if (currentDomain !== normalizedDomain && currentDomain === 'kidushishi-menegment-app.co.il') {
+        // Need to redirect to www version for SSL certificate
+        const protocol = window.location.protocol;
+        const pathname = window.location.pathname;
+        const search = window.location.search;
+        const hash = window.location.hash;
+        const port = window.location.port ? `:${window.location.port}` : '';
+        
+        const newUrl = `${protocol}//${normalizedDomain}${port}${pathname}${search}${hash}`;
+        log.info("Redirecting to normalized domain for SSL certificate", {
+          from: currentDomain,
+          to: normalizedDomain,
+          newUrl
+        });
+        
+        window.location.href = newUrl;
+        return;
+      }
+      
       // Capture raw URL for debugging
       const fullUrl = window.location.href;
       
@@ -98,6 +123,42 @@ export const useAuthRedirect = () => {
           }
         });
         return;
+      }
+
+      // Check if we were previously redirected from auth
+      const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true';
+      const redirectTime = localStorage.getItem('auth_redirect_time');
+      
+      if (wasRedirected && redirectTime) {
+        // Only consider redirects within the last 5 minutes
+        const redirectTimeMs = new Date(redirectTime).getTime();
+        const now = new Date().getTime();
+        const diffMinutes = (now - redirectTimeMs) / (1000 * 60);
+        
+        if (diffMinutes < 5) {
+          log.info("Detected return from auth without visible code, redirecting to callback page", { 
+            redirectTime, 
+            diffMinutes 
+          });
+          
+          // Clear the redirect flag
+          localStorage.removeItem('auth_redirect_initiated');
+          localStorage.removeItem('auth_redirect_time');
+          
+          navigate("/auth/callback", { 
+            replace: true,
+            state: { 
+              fullUrl,
+              authSource: 'implicit',
+              wasRedirected: true
+            }
+          });
+          return;
+        } else {
+          // Clear stale redirect flags
+          localStorage.removeItem('auth_redirect_initiated');
+          localStorage.removeItem('auth_redirect_time');
+        }
       }
 
       log.info("No auth code, hash or params detected, proceeding with normal page load");

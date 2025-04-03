@@ -19,6 +19,14 @@ const AuthCallback = () => {
   useEffect(() => {
     const logInfo = async () => {
       try {
+        // Check if we were redirected from auth
+        const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true';
+        const redirectTime = localStorage.getItem('auth_redirect_time');
+        
+        // Clear the redirect flag
+        localStorage.removeItem('auth_redirect_initiated');
+        localStorage.removeItem('auth_redirect_time');
+        
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -51,16 +59,19 @@ const AuthCallback = () => {
           loading, 
           hasError: !!error, 
           errorMessage: error,
+          wasRedirected,
+          redirectTime,
           hasCode: !!code,
           codeLength: code?.length,
           hasHashCode: !!hashCode,
           hashCodeLength: hashCode?.length,
-          pathCode: pathCode,
+          pathCode: !!pathCode,
           errorParam,
           errorDescription,
           hasSession: !!session,
           sessionUser: session?.user?.id,
           locationStateData: stateData,
+          hostname: window.location.hostname,
           fullUrl
         });
       } catch (err) {

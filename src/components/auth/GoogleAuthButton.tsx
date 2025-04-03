@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getNormalizedDomain } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
@@ -24,7 +24,7 @@ export const GoogleAuthButton = () => {
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('supabase.auth.')) {
+      if (key && (key.startsWith('supabase.auth.') || key.includes('kidushishi-auth-token'))) {
         keysToRemove.push(key);
       }
     }
@@ -39,19 +39,11 @@ export const GoogleAuthButton = () => {
    */
   const getRedirectUrl = () => {
     // Get the current location
-    const hostname = window.location.hostname;
+    const normalizedDomain = getNormalizedDomain();
     const protocol = window.location.protocol;
     const port = window.location.port ? `:${window.location.port}` : '';
     
-    // Always use the www version for the production domain to match SSL certificate
-    let domain = hostname;
-    
-    if (hostname === 'kidushishi-menegment-app.co.il') {
-      domain = 'www.kidushishi-menegment-app.co.il';
-      log.info('Domain normalized to www version for certificate validity');
-    }
-    
-    const baseUrl = `${protocol}//${domain}${port}`;
+    const baseUrl = `${protocol}//${normalizedDomain}${port}`;
     const redirectPath = "/auth/callback";
     const fullRedirectUrl = `${baseUrl}${redirectPath}`;
     
@@ -84,15 +76,16 @@ export const GoogleAuthButton = () => {
       await supabase.auth.signOut({ scope: 'global' });
       
       // Wait a moment to ensure signOut is processed
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
+          skipBrowserRedirect: false,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+            access_type: 'online',
+            prompt: 'select_account',
           },
         },
       });
@@ -116,17 +109,15 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Extract code parameter for smoother experience
-      let codeParam = "";
+      // Save URL state in localStorage to detect if we redirected from auth
       try {
-        // Try to extract code from the URL to pass it in state
-        const url = new URL(data.url);
-        codeParam = url.searchParams.get('code') || "";
+        localStorage.setItem('auth_redirect_initiated', 'true');
+        localStorage.setItem('auth_redirect_time', new Date().toISOString());
       } catch (e) {
-        log.warn('Could not extract code from URL', { error: e });
+        log.warn('Could not save auth state to localStorage', { error: e });
       }
       
-      // Save original URL and code for detection in callback
+      // Navigate to the authentication URL
       window.location.href = data.url;
       
     } catch (error: any) {

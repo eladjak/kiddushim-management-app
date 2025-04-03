@@ -33,16 +33,21 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       return "שגיאה בעיבוד פרטי ההתחברות. נא לנסות שוב.";
     }
     
+    // Handle certificate domain issues
+    if (error.includes("kidushishi-menegment-app.co.il") && error.includes("www.kidushishi-menegment-app.co.il")) {
+      return "שגיאת אבטחת HTTPS: אנא השתמש בכתובת מלאה של האתר, עם קידומת www בהתחלה - www.kidushishi-menegment-app.co.il";
+    }
+    
     // Handle PKCE-specific error
-    if (error.includes("both auth code and code verifier")) {
-      return "שגיאה בתהליך האימות PKCE. נסה להתחבר עם מצב זרימה אחר או לנקות עוגיות.";
+    if (error.includes("both auth code and code verifier") || error.includes("pkce")) {
+      return "שגיאה בתהליך האימות (PKCE). נסה להתחבר מחדש או לנקות עוגיות הדפדפן.";
     }
     
     // Handle domain redirection issues
-    if (error.includes("הדפדפן הפנה אותך מ-kidushishi-menegment-app.co.il")) {
-      return "שגיאת הפניית דומיין: אנו ממליצים להשתמש בכתובת www.kidushishi-menegment-app.co.il באופן עקבי כדי להימנע משגיאות אישור SSL.";
+    if (error.includes("התחברות נכשלה בגלל בעיית תעודה")) {
+      return error;
     }
-    
+        
     // Handle common error cases
     if (error.includes("No session found") || error.includes("session")) {
       return "לא נמצאה סשן משתמש. ייתכן כי פג תוקף הסשן או שהתהליך לא הושלם כראוי.";
@@ -56,11 +61,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       return "שגיאה בהחלפת קוד אימות. ייתכן שפג תוקף הקוד או שכבר נעשה בו שימוש. נא לנסות להתחבר מחדש.";
     }
 
-    if (error.includes("לא נמצא קוד אימות")) {
-      return error;
-    }
-
-    if (error.includes("התחברות נכשלה")) {
+    if (error.includes("לא נמצא קוד אימות") || error.includes("התחברות נכשלה")) {
       return error;
     }
     
