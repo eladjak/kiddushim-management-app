@@ -143,7 +143,11 @@ export function convertDBEventToEvent(dbEvent: EventDB): Event {
     max_participants: dbEvent.required_service_girls || 0,
     created_at: dbEvent.created_at,
     updated_at: dbEvent.updated_at,
-    created_by: dbEvent.created_by
+    created_by: dbEvent.created_by,
+    // Make sure to include these required properties
+    main_time: dbEvent.main_time,
+    location_name: dbEvent.location_name,
+    parasha: dbEvent.parasha
   };
 }
 
