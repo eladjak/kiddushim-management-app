@@ -34,8 +34,13 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     }
     
     // Handle PKCE-specific error
-    if (error.includes("both auth code and code verifier should be non-empty")) {
-      return "שגיאה בתהליך האימות: אחד מפרטי האימות חסר. נסה להתחבר מחדש.";
+    if (error.includes("both auth code and code verifier")) {
+      return "שגיאה בתהליך האימות PKCE. נסה להתחבר עם מצב זרימה אחר או לנקות עוגיות.";
+    }
+    
+    // Handle domain redirection issues
+    if (error.includes("הדפדפן הפנה אותך מ-kidushishi-menegment-app.co.il")) {
+      return "שגיאת הפניית דומיין: אנו ממליצים להשתמש בכתובת www.kidushishi-menegment-app.co.il באופן עקבי כדי להימנע משגיאות אישור SSL.";
     }
     
     // Handle common error cases
@@ -52,7 +57,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     }
 
     if (error.includes("לא נמצא קוד אימות")) {
-      return "לא נמצא קוד אימות בכתובת. ייתכן והסיבה לכך היא הפניה מחדש בין גרסאות של הדומיין (www ולא www). נא לוודא בהגדרות Google כי הכתובת עם www מופיעה כתובת הפניה מורשית.";
+      return error;
     }
 
     if (error.includes("התחברות נכשלה")) {

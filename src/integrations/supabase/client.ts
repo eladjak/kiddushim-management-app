@@ -19,10 +19,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true, // IMPORTANT: Enable automatic detection of auth code in URL
+    detectSessionInUrl: false, // IMPORTANT: Disable automatic detection to handle it manually
     storageKey: getStorageKey(),
     storage: localStorage,
-    flowType: 'pkce',
+    flowType: 'implicit', // Use implicit flow which is more reliable across browsers
     debug: import.meta.env.DEV // Enable debug mode in development
   }
 });

@@ -23,26 +23,130 @@ export function useAuthCallback() {
         const fullUrl = location.state?.fullUrl || window.location.href;
         log.info("Processing callback URL", { url: fullUrl });
         
-        // Check for an auth code in different parts of the URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const authCode = urlParams.get("code");
-        
-        // If no code is in the URL directly, it might be handled by the client automatically
-        // So we'll check the session directly
-        if (!authCode) {
-          log.info("No explicit code in URL, checking session directly");
+        // First try to extract code from state (preferred method as it's most reliable)
+        const stateCode = location.state?.code;
+        if (stateCode && stateCode.length > 10) {
+          log.info("Found code in location state", { codeLength: stateCode.length });
           
-          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          // Process the auth code
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(stateCode);
           
-          if (sessionError) {
-            log.error("Error getting session:", { error: sessionError });
-            setError(sessionError.message);
+          if (exchangeError) {
+            log.error("Error exchanging code for session:", { error: exchangeError });
+            setError(`שגיאת החלפת קוד לסשן: ${exchangeError.message}`);
             setLoading(false);
             return;
           }
           
-          if (sessionData.session) {
-            log.info("Session is already established", { userId: sessionData.session.user.id });
+          if (!data.session) {
+            log.warn("No session found after code exchange");
+            setError("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
+            setLoading(false);
+            return;
+          }
+          
+          // Successfully authenticated
+          log.info("Session established successfully with code from state", { 
+            userId: data.session.user.id
+          });
+          
+          // Clear URL parameters
+          if (window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+          
+          // Show success message
+          toast({
+            description: "התחברת בהצלחה",
+          });
+          
+          // Navigate home
+          setTimeout(() => {
+            log.info("Redirecting to home after successful authentication");
+            navigate("/", { replace: true });
+          }, 500);
+          
+          return;
+        }
+
+        // Check for an auth code in URL parameters 
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get("code");
+        
+        if (authCode && authCode.length > 10) {
+          log.info("Found auth code in URL parameters", { codeLength: authCode.length });
+          
+          // Process the auth code
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+          
+          if (exchangeError) {
+            log.error("Error exchanging code for session:", { error: exchangeError });
+            setError(`שגיאת החלפת קוד לסשן: ${exchangeError.message}`);
+            setLoading(false);
+            return;
+          }
+          
+          if (!data.session) {
+            log.warn("No session found after code exchange");
+            setError("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
+            setLoading(false);
+            return;
+          }
+          
+          // Successfully authenticated
+          log.info("Session established successfully with code exchange", { 
+            userId: data.session.user.id,
+            provider: data.session.user.app_metadata.provider
+          });
+          
+          // Clear URL parameters
+          if (window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+          
+          // Show success message
+          toast({
+            description: "התחברת בהצלחה",
+          });
+          
+          // Navigate home
+          setTimeout(() => {
+            log.info("Redirecting to home after successful authentication");
+            navigate("/", { replace: true });
+          }, 500);
+          
+          return;
+        }
+        
+        // Check if code is in hash fragment
+        if (window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const hashCode = hashParams.get("code");
+          
+          if (hashCode && hashCode.length > 10) {
+            log.info("Found auth code in URL hash", { codeLength: hashCode.length });
+            
+            // Process the auth code
+            const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(hashCode);
+            
+            if (exchangeError) {
+              log.error("Error exchanging code for session:", { error: exchangeError });
+              setError(`שגיאת החלפת קוד לסשן: ${exchangeError.message}`);
+              setLoading(false);
+              return;
+            }
+            
+            if (!data.session) {
+              log.warn("No session found after code exchange");
+              setError("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
+              setLoading(false);
+              return;
+            }
+            
+            // Successfully authenticated
+            log.info("Session established successfully with hash code", { 
+              userId: data.session.user.id
+            });
             
             // Clear URL parameters
             if (window.history.replaceState) {
@@ -62,57 +166,92 @@ export function useAuthCallback() {
             
             return;
           }
+        }
+
+        // Check for code in URL path (common in some OAuth providers)
+        const pathParts = window.location.pathname.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+        if (lastPart && lastPart !== 'callback' && lastPart.length > 20) {
+          log.info("Found potential auth code in path", { codeLength: lastPart.length });
           
-          // No code and no session, likely an error
-          setError("התחברות נכשלה - לא התקבל קוד אימות");
-          setLoading(false);
-          return;
-        }
-        
-        // With automatic code exchange disabled, process code manually
-        log.info("Found auth code, processing it", { codeLength: authCode.length });
-        
-        // Process the auth code
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
-        
-        if (exchangeError) {
-          log.error("Error exchanging code for session:", { error: exchangeError });
+          // Process the auth code
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(lastPart);
           
-          // Enhanced error message for debugging OAuth flow
-          setError(`שגיאת החלפת קוד לסשן: ${exchangeError.message} (${exchangeError.status || 'unknown status'})`);
+          if (exchangeError) {
+            log.error("Error exchanging code for session:", { error: exchangeError });
+            setError(`שגיאת החלפת קוד לסשן: ${exchangeError.message}`);
+            setLoading(false);
+            return;
+          }
+          
+          if (!data.session) {
+            log.warn("No session found after code exchange");
+            setError("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
+            setLoading(false);
+            return;
+          }
+          
+          // Successfully authenticated
+          log.info("Session established successfully with path code", { 
+            userId: data.session.user.id
+          });
+          
+          // Clear URL parameters
+          if (window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+          
+          // Show success message
+          toast({
+            description: "התחברת בהצלחה",
+          });
+          
+          // Navigate home
+          setTimeout(() => {
+            log.info("Redirecting to home after successful authentication");
+            navigate("/", { replace: true });
+          }, 500);
+          
+          return;
+        }
+        
+        // If no code is found anywhere, check if session might already be established
+        log.info("No explicit code found, checking session directly");
+        
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          log.error("Error getting session:", { error: sessionError });
+          setError(sessionError.message);
           setLoading(false);
           return;
         }
         
-        if (!data.session) {
-          log.warn("No session found after code exchange");
-          setError("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
-          setLoading(false);
+        if (sessionData.session) {
+          log.info("Session is already established", { userId: sessionData.session.user.id });
+          
+          // Clear URL parameters
+          if (window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+          
+          // Show success message
+          toast({
+            description: "התחברת בהצלחה",
+          });
+          
+          // Navigate home
+          setTimeout(() => {
+            log.info("Redirecting to home after successful authentication");
+            navigate("/", { replace: true });
+          }, 500);
+          
           return;
         }
         
-        // Successfully authenticated
-        log.info("Session established successfully with code exchange", { 
-          userId: data.session.user.id,
-          provider: data.session.user.app_metadata.provider
-        });
-        
-        // Clear URL parameters
-        if (window.history.replaceState) {
-          window.history.replaceState(null, document.title, window.location.pathname);
-        }
-        
-        // Show success message
-        toast({
-          description: "התחברת בהצלחה",
-        });
-        
-        // Navigate home
-        setTimeout(() => {
-          log.info("Redirecting to home after successful authentication");
-          navigate("/", { replace: true });
-        }, 500);
-        
+        // No code and no session, likely an error
+        setError("התחברות נכשלה - לא התקבל קוד אימות. ייתכן שהסיבה לכך היא שהדפדפן הפנה אותך מ-kidushishi-menegment-app.co.il ל-www.kidushishi-menegment-app.co.il בגלל אישור SSL.");
+        setLoading(false);
       } catch (err: any) {
         log.error("Unexpected error in auth callback:", { error: err });
         setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");

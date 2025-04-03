@@ -35,7 +35,7 @@ export const GoogleAuthButton = () => {
 
   /**
    * Gets a normalized redirect URL that works in both development and production
-   * Handles www vs non-www domain variants
+   * Always uses the www. subdomain on production to match SSL certificate
    */
   const getRedirectUrl = () => {
     // Get the current location
@@ -43,8 +43,7 @@ export const GoogleAuthButton = () => {
     const protocol = window.location.protocol;
     const port = window.location.port ? `:${window.location.port}` : '';
     
-    // Always use the www version for the production domain
-    // This is critical for certificate validation and avoiding redirect issues
+    // Always use the www version for the production domain to match SSL certificate
     let domain = hostname;
     
     if (hostname === 'kidushishi-menegment-app.co.il') {
@@ -95,7 +94,6 @@ export const GoogleAuthButton = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          skipBrowserRedirect: false, // Ensure browser redirection happens
         },
       });
       
@@ -118,14 +116,17 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Save original URL for detection in callback
+      // Extract code parameter for smoother experience
+      let codeParam = "";
       try {
-        sessionStorage.setItem('auth_redirect_url', data.url);
+        // Try to extract code from the URL to pass it in state
+        const url = new URL(data.url);
+        codeParam = url.searchParams.get('code') || "";
       } catch (e) {
-        log.warn('Could not save auth URL to sessionStorage', { error: e });
+        log.warn('Could not extract code from URL', { error: e });
       }
       
-      // Redirect to Google auth
+      // Save original URL and code for detection in callback
       window.location.href = data.url;
       
     } catch (error: any) {
@@ -134,7 +135,7 @@ export const GoogleAuthButton = () => {
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       
       if (error.message && error.message.includes("redirect_uri_mismatch")) {
-        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת ${window.location.origin}/auth/callback מוגדרת ב-Google Cloud Console`;
+        errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת ${getRedirectUrl()} מוגדרת ב-Google Cloud Console`;
       }
       
       toast({

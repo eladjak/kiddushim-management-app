@@ -21,13 +21,17 @@ export const useAuthRedirect = () => {
       
       // Check if there's an auth code in search parameters
       const urlParams = new URLSearchParams(window.location.search);
-      const hasAuthCode = urlParams.has('code');
+      const code = urlParams.get('code');
       
-      if (hasAuthCode) {
+      if (code) {
         log.info("Detected auth code in URL, redirecting to callback page", { url: fullUrl });
         navigate("/auth/callback", { 
           replace: true,
-          state: { fullUrl }
+          state: { 
+            fullUrl,
+            code,
+            authSource: 'query'
+          }
         });
         return;
       }
@@ -35,11 +39,17 @@ export const useAuthRedirect = () => {
       // Check if there's auth code in hash fragment
       if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        if (hashParams.has('code')) {
+        const hashCode = hashParams.get("code");
+        
+        if (hashCode) {
           log.info("Detected auth code in URL hash, redirecting to callback page", { url: fullUrl });
           navigate("/auth/callback", { 
             replace: true,
-            state: { fullUrl, authSource: 'hash' }
+            state: { 
+              fullUrl,
+              code: hashCode,
+              authSource: 'hash' 
+            }
           });
           return;
         }
@@ -47,12 +57,19 @@ export const useAuthRedirect = () => {
       
       // Check for code in path
       if (window.location.pathname.includes('/code=')) {
-        log.info("Detected auth code in path, redirecting to callback page", { url: fullUrl });
-        navigate("/auth/callback", { 
-          replace: true,
-          state: { fullUrl, authSource: 'path' }
-        });
-        return;
+        const pathCode = window.location.pathname.split('code=')[1];
+        if (pathCode) {
+          log.info("Detected auth code in path, redirecting to callback page", { url: fullUrl });
+          navigate("/auth/callback", { 
+            replace: true,
+            state: { 
+              fullUrl,
+              code: pathCode,
+              authSource: 'path' 
+            }
+          });
+          return;
+        }
       }
       
       // Check if there are error parameters
@@ -74,21 +91,15 @@ export const useAuthRedirect = () => {
         log.info("Detected potential auth code in path, redirecting to callback page", { url: fullUrl });
         navigate("/auth/callback", { 
           replace: true,
-          state: { fullUrl, authSource: 'pathComponent' }
+          state: { 
+            fullUrl,
+            code: pathParts[2],
+            authSource: 'pathComponent' 
+          }
         });
         return;
       }
 
-      // Handle /?code= format which appears in your error message
-      if (window.location.pathname === '/' && urlParams.has('code')) {
-        log.info("Detected auth code in root path query, redirecting to callback page", { url: fullUrl });
-        navigate("/auth/callback", { 
-          replace: true,
-          state: { fullUrl, authSource: 'rootQuery' }
-        });
-        return;
-      }
-      
       log.info("No auth code, hash or params detected, proceeding with normal page load");
     } catch (error) {
       log.error("Error checking for auth redirect:", { error });
