@@ -1,5 +1,5 @@
 
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { WelcomeScreen } from "@/components/dashboard/WelcomeScreen";
 import { Dashboard } from "@/components/dashboard/Dashboard";
@@ -9,64 +9,23 @@ import { logger } from "@/utils/logger";
 import { useAuthRedirect } from "@/hooks/index/useAuthRedirect";
 import { useProfileCreation } from "@/hooks/index/useProfileCreation";
 import { useLoadingState } from "@/hooks/index/useLoadingState";
-import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { useDirectSessionCheck } from "@/hooks/index/useDirectSessionCheck";
+import { useDebugMode } from "@/hooks/index/useDebugMode";
+import { DebugPanel } from "@/components/index/DebugPanel";
+import { DebugModeToggle } from "@/components/index/DebugModeToggle";
 
 const Index = () => {
-  const { user, profile, isLoading: authLoading, session } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const log = logger.createLogger({ component: 'IndexPage' });
-  const navigate = useNavigate();
-  const sessionCheckedRef = useRef(false);
-  const [directSessionInfo, setDirectSessionInfo] = useState<string | null>(null);
-  const [debugMode, setDebugMode] = useState(false);
-
-  // First, perform an immediate session check - this is necessary because sometimes
-  // the auth context doesn't get updated correctly
-  useEffect(() => {
-    if (sessionCheckedRef.current) return;
-    sessionCheckedRef.current = true;
-    
-    const checkSession = async () => {
-      log.info("Performing initial session check on index page");
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          log.error("Error checking session on index page:", error);
-          setDirectSessionInfo("שגיאה בבדיקת הסשן: " + error.message);
-          return;
-        }
-        
-        const sessionInfo = {
-          hasSession: !!data.session,
-          currentUser: !!user,
-          sessionUserId: data.session?.user?.id,
-          contextUserId: user?.id
-        };
-        
-        log.info("Index page direct session check:", sessionInfo);
-        setDirectSessionInfo(
-          "מידע ישיר מהסשן: " + 
-          (data.session ? "יש סשן" : "אין סשן") + 
-          (data.session?.user ? `, ID: ${data.session.user.id.slice(0, 6)}...` : "")
-        );
-        
-        // If we have a session but user isn't set in context, force reload
-        if (data.session && !user) {
-          log.info("Session exists but user not in context, forcing reload");
-          window.location.reload();
-        }
-      } catch (err) {
-        log.error("Error in direct session check:", err);
-        setDirectSessionInfo("שגיאה בבדיקת הסשן הישירה");
-      }
-    };
-    
-    checkSession();
-  }, [user]);
-
+  
   // Handle redirects for OAuth callback URLs
   useAuthRedirect();
+  
+  // Check session directly to help with debugging
+  const { directSessionInfo } = useDirectSessionCheck(user);
+  
+  // Handle debug mode toggle
+  const { debugMode, enterDebugMode, exitDebugMode } = useDebugMode();
   
   // Handle profile creation functionality
   const { 
@@ -94,38 +53,11 @@ const Index = () => {
 
   if (debugMode) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">מצב דיאגנוסטיקה</h1>
-        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-          <div>
-            <h2 className="font-bold">מידע מקונטקסט האימות:</h2>
-            <p>מצב טעינה: {authLoading ? "טוען" : "סיים טעינה"}</p>
-            <p>משתמש: {user ? `נמצא (${user.id.slice(0, 6)}...)` : "לא נמצא"}</p>
-            <p>סשן: {session ? `נמצא (${session.access_token.slice(0, 10)}...)` : "לא נמצא"}</p>
-            <p>פרופיל: {profile ? `נמצא (${profile.name})` : "לא נמצא"}</p>
-          </div>
-          
-          <div>
-            <h2 className="font-bold">בדיקת סשן ישירה:</h2>
-            <p>{directSessionInfo || "טרם נבדק"}</p>
-          </div>
-          
-          <div className="flex gap-4 mt-4">
-            <Button onClick={() => setDebugMode(false)}>
-              חזרה למסך רגיל
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/auth")}>
-              עבור לדף התחברות
-            </Button>
-            <Button variant="destructive" onClick={handleSignOut}>
-              התנתקות
-            </Button>
-            <Button variant="secondary" onClick={() => window.location.reload()}>
-              רענן דף
-            </Button>
-          </div>
-        </div>
-      </div>
+      <DebugPanel 
+        directSessionInfo={directSessionInfo} 
+        onSignOut={handleSignOut} 
+        onExitDebugMode={exitDebugMode}
+      />
     );
   }
 
@@ -134,14 +66,7 @@ const Index = () => {
     return (
       <div>
         <LoadingScreen />
-        <div className="text-center p-4">
-          <button 
-            onClick={() => setDebugMode(true)}
-            className="text-xs text-gray-400 hover:underline"
-          >
-            מצב דיאגנוסטיקה
-          </button>
-        </div>
+        <DebugModeToggle onEnterDebugMode={enterDebugMode} />
       </div>
     );
   }
@@ -153,14 +78,7 @@ const Index = () => {
     return (
       <div>
         <WelcomeScreen />
-        <div className="text-center p-4">
-          <button 
-            onClick={() => setDebugMode(true)}
-            className="text-xs text-gray-400 hover:underline"
-          >
-            מצב דיאגנוסטיקה
-          </button>
-        </div>
+        <DebugModeToggle onEnterDebugMode={enterDebugMode} />
       </div>
     );
   }
@@ -171,14 +89,7 @@ const Index = () => {
     return (
       <div>
         <Dashboard />
-        <div className="text-center p-4">
-          <button 
-            onClick={() => setDebugMode(true)}
-            className="text-xs text-gray-400 hover:underline"
-          >
-            מצב דיאגנוסטיקה
-          </button>
-        </div>
+        <DebugModeToggle onEnterDebugMode={enterDebugMode} />
       </div>
     );
   }
@@ -194,14 +105,7 @@ const Index = () => {
           onRefresh={() => window.location.reload()}
           onSignOut={handleSignOut}
         />
-        <div className="text-center p-4">
-          <button 
-            onClick={() => setDebugMode(true)}
-            className="text-xs text-gray-400 hover:underline"
-          >
-            מצב דיאגנוסטיקה
-          </button>
-        </div>
+        <DebugModeToggle onEnterDebugMode={enterDebugMode} />
       </div>
     );
   }
@@ -212,14 +116,7 @@ const Index = () => {
     return (
       <div>
         <LoadingScreen message="טוען פרופיל משתמש..." />
-        <div className="text-center p-4">
-          <button 
-            onClick={() => setDebugMode(true)}
-            className="text-xs text-gray-400 hover:underline"
-          >
-            מצב דיאגנוסטיקה
-          </button>
-        </div>
+        <DebugModeToggle onEnterDebugMode={enterDebugMode} />
       </div>
     );
   }
@@ -229,14 +126,7 @@ const Index = () => {
   return (
     <div>
       <WelcomeScreen />
-      <div className="text-center p-4">
-        <button 
-          onClick={() => setDebugMode(true)}
-          className="text-xs text-gray-400 hover:underline"
-        >
-          מצב דיאגנוסטיקה
-        </button>
-      </div>
+      <DebugModeToggle onEnterDebugMode={enterDebugMode} />
     </div>
   );
 };
