@@ -19,20 +19,62 @@ export function useAuthCallback() {
         log.info("Handling auth callback");
         setLoading(true);
         
-        // First check for an auth code in the URL query parameters (PKCE flow)
-        const urlParams = new URLSearchParams(window.location.search);
-        const authCode = urlParams.get("code");
+        // Get the raw URL for better debugging
+        const fullUrl = window.location.href;
+        log.info("Processing callback URL", { url: fullUrl });
         
+        // Check for an auth code in different parts of the URL
+        let authCode: string | null = null;
+        
+        // Check in search params (most common)
+        const urlParams = new URLSearchParams(window.location.search);
+        authCode = urlParams.get("code");
+        
+        // If not found in search params, check if it's in the pathname
         if (!authCode) {
-          log.warn("No auth code found in URL");
-          setError("התחברות נכשלה - לא נמצא קוד אימות בכתובת");
+          // Sometimes the URL might be formatted differently with the code in the path
+          // Example: /auth/callback/CODE instead of /auth/callback?code=CODE
+          const pathParts = window.location.pathname.split('/');
+          const lastPart = pathParts[pathParts.length - 1];
+          
+          if (lastPart && lastPart !== 'callback') {
+            authCode = lastPart;
+            log.info("Found potential code in URL path", { code: authCode });
+          }
+        }
+        
+        // Check in hash fragment (sometimes redirects put it here)
+        if (!authCode && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          authCode = hashParams.get("code");
+          if (authCode) {
+            log.info("Found code in URL hash fragment", { codeLength: authCode.length });
+          }
+        }
+        
+        // If we still don't have a code, check for errors
+        if (!authCode) {
+          log.warn("No auth code found in URL", { fullUrl });
+          
+          // Check for error parameters
+          const errorParam = urlParams.get('error');
+          const errorDescription = urlParams.get('error_description');
+          
+          if (errorParam || errorDescription) {
+            const errorMessage = errorDescription || errorParam || "Unknown error";
+            log.error("Auth error from provider", { error: errorParam, description: errorDescription });
+            setError(`שגיאה מספק האימות: ${errorMessage}`);
+          } else {
+            setError("התחברות נכשלה - לא נמצא קוד אימות בכתובת");
+          }
+          
           setLoading(false);
           return;
         }
         
-        log.info("Found auth code in URL, processing it", { codeLength: authCode.length });
+        log.info("Found auth code, processing it", { codeLength: authCode.length });
         
-        // Manually call exchangeCodeForSession to process the code
+        // Process the auth code
         const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
         
         if (exchangeError) {

@@ -21,7 +21,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     log.error("Authentication callback failed with error:", { error });
     
     // Make sure to clean up sensitive URL params
-    if (window.location.search && window.history.replaceState) {
+    if ((window.location.search || window.location.hash) && window.history.replaceState) {
       window.history.replaceState(null, document.title, window.location.pathname);
     }
   }, [error]);
@@ -44,6 +44,10 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     
     if (error.includes("code exchange")) {
       return "שגיאה בהחלפת קוד אימות. ייתכן שפג תוקף הקוד או שכבר נעשה בו שימוש. נא לנסות להתחבר מחדש.";
+    }
+
+    if (error.includes("לא נמצא קוד אימות")) {
+      return "לא נמצא קוד אימות בכתובת. ייתכן כי הפנייה לא הייתה תקינה או שחלה שגיאה בספק האימות.";
     }
 
     if (error.includes("התחברות נכשלה")) {

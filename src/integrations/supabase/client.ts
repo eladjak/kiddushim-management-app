@@ -9,7 +9,9 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJh
 // Create a unique key for this domain to avoid storage conflicts
 const getStorageKey = () => {
   const hostname = window.location.hostname;
-  return `kidushishi-auth-token-${hostname}`;
+  // Handle both www and non-www versions to use the same storage key
+  const normalizedHostname = hostname.replace(/^www\./, '');
+  return `kidushishi-auth-token-${normalizedHostname}`;
 };
 
 // Create a single supabase client instance for the entire app

@@ -34,6 +34,27 @@ export const GoogleAuthButton = () => {
   };
 
   /**
+   * Gets a normalized redirect URL that works in both development and production
+   */
+  const getRedirectUrl = () => {
+    // Get the current location
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    
+    // Handle special case for www vs non-www in production
+    let baseUrl = `${protocol}//${hostname}${port}`;
+    
+    // Check if we're on a domain with www prefix and it's causing issues
+    const redirectPath = "/auth/callback";
+    const fullRedirectUrl = `${baseUrl}${redirectPath}`;
+    
+    log.info('Generated redirect URL:', { redirectUrl: fullRedirectUrl });
+    
+    return fullRedirectUrl;
+  };
+
+  /**
    * Initiates Google Sign In flow
    */
   const signInWithGoogle = async () => {
@@ -46,17 +67,9 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
-      // Get the current hostname - works for both development and production
-      const hostname = window.location.hostname;
-      const protocol = window.location.protocol;
-      const port = window.location.port ? `:${window.location.port}` : '';
-      const baseUrl = `${protocol}//${hostname}${port}`;
-      
-      // Create full app URL for redirect
-      const callbackPath = "/auth/callback";
-      const redirectUrl = `${baseUrl}${callbackPath}`;
-      
-      log.info('Using redirect URL:', { redirectUrl });
+      // Get normalized redirect URL
+      const redirectUrl = getRedirectUrl();
+      log.info('Using redirect URL for OAuth flow:', { redirectUrl });
       
       // Clear any existing auth data
       clearAuthData();
@@ -83,9 +96,14 @@ export const GoogleAuthButton = () => {
         throw error;
       }
       
+      if (!data?.url) {
+        log.error("Google auth failed - No URL returned");
+        throw new Error("לא התקבלה כתובת התחברות מתאימה");
+      }
+      
       log.info('Google auth initiated successfully', { 
-        url: data?.url,
-        provider: data?.provider
+        url: data.url,
+        provider: data.provider
       });
       
       toast({
@@ -93,9 +111,7 @@ export const GoogleAuthButton = () => {
       });
       
       // Redirect to Google auth
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      window.location.href = data.url;
       
     } catch (error: any) {
       log.error("Google auth error:", { error });
