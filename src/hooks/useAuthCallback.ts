@@ -20,7 +20,7 @@ export function useAuthCallback() {
         setLoading(true);
         
         // Get the raw URL for better debugging
-        const fullUrl = window.location.href;
+        const fullUrl = location.state?.fullUrl || window.location.href;
         log.info("Processing callback URL", { url: fullUrl });
         
         // Check for an auth code in different parts of the URL
@@ -30,16 +30,24 @@ export function useAuthCallback() {
         const urlParams = new URLSearchParams(window.location.search);
         authCode = urlParams.get("code");
         
-        // If not found in search params, check if it's in the pathname
-        if (!authCode) {
-          // Sometimes the URL might be formatted differently with the code in the path
-          // Example: /auth/callback/CODE instead of /auth/callback?code=CODE
-          const pathParts = window.location.pathname.split('/');
-          const lastPart = pathParts[pathParts.length - 1];
+        // If not found in search params, check the state that was passed
+        if (!authCode && location.state?.fullUrl) {
+          const stateUrl = new URL(location.state.fullUrl);
+          const stateParams = new URLSearchParams(stateUrl.search);
+          authCode = stateParams.get("code");
           
-          if (lastPart && lastPart !== 'callback') {
-            authCode = lastPart;
-            log.info("Found potential code in URL path", { code: authCode });
+          if (authCode) {
+            log.info("Found code in location state", { codeLength: authCode.length });
+          }
+        }
+        
+        // If not found yet, check if it's in the pathname
+        if (!authCode) {
+          // Check for various URL formats with code in path
+          const pathMatch = fullUrl.match(/\/code=([^&]+)/);
+          if (pathMatch && pathMatch[1]) {
+            authCode = pathMatch[1];
+            log.info("Found code in URL path format", { codeLength: authCode.length });
           }
         }
         
@@ -49,6 +57,28 @@ export function useAuthCallback() {
           authCode = hashParams.get("code");
           if (authCode) {
             log.info("Found code in URL hash fragment", { codeLength: authCode.length });
+          }
+        }
+        
+        // Check in state's hash if available
+        if (!authCode && location.state?.fullUrl && location.state.fullUrl.includes('#')) {
+          const hashPart = location.state.fullUrl.split('#')[1];
+          const hashParams = new URLSearchParams(hashPart);
+          authCode = hashParams.get("code");
+          if (authCode) {
+            log.info("Found code in state URL hash fragment", { codeLength: authCode.length });
+          }
+        }
+        
+        // Special check for code in URL path with domain redirect
+        if (!authCode && location.state?.authSource === 'path') {
+          const parts = fullUrl.split('/');
+          for (const part of parts) {
+            if (part.startsWith('code=')) {
+              authCode = part.substring(5);
+              log.info("Found code in URL path component", { codeLength: authCode.length });
+              break;
+            }
           }
         }
         
@@ -123,7 +153,7 @@ export function useAuthCallback() {
     }
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, location]);
 
   return { loading, error };
 }

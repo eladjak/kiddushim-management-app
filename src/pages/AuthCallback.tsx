@@ -5,6 +5,7 @@ import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocation } from "react-router-dom";
 
 /**
  * This page handles OAuth callback and session establishment
@@ -13,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 const AuthCallback = () => {
   const { loading, error } = useAuthCallback();
   const log = logger.createLogger({ component: 'AuthCallback' });
+  const location = useLocation();
   
   useEffect(() => {
     const logInfo = async () => {
@@ -42,6 +44,9 @@ const AuthCallback = () => {
         const lastPart = pathParts[pathParts.length - 1];
         const pathCode = lastPart !== 'callback' ? lastPart : null;
         
+        // Check state data
+        const stateData = location.state || {};
+        
         log.info("Auth callback page loaded", { 
           loading, 
           hasError: !!error, 
@@ -55,6 +60,7 @@ const AuthCallback = () => {
           errorDescription,
           hasSession: !!session,
           sessionUser: session?.user?.id,
+          locationStateData: stateData,
           fullUrl
         });
       } catch (err) {
@@ -67,7 +73,7 @@ const AuthCallback = () => {
     return () => {
       log.info("Auth callback page unmounted");
     };
-  }, [loading, error]);
+  }, [loading, error, location]);
 
   if (loading) {
     return <AuthCallbackLoading />;

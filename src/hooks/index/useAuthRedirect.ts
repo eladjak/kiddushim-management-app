@@ -25,24 +25,43 @@ export const useAuthRedirect = () => {
       
       if (hasAuthCode) {
         log.info("Detected auth code in URL, redirecting to callback page", { url: fullUrl });
-        navigate("/auth/callback", { replace: true });
+        navigate("/auth/callback", { 
+          replace: true,
+          state: { fullUrl }
+        });
         return;
       }
       
-      // Check if there's an auth code in hash fragment
+      // Check if there's auth code in hash fragment
       if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         if (hashParams.has('code')) {
           log.info("Detected auth code in URL hash, redirecting to callback page", { url: fullUrl });
-          navigate("/auth/callback", { replace: true });
+          navigate("/auth/callback", { 
+            replace: true,
+            state: { fullUrl, authSource: 'hash' }
+          });
           return;
         }
+      }
+      
+      // Check for code in path
+      if (window.location.pathname.includes('/code=')) {
+        log.info("Detected auth code in path, redirecting to callback page", { url: fullUrl });
+        navigate("/auth/callback", { 
+          replace: true,
+          state: { fullUrl, authSource: 'path' }
+        });
+        return;
       }
       
       // Check if there are error parameters
       if (urlParams.has('error') || urlParams.has('error_description')) {
         log.info("Detected auth error in URL, redirecting to callback page", { url: fullUrl });
-        navigate("/auth/callback", { replace: true });
+        navigate("/auth/callback", { 
+          replace: true,
+          state: { fullUrl, hasError: true }
+        });
         return;
       }
       
@@ -53,7 +72,20 @@ export const useAuthRedirect = () => {
           pathParts[2] !== 'callback' && 
           pathParts[2].length > 20) { // Auth codes are usually long
         log.info("Detected potential auth code in path, redirecting to callback page", { url: fullUrl });
-        navigate("/auth/callback", { replace: true });
+        navigate("/auth/callback", { 
+          replace: true,
+          state: { fullUrl, authSource: 'pathComponent' }
+        });
+        return;
+      }
+
+      // Handle /?code= format which appears in your error message
+      if (window.location.pathname === '/' && urlParams.has('code')) {
+        log.info("Detected auth code in root path query, redirecting to callback page", { url: fullUrl });
+        navigate("/auth/callback", { 
+          replace: true,
+          state: { fullUrl, authSource: 'rootQuery' }
+        });
         return;
       }
       

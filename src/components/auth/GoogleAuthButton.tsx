@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
@@ -35,6 +34,7 @@ export const GoogleAuthButton = () => {
 
   /**
    * Gets a normalized redirect URL that works in both development and production
+   * Handles www vs non-www domain variants
    */
   const getRedirectUrl = () => {
     // Get the current location
@@ -42,10 +42,20 @@ export const GoogleAuthButton = () => {
     const protocol = window.location.protocol;
     const port = window.location.port ? `:${window.location.port}` : '';
     
-    // Handle special case for www vs non-www in production
-    let baseUrl = `${protocol}//${hostname}${port}`;
+    // Handle specific case for kidushishi-menegment-app.co.il
+    // Use the www version which has the valid certificate
+    let domain = hostname;
     
-    // Check if we're on a domain with www prefix and it's causing issues
+    // Ensure we use the www version for the production domain
+    if (hostname === 'kidushishi-menegment-app.co.il') {
+      domain = 'www.kidushishi-menegment-app.co.il';
+      log.info('Domain normalized to www version for certificate validity');
+    } else if (hostname.includes('lovableproject.com')) {
+      // For development domains, keep as is
+      domain = hostname;
+    }
+    
+    const baseUrl = `${protocol}//${domain}${port}`;
     const redirectPath = "/auth/callback";
     const fullRedirectUrl = `${baseUrl}${redirectPath}`;
     
