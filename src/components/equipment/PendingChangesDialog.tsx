@@ -13,6 +13,7 @@ import { Check, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type EquipmentChange = Database["public"]["Tables"]["equipment_changes"]["Row"];
+type ChangeStatus = Database["public"]["Enums"]["change_status"];
 
 interface PendingChangesDialogProps {
   open: boolean;
@@ -40,7 +41,7 @@ export function PendingChangesDialog({
             name
           )
         `)
-        .eq("status", "pending" as Database["public"]["Enums"]["change_status"])
+        .eq("status", "pending" as ChangeStatus)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -56,7 +57,7 @@ export function PendingChangesDialog({
         const { error: equipmentError } = await supabase
           .from("equipment")
           .update(change.changes as any)
-          .eq("id", change.equipment_id as string);
+          .eq("id", change.equipment_id || '');
 
         if (equipmentError) throw equipmentError;
       }
@@ -65,10 +66,10 @@ export function PendingChangesDialog({
       const { error: statusError } = await supabase
         .from("equipment_changes")
         .update({
-          status: status as Database["public"]["Enums"]["change_status"],
+          status: status as ChangeStatus,
           approved_by: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .eq("id", change.id);
+        } as any)
+        .eq("id", change.id || '');
 
       if (statusError) throw statusError;
 
@@ -101,48 +102,55 @@ export function PendingChangesDialog({
             <div className="text-center">אין בקשות ממתינות</div>
           ) : (
             <div className="space-y-4">
-              {pendingChanges.map((change) => (
-                <div
-                  key={change.id}
-                  className="p-4 border rounded-lg space-y-2"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium">
-                        {(change.requested_by as any)?.name} מבקש לשנות את{" "}
-                        {(change.equipment as any)?.name}
-                      </h4>
-                      <p className="text-sm text-gray-500">{change.notes}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8"
-                        onClick={() => handleChangeStatus(change, "rejected")}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8"
-                        onClick={() => handleChangeStatus(change, "approved")}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="bg-muted p-2 rounded text-sm space-y-1">
-                    {Object.entries(change.changes as any).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span>{key}:</span>
-                        <span>{String(value)}</span>
+              {pendingChanges.map((change) => {
+                const requestedByName = (change.requested_by as any)?.name;
+                const equipmentName = (change.equipment as any)?.name;
+                const changeId = change.id || '';
+                const changeNotes = change.notes || '';
+                const changeChanges = change.changes || {};
+
+                return (
+                  <div
+                    key={changeId}
+                    className="p-4 border rounded-lg space-y-2"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">
+                          {requestedByName} מבקש לשנות את {equipmentName}
+                        </h4>
+                        <p className="text-sm text-gray-500">{changeNotes}</p>
                       </div>
-                    ))}
+                      <div className="flex gap-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => handleChangeStatus(change, "rejected")}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => handleChangeStatus(change, "approved")}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="bg-muted p-2 rounded text-sm space-y-1">
+                      {Object.entries(changeChanges as any).map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span>{key}:</span>
+                          <span>{String(value)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -21,6 +21,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Database } from "@/integrations/supabase/types";
 
 type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
+type EquipmentStatus = Database["public"]["Enums"]["equipment_status"];
+type ChangeType = Database["public"]["Enums"]["equipment_change_type"];
+type ChangeStatus = Database["public"]["Enums"]["change_status"];
 
 const formSchema = z.object({
   name: z.string().min(1, "נדרש למלא שם"),
@@ -64,16 +67,18 @@ export function RequestEquipmentChangeForm({
     const { notes, ...changes } = values;
     
     try {
+      const insertData = {
+        equipment_id: equipment.id,
+        requested_by: user.id,
+        change_type: "update" as ChangeType,
+        changes: changes as any,
+        notes,
+        status: "pending" as ChangeStatus
+      };
+
       const { error } = await supabase
         .from("equipment_changes")
-        .insert({
-          equipment_id: equipment.id,
-          requested_by: user.id,
-          change_type: "update" as Database["public"]["Enums"]["equipment_change_type"],
-          changes,
-          notes,
-          status: "pending" as Database["public"]["Enums"]["change_status"]
-        });
+        .insert(insertData as any);
 
       if (error) throw error;
 

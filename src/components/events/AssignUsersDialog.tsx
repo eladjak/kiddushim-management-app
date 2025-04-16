@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
         const { data, error } = await supabase
           .from('event_assignments')
           .select('user_id')
-          .eq('event_id', eventId as string);
+          .eq('event_id', eventId as unknown as string);
           
         if (error) throw error;
         
@@ -87,7 +86,7 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
       const { error: deleteError } = await supabase
         .from('event_assignments')
         .delete()
-        .eq('event_id', eventId as string);
+        .eq('event_id', eventId as unknown as string);
         
       if (deleteError) throw deleteError;
       
