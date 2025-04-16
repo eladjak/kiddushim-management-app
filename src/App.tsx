@@ -21,6 +21,9 @@ import Documentation from "./pages/Documentation";
 import UserProfile from "./pages/UserProfile";
 import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
+import { useEffect } from "react";
+import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 // Layout component with Navigation and Footer for authenticated routes
 const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
@@ -93,6 +96,41 @@ function AppWithAdminCheck() {
  * Sets up routing, authentication context, admin check, and global UI elements
  */
 function App() {
+  const log = logger.createLogger({ component: 'App' });
+  
+  // לוג מצב אימות מיד בטעינת האפליקציה
+  useEffect(() => {
+    async function checkInitialAuth() {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          log.error("Error checking initial session in App:", error);
+        } else {
+          log.info("Initial App session check:", { 
+            hasSession: !!data.session, 
+            userId: data.session?.user?.id 
+          });
+        }
+      } catch (err) {
+        log.error("Unexpected error in initial App session check:", err);
+      }
+    }
+    
+    checkInitialAuth();
+    
+    // הגדרת מאזין לשינויי אימות גם ברמת האפליקציה
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      log.info("Auth state changed: INITIAL_SESSION", { 
+        _type: typeof event, 
+        value: event 
+      });
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
   // Force RTL direction at the root level
   document.documentElement.dir = "rtl";
   document.body.dir = "rtl";

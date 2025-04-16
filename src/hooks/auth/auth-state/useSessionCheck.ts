@@ -26,6 +26,7 @@ export function useSessionCheck({
   
   const checkSession = async () => {
     try {
+      log.info("Checking for existing session");
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
@@ -42,16 +43,18 @@ export function useSessionCheck({
       if (!mountedRef.current) return;
       
       if (data.session) {
+        log.info("Setting user and session from existing session", { userId: data.session.user.id });
         setSession(data.session);
         setUser(data.session.user);
       }
       
-      // Short delay before completing loading to ensure profiles have time to load
+      // אנחנו נותנים קצת זמן לטעינת פרופילים ומידע נוסף
       setTimeout(() => {
         if (mountedRef.current) {
+          log.info("Completing initial loading state");
           setIsLoading(false);
         }
-      }, 300);
+      }, 500);
     } catch (err) {
       log.error("Unexpected error checking session:", { error: err });
       if (mountedRef.current) setIsLoading(false);

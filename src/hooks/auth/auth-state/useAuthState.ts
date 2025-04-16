@@ -38,20 +38,29 @@ export function useAuthState() {
       log
     });
 
-    // Set a backup timeout to ensure loading state doesn't get stuck
+    // הגדרת טיימאאוט כמנגנון גיבוי למצב שהטעינה תקועה
     const loadingTimeout = setTimeout(() => {
       if (isLoading && mountedRef.current) {
         log.warn("Force completing auth loading state after timeout");
         setIsLoading(false);
       }
-    }, 700);
+    }, 2000); // הגדלנו את הזמן כדי לתת מספיק זמן לתהליך האימות
 
     return () => {
+      log.info("Cleanup auth state hook");
       mountedRef.current = false;
       cleanupListener();
       clearTimeout(loadingTimeout);
     };
   }, [isLoading]);
+
+  // בדיקה נוספת אם יש לנו סשן וחיבור של המשתמש
+  useEffect(() => {
+    if (session && !user && !isLoading) {
+      log.info("Session exists but no user - fixing state");
+      setUser(session.user);
+    }
+  }, [session, user, isLoading]);
 
   return { user, session, setIsLoading, isLoading };
 }

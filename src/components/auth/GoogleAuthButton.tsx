@@ -20,7 +20,7 @@ export const GoogleAuthButton = () => {
    */
   const clearAuthData = () => {
     log.info('Clearing auth data from localStorage');
-    // Remove all auth related items
+    // הסרת כל הפריטים הקשורים לאימות
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -38,7 +38,7 @@ export const GoogleAuthButton = () => {
    * Always uses the www. subdomain on production to match SSL certificate
    */
   const getRedirectUrl = () => {
-    // Get the current location
+    // קבלת המיקום הנוכחי
     const normalizedDomain = getNormalizedDomain();
     const protocol = window.location.protocol;
     const port = window.location.port ? `:${window.location.port}` : '';
@@ -56,7 +56,7 @@ export const GoogleAuthButton = () => {
    * Initiates Google Sign In flow
    */
   const signInWithGoogle = async () => {
-    // Prevent multiple clicks
+    // מניעת לחיצות מרובות
     if (authInProgressRef.current || isLoading) return;
     
     log.info('Initiating Google sign in');
@@ -65,19 +65,26 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
-      // Get normalized redirect URL
+      // קבלת כתובת הפניה מנורמלת
       const redirectUrl = getRedirectUrl();
       log.info('Using redirect URL for OAuth flow:', { redirectUrl });
       
-      // Clear any existing auth data
+      // ניקוי נתוני אימות קיימים
       clearAuthData();
       
-      // Perform explicit signOut before starting a new sign in flow
-      await supabase.auth.signOut({ scope: 'global' });
+      // ביצוע התנתקות מפורשת לפני התחלת זרימת התחברות חדשה
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+        log.info('Successfully signed out before new sign in');
+      } catch (signOutError) {
+        log.warn('Error during sign out before sign in:', { error: signOutError });
+        // נמשיך בכל מקרה כי זה לא קריטי
+      }
       
-      // Wait a moment to ensure signOut is processed
+      // המתנה לפני התחלת תהליך חדש
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // התנעת תהליך האימות עם גוגל
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -109,7 +116,7 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Save URL state in localStorage to detect if we redirected from auth
+      // שמירת מצב האימות ב-localStorage לזיהוי אם הופנינו מאימות
       try {
         localStorage.setItem('auth_redirect_initiated', 'true');
         localStorage.setItem('auth_redirect_time', new Date().toISOString());
@@ -117,7 +124,7 @@ export const GoogleAuthButton = () => {
         log.warn('Could not save auth state to localStorage', { error: e });
       }
       
-      // Navigate to the authentication URL
+      // ניווט לכתובת האימות
       window.location.href = data.url;
       
     } catch (error: any) {
@@ -134,7 +141,7 @@ export const GoogleAuthButton = () => {
         description: errorMessage,
       });
       
-      // Reset state
+      // איפוס מצב
       setIsLoading(false);
       authInProgressRef.current = false;
     }

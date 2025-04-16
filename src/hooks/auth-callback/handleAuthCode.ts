@@ -22,14 +22,15 @@ export async function handleAuthCode(
   });
   
   try {
-    // Process the auth code
+    // החלפת הקוד לסשן
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     
     if (exchangeError) {
       log.error("Error exchanging code for session:", { error: exchangeError });
       
-      // If error mentions PKCE, indicates special handling needed
+      // אם השגיאה קשורה ל-PKCE, יש צורך בטיפול מיוחד
       if (exchangeError.message && exchangeError.message.includes("pkce")) {
+        log.info("PKCE error detected, trying alternative flow");
         return false;
       }
       
@@ -38,24 +39,47 @@ export async function handleAuthCode(
     
     if (!data.session) {
       log.warn("No session found after code exchange");
+      
+      // בדיקה נוספת אם נוצרה סשן בדרך אחרת
+      const sessionResult = await supabase.auth.getSession();
+      if (sessionResult.data.session) {
+        log.info("Session found through direct check after code exchange");
+        
+        // ניקוי פרמטרים מהכתובת
+        if (window.history.replaceState) {
+          window.history.replaceState(null, document.title, window.location.pathname);
+        }
+        
+        // הצגת הודעת הצלחה
+        showToast(toast, "התחברת בהצלחה");
+        
+        // ניווט הביתה
+        setTimeout(() => {
+          log.info("Redirecting to home after successful authentication");
+          navigate("/", { replace: true });
+        }, 300);
+        
+        return true;
+      }
+      
       throw new Error("התחברות נכשלה - לא נוצרה סשן לאחר החלפת קוד");
     }
     
-    // Successfully authenticated
+    // התחברות מוצלחת
     log.info("Session established successfully with code exchange", { 
       userId: data.session.user.id,
       provider: data.session.user.app_metadata.provider
     });
     
-    // Clear URL parameters
+    // ניקוי פרמטרים מהכתובת
     if (window.history.replaceState) {
       window.history.replaceState(null, document.title, window.location.pathname);
     }
     
-    // Show success message
+    // הצגת הודעת הצלחה
     showToast(toast, "התחברת בהצלחה");
     
-    // Navigate home
+    // ניווט הביתה
     setTimeout(() => {
       log.info("Redirecting to home after successful authentication");
       navigate("/", { replace: true });

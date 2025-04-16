@@ -1,55 +1,80 @@
 
-import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/utils/logger";
-import { User } from "@supabase/supabase-js";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
+import type { User } from '@supabase/supabase-js';
 
-export const useDirectSessionCheck = (user: User | null) => {
-  const [directSessionInfo, setDirectSessionInfo] = useState<string | null>(null);
-  const sessionCheckedRef = useRef(false);
-  const log = logger.createLogger({ component: 'useDirectSessionCheck' });
+export function useDirectSessionCheck(user: User | null) {
+  const [directSessionInfo, setDirectSessionInfo] = useState<{
+    hasSession: boolean;
+    userId: string | null;
+    loading: boolean;
+    error: any | null;
+  }>({
+    hasSession: false,
+    userId: null,
+    loading: true,
+    error: null,
+  });
 
   useEffect(() => {
-    if (sessionCheckedRef.current) return;
-    sessionCheckedRef.current = true;
+    const log = logger.createLogger({ component: 'useDirectSessionCheck' });
     
-    const checkSession = async () => {
-      log.info("Performing initial session check on index page");
+    async function checkSession() {
       try {
+        log.info("Checking session directly");
         const { data, error } = await supabase.auth.getSession();
+        
         if (error) {
-          log.error("Error checking session on index page:", error);
-          setDirectSessionInfo("שגיאה בבדיקת הסשן: " + error.message);
+          log.error("Error checking session directly:", error);
+          setDirectSessionInfo({
+            hasSession: false,
+            userId: null,
+            loading: false,
+            error,
+          });
           return;
         }
         
-        const sessionInfo = {
-          hasSession: !!data.session,
-          currentUser: !!user,
-          sessionUserId: data.session?.user?.id,
-          contextUserId: user?.id
-        };
-        
-        log.info("Index page direct session check:", sessionInfo);
-        setDirectSessionInfo(
-          "מידע ישיר מהסשן: " + 
-          (data.session ? "יש סשן" : "אין סשן") + 
-          (data.session?.user ? `, ID: ${data.session.user.id.slice(0, 6)}...` : "")
-        );
-        
-        // If we have a session but user isn't set in context, force reload
-        if (data.session && !user) {
-          log.info("Session exists but user not in context, forcing reload");
-          window.location.reload();
+        if (data.session) {
+          log.info("Direct session check found session:", {
+            userId: data.session.user.id,
+            providerType: data.session.user.app_metadata?.provider,
+          });
+        } else {
+          log.info("Direct session check found no session");
         }
+        
+        setDirectSessionInfo({
+          hasSession: !!data.session,
+          userId: data.session?.user?.id || null,
+          loading: false,
+          error: null,
+        });
       } catch (err) {
-        log.error("Error in direct session check:", err);
-        setDirectSessionInfo("שגיאה בבדיקת הסשן הישירה");
+        log.error("Unexpected error in direct session check:", err);
+        setDirectSessionInfo({
+          hasSession: false,
+          userId: null,
+          loading: false,
+          error: err,
+        });
       }
-    };
+    }
     
-    checkSession();
+    // אם אין משתמש מזוהה, נבדוק אם יש סשן ישירות
+    if (!user) {
+      checkSession();
+    } else {
+      // אם יש משתמש, נעדכן את המידע כך שיתאים למשתמש הנוכחי
+      setDirectSessionInfo({
+        hasSession: true,
+        userId: user.id,
+        loading: false,
+        error: null,
+      });
+    }
   }, [user]);
 
   return { directSessionInfo };
-};
+}

@@ -31,13 +31,16 @@ export function useAuthListener({
       
       if (!mountedRef.current) return;
       
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-        if (newSession) {
+      // הטיפול בכל סוגי האירועים
+      if (newSession) {
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+          log.info("Setting user and session from auth event", { event, userId: newSession.user.id });
           setSession(newSession);
           setUser(newSession.user);
           setIsLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
+        log.info("User signed out, clearing session and user");
         setSession(null);
         setUser(null);
         setIsLoading(false);
@@ -53,6 +56,7 @@ export function useAuthListener({
   const cleanup = () => {
     if (subscriptionRef.current?.data?.subscription) {
       try {
+        log.info("Cleaning up auth listener subscription");
         subscriptionRef.current.data.subscription.unsubscribe();
       } catch (error) {
         log.error("Error unsubscribing from auth state changes:", { error });
