@@ -40,7 +40,7 @@ export function PendingChangesDialog({
             name
           )
         `)
-        .eq("status", "pending")
+        .eq("status", "pending" as Database["public"]["Enums"]["change_status"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -56,7 +56,7 @@ export function PendingChangesDialog({
         const { error: equipmentError } = await supabase
           .from("equipment")
           .update(change.changes as any)
-          .eq("id", change.equipment_id);
+          .eq("id", change.equipment_id as string);
 
         if (equipmentError) throw equipmentError;
       }
@@ -65,7 +65,7 @@ export function PendingChangesDialog({
       const { error: statusError } = await supabase
         .from("equipment_changes")
         .update({
-          status,
+          status: status as Database["public"]["Enums"]["change_status"],
           approved_by: (await supabase.auth.getUser()).data.user?.id,
         })
         .eq("id", change.id);

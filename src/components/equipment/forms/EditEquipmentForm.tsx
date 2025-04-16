@@ -57,10 +57,18 @@ export function EditEquipmentForm({
     if (!equipment) return;
 
     try {
+      const updateValues = {
+        name: values.name,
+        description: values.description,
+        quantity: values.quantity,
+        location: values.location,
+        status: values.status as Database["public"]["Enums"]["equipment_status"],
+      };
+
       const { error } = await supabase
         .from("equipment")
-        .update(values)
-        .eq("id", equipment.id);
+        .update(updateValues)
+        .eq("id", equipment.id as string);
 
       if (error) throw error;
 
@@ -85,7 +93,7 @@ export function EditEquipmentForm({
       const { error } = await supabase
         .from("equipment")
         .delete()
-        .eq("id", equipment.id);
+        .eq("id", equipment.id as string);
 
       if (error) throw error;
 

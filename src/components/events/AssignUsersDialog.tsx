@@ -54,7 +54,7 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
         const { data, error } = await supabase
           .from('event_assignments')
           .select('user_id')
-          .eq('event_id', eventId);
+          .eq('event_id', eventId as string);
           
         if (error) throw error;
         
@@ -87,7 +87,7 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
       const { error: deleteError } = await supabase
         .from('event_assignments')
         .delete()
-        .eq('event_id', eventId);
+        .eq('event_id', eventId as string);
         
       if (deleteError) throw deleteError;
       

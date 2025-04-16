@@ -69,9 +69,10 @@ export function RequestEquipmentChangeForm({
         .insert({
           equipment_id: equipment.id,
           requested_by: user.id,
-          change_type: "update",
+          change_type: "update" as Database["public"]["Enums"]["equipment_change_type"],
           changes,
           notes,
+          status: "pending" as Database["public"]["Enums"]["change_status"]
         });
 
       if (error) throw error;
