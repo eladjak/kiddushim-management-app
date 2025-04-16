@@ -71,14 +71,14 @@ export function RequestEquipmentChangeForm({
         equipment_id: equipment.id,
         requested_by: user.id,
         change_type: "update" as ChangeType,
-        changes: changes as any,
+        changes,
         notes,
         status: "pending" as ChangeStatus
       };
 
       const { error } = await supabase
         .from("equipment_changes")
-        .insert(insertData as any);
+        .insert(insertData);
 
       if (error) throw error;
 

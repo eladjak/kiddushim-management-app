@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -53,12 +54,13 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
         const { data, error } = await supabase
           .from('event_assignments')
           .select('user_id')
-          .eq('event_id', eventId as unknown as string);
+          .eq('event_id', eventId);
           
         if (error) throw error;
         
         if (data) {
-          setSelectedUsers(data.map(assignment => assignment.user_id));
+          const userIds = data.map(assignment => assignment.user_id).filter(Boolean);
+          setSelectedUsers(userIds);
         }
       } catch (error: any) {
         console.error("Error fetching assignments:", error.message);
@@ -86,7 +88,7 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
       const { error: deleteError } = await supabase
         .from('event_assignments')
         .delete()
-        .eq('event_id', eventId as unknown as string);
+        .eq('event_id', eventId);
         
       if (deleteError) throw deleteError;
       
@@ -99,11 +101,14 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
           status: 'assigned'
         }));
         
-        const { error: insertError } = await supabase
-          .from('event_assignments')
-          .insert(assignments);
-          
-        if (insertError) throw insertError;
+        // Insert assignments one by one to avoid type issues
+        for (const assignment of assignments) {
+          const { error: insertError } = await supabase
+            .from('event_assignments')
+            .insert(assignment);
+            
+          if (insertError) throw insertError;
+        }
       }
       
       toast({

@@ -57,7 +57,7 @@ export function PendingChangesDialog({
         const { error: equipmentError } = await supabase
           .from("equipment")
           .update(change.changes as any)
-          .eq("id", change.equipment_id || '');
+          .eq("id", change.equipment_id as string);
 
         if (equipmentError) throw equipmentError;
       }
@@ -68,8 +68,8 @@ export function PendingChangesDialog({
         .update({
           status: status as ChangeStatus,
           approved_by: (await supabase.auth.getUser()).data.user?.id,
-        } as any)
-        .eq("id", change.id || '');
+        })
+        .eq("id", change.id as string);
 
       if (statusError) throw statusError;
 
@@ -103,11 +103,12 @@ export function PendingChangesDialog({
           ) : (
             <div className="space-y-4">
               {pendingChanges.map((change) => {
-                const requestedByName = (change.requested_by as any)?.name;
-                const equipmentName = (change.equipment as any)?.name;
-                const changeId = change.id || '';
-                const changeNotes = change.notes || '';
-                const changeChanges = change.changes || {};
+                // Using type assertions and optional chaining for safety
+                const requestedByName = (change as any)?.requested_by?.name || 'משתמש לא ידוע';
+                const equipmentName = (change as any)?.equipment?.name || 'ציוד לא ידוע';
+                const changeId = change?.id || '';
+                const changeNotes = change?.notes || '';
+                const changeChanges = change?.changes || {};
 
                 return (
                   <div
@@ -126,7 +127,9 @@ export function PendingChangesDialog({
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8"
-                          onClick={() => handleChangeStatus(change, "rejected")}
+                          onClick={() => {
+                            if (change) handleChangeStatus(change, "rejected");
+                          }}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -134,7 +137,9 @@ export function PendingChangesDialog({
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8"
-                          onClick={() => handleChangeStatus(change, "approved")}
+                          onClick={() => {
+                            if (change) handleChangeStatus(change, "approved");
+                          }}
                         >
                           <Check className="h-4 w-4" />
                         </Button>
