@@ -1,226 +1,173 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Loader2, UserRound, X } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { Database } from "@/integrations/supabase/types";
 
 interface AssignUsersDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
   eventId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  role: string;
+  title: string;
 }
 
-export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialogProps) {
-  const [users, setUsers] = useState<any[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+export function AssignUsersDialog({
+  eventId,
+  open,
+  onOpenChange,
+  role,
+  title,
+}: AssignUsersDialogProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  // Fetch users
+  // Fetch users with the specified role
+  const { data: roleUsers, isLoading: loadingUsers } = useQuery({
+    queryKey: ["users", role],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name")
+        .eq("role", role);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open,
+  });
+
+  // Fetch current assignments for this event and role
+  const { data: currentAssignments, isLoading: loadingAssignments } = useQuery({
+    queryKey: ["event_assignments", eventId, role],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_assignments")
+        .select("user_id")
+        .eq("event_id", eventId)
+        .eq("role", role);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!eventId,
+  });
+
+  // Set initial selected users based on current assignments
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (!isOpen) return;
+    if (currentAssignments && currentAssignments.length > 0) {
+      // Safe access with type checking
+      const userIds = currentAssignments
+        .filter(assignment => assignment && typeof assignment === 'object' && 'user_id' in assignment)
+        .map(assignment => assignment.user_id as string);
       
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, name, role, avatar_url')
-          .order('name');
-          
-        if (error) throw error;
-        setUsers(data || []);
-      } catch (error: any) {
-        console.error("Error fetching users:", error.message);
-        toast({
-          variant: "destructive",
-          description: `שגיאה בטעינת המשתמשים: ${error.message}`,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    // Fetch event assignments
-    const fetchAssignments = async () => {
-      if (!isOpen || !eventId) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('event_assignments')
-          .select('user_id')
-          .eq('event_id', eventId as any);
-          
-        if (error) throw error;
-        
-        if (data) {
-          // Apply type safety when extracting user_id values
-          const userIds = data
-            .map(assignment => assignment?.user_id)
-            .filter((userId): userId is string => Boolean(userId));
-          setSelectedUsers(userIds);
-        }
-      } catch (error: any) {
-        console.error("Error fetching assignments:", error.message);
-      }
-    };
-
-    fetchUsers();
-    fetchAssignments();
-  }, [isOpen, eventId, toast]);
-
-  const handleUserSelect = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId) 
-        : [...prev, userId]
-    );
-  };
+      setSelectedUsers(userIds);
+    } else {
+      setSelectedUsers([]);
+    }
+  }, [currentAssignments]);
 
   const handleSave = async () => {
-    if (!eventId) return;
-    
-    setIsSaving(true);
     try {
-      // First, remove all existing assignments
+      // First, delete all existing assignments for this event and role
       const { error: deleteError } = await supabase
-        .from('event_assignments')
+        .from("event_assignments")
         .delete()
-        .eq('event_id', eventId as any);
-        
+        .match({
+          event_id: eventId,
+          role: role,
+        });
+
       if (deleteError) throw deleteError;
-      
-      // Then add new assignments
+
+      // Then, insert new assignments if there are any selected users
       if (selectedUsers.length > 0) {
-        for (const userId of selectedUsers) {
-          const assignmentData = {
-            event_id: eventId,
-            user_id: userId,
-            role: 'volunteer',
-            status: 'assigned'
-          };
-          
-          const { error: insertError } = await supabase
-            .from('event_assignments')
-            .insert(assignmentData as any);
-            
-          if (insertError) throw insertError;
-        }
+        const assignments = selectedUsers.map((userId) => ({
+          event_id: eventId,
+          user_id: userId,
+          role: role,
+          status: "pending",
+        }));
+
+        const { error: insertError } = await supabase
+          .from("event_assignments")
+          .insert(assignments as any);
+
+        if (insertError) throw insertError;
       }
-      
+
       toast({
-        description: "המשתמשים הוקצו לאירוע בהצלחה",
+        description: "המשתמשים שויכו בהצלחה",
       });
-      
-      onClose();
+
+      queryClient.invalidateQueries({ queryKey: ["event_assignments"] });
+      onOpenChange(false);
     } catch (error: any) {
-      console.error("Error saving assignments:", error.message);
       toast({
         variant: "destructive",
-        description: `שגיאה בשמירת השיוכים: ${error.message}`,
+        description: "שגיאה בשיוך המשתמשים",
       });
-    } finally {
-      setIsSaving(false);
     }
-  };
-
-  const getRoleName = (role: string) => {
-    switch (role) {
-      case 'admin': return 'מנהל';
-      case 'coordinator': return 'רכז';
-      case 'service_girl': return 'בת שירות';
-      case 'youth_volunteer': return 'מתנדב נוער';
-      case 'content_provider': return 'ספק תוכן';
-      default: return role;
-    }
-  };
-
-  // Get initials for avatar fallback
-  const getInitials = (name: string): string => {
-    if (!name) return "?";
-    
-    const nameParts = name.split(" ");
-    if (nameParts.length >= 2) {
-      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`;
-    }
-    return nameParts[0].substring(0, 2);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">צוות משתמשים לאירוע</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        
-        <div className="py-4">
-          {isLoading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-            </div>
+        <div className="space-y-4">
+          {loadingUsers || loadingAssignments ? (
+            <div className="text-center">טוען...</div>
           ) : (
             <>
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  בחר משתמשים לצוות לאירוע זה
-                </p>
-                <div className="text-sm text-muted-foreground">
-                  {selectedUsers.length} נבחרו
+              {roleUsers && roleUsers.length > 0 ? (
+                <div className="space-y-2">
+                  {roleUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center space-x-2 rtl:space-x-reverse"
+                    >
+                      <Checkbox
+                        id={user.id}
+                        checked={selectedUsers.includes(user.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedUsers([...selectedUsers, user.id]);
+                          } else {
+                            setSelectedUsers(
+                              selectedUsers.filter((id) => id !== user.id)
+                            );
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={user.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {user.name}
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              
-              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2">
-                {users.map((user) => (
-                  <div 
-                    key={user.id}
-                    className={`p-3 rounded-lg flex items-center justify-between cursor-pointer hover:bg-secondary/50 ${
-                      selectedUsers.includes(user.id) ? 'bg-secondary/50' : ''
-                    }`}
-                    onClick={() => handleUserSelect(user.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.avatar_url || ""} alt={user.name} />
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <Badge variant="outline" className="mt-1">
-                          {getRoleName(user.role)}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div>
-                      {selectedUsers.includes(user.id) ? (
-                        <CheckCircle2 className="h-5 w-5 text-primary" />
-                      ) : (
-                        <UserRound className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </div>
-                ))}
+              ) : (
+                <div className="text-center">אין משתמשים זמינים עם תפקיד זה</div>
+              )}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button onClick={handleSave}>שמור</Button>
               </div>
             </>
           )}
-        </div>
-        
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose}>
-            <X className="h-4 w-4 ml-1" />
-            ביטול
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving && <Loader2 className="h-4 w-4 ml-1 animate-spin" />}
-            שמור שינויים
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

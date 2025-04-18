@@ -66,10 +66,11 @@ export function EditEquipmentForm({
         status: values.status as EquipmentStatus,
       };
 
+      // Type assertion for the Supabase client
       const { error } = await supabase
         .from("equipment")
-        .update(updateValues as any)
-        .eq("id", equipment.id || '');
+        .update(updateValues)
+        .eq("id", equipment.id as string);
 
       if (error) throw error;
 
@@ -94,7 +95,7 @@ export function EditEquipmentForm({
       const { error } = await supabase
         .from("equipment")
         .delete()
-        .eq("id", equipment.id || '');
+        .eq("id", equipment.id as string);
 
       if (error) throw error;
 

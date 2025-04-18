@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -106,25 +105,20 @@ export const useEventForm = () => {
     try {
       logger.info("Creating event", { formData });
       
-      // Parse and format dates carefully
       const eventDate = new Date(formData.date);
       
-      // Create setup time
       const setupTimeParts = formData.setupTime.split(':');
       const setupDate = new Date(eventDate);
       setupDate.setHours(parseInt(setupTimeParts[0], 10), parseInt(setupTimeParts[1], 10), 0, 0);
       
-      // Create main time
       const mainTimeParts = formData.mainTime.split(':');
       const mainDate = new Date(eventDate);
       mainDate.setHours(parseInt(mainTimeParts[0], 10), parseInt(mainTimeParts[1], 10), 0, 0);
       
-      // Create cleanup time
       const cleanupTimeParts = formData.cleanupTime.split(':');
       const cleanupDate = new Date(eventDate);
       cleanupDate.setHours(parseInt(cleanupTimeParts[0], 10), parseInt(cleanupTimeParts[1], 10), 0, 0);
 
-      // Create a sanitized version of the event data for submission
       const eventData = {
         title: formData.title,
         date: eventDate.toISOString(),
@@ -141,15 +135,14 @@ export const useEventForm = () => {
         workshop_content: formData.workshopContent || null,
         event_content: formData.eventContent || null,
         created_by: user.id,
-        status: "draft",
+        status: "draft"
       };
 
-      // Log the data being sent for debugging
       logger.info("Submitting event data:", { event: JSON.stringify(eventData) });
 
       const { data, error } = await supabase
         .from("events")
-        .insert(eventData)
+        .insert(eventData as any)
         .select();
         
       if (error) {
