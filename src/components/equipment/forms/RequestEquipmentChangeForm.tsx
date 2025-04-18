@@ -67,7 +67,8 @@ export function RequestEquipmentChangeForm({
     const { notes, ...changes } = values;
     
     try {
-      const insertData = {
+      // Create the insert data object with proper typing
+      const insertData: Partial<Database["public"]["Tables"]["equipment_changes"]["Insert"]> = {
         equipment_id: equipment.id,
         requested_by: user.id,
         change_type: "update" as ChangeType,
@@ -78,7 +79,7 @@ export function RequestEquipmentChangeForm({
 
       const { error } = await supabase
         .from("equipment_changes")
-        .insert(insertData);
+        .insert(insertData as any);
 
       if (error) throw error;
 

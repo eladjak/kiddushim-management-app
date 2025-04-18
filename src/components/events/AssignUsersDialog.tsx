@@ -54,12 +54,15 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
         const { data, error } = await supabase
           .from('event_assignments')
           .select('user_id')
-          .eq('event_id', eventId);
+          .eq('event_id', eventId as any);
           
         if (error) throw error;
         
         if (data) {
-          const userIds = data.map(assignment => assignment.user_id).filter(Boolean);
+          // Apply type safety when extracting user_id values
+          const userIds = data
+            .map(assignment => assignment?.user_id)
+            .filter((userId): userId is string => Boolean(userId));
           setSelectedUsers(userIds);
         }
       } catch (error: any) {
@@ -88,24 +91,23 @@ export function AssignUsersDialog({ isOpen, onClose, eventId }: AssignUsersDialo
       const { error: deleteError } = await supabase
         .from('event_assignments')
         .delete()
-        .eq('event_id', eventId);
+        .eq('event_id', eventId as any);
         
       if (deleteError) throw deleteError;
       
       // Then add new assignments
       if (selectedUsers.length > 0) {
-        const assignments = selectedUsers.map(userId => ({
-          event_id: eventId,
-          user_id: userId,
-          role: 'volunteer',
-          status: 'assigned'
-        }));
-        
-        // Insert assignments one by one to avoid type issues
-        for (const assignment of assignments) {
+        for (const userId of selectedUsers) {
+          const assignmentData = {
+            event_id: eventId,
+            user_id: userId,
+            role: 'volunteer',
+            status: 'assigned'
+          };
+          
           const { error: insertError } = await supabase
             .from('event_assignments')
-            .insert(assignment);
+            .insert(assignmentData as any);
             
           if (insertError) throw insertError;
         }

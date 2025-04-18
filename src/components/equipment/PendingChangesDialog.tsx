@@ -57,7 +57,7 @@ export function PendingChangesDialog({
         const { error: equipmentError } = await supabase
           .from("equipment")
           .update(change.changes as any)
-          .eq("id", change.equipment_id as string);
+          .eq("id", change.equipment_id || '');
 
         if (equipmentError) throw equipmentError;
       }
@@ -68,8 +68,8 @@ export function PendingChangesDialog({
         .update({
           status: status as ChangeStatus,
           approved_by: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .eq("id", change.id as string);
+        } as any)
+        .eq("id", change.id || '');
 
       if (statusError) throw statusError;
 
@@ -103,7 +103,10 @@ export function PendingChangesDialog({
           ) : (
             <div className="space-y-4">
               {pendingChanges.map((change) => {
-                // Using type assertions and optional chaining for safety
+                // Type guard to ensure change is not null
+                if (!change) return null;
+                
+                // Safe access with type assertions for nested data
                 const requestedByName = (change as any)?.requested_by?.name || 'משתמש לא ידוע';
                 const equipmentName = (change as any)?.equipment?.name || 'ציוד לא ידוע';
                 const changeId = change?.id || '';
@@ -128,7 +131,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            if (change) handleChangeStatus(change, "rejected");
+                            if (change) handleChangeStatus(change as EquipmentChange, "rejected");
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -138,7 +141,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            if (change) handleChangeStatus(change, "approved");
+                            if (change) handleChangeStatus(change as EquipmentChange, "approved");
                           }}
                         >
                           <Check className="h-4 w-4" />

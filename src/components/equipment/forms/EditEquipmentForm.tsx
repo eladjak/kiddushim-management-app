@@ -68,8 +68,8 @@ export function EditEquipmentForm({
 
       const { error } = await supabase
         .from("equipment")
-        .update(updateValues)
-        .eq("id", equipment.id as string);
+        .update(updateValues as any)
+        .eq("id", equipment.id || '');
 
       if (error) throw error;
 
@@ -94,7 +94,7 @@ export function EditEquipmentForm({
       const { error } = await supabase
         .from("equipment")
         .delete()
-        .eq("id", equipment.id as string);
+        .eq("id", equipment.id || '');
 
       if (error) throw error;
 
