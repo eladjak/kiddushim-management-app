@@ -41,7 +41,7 @@ export function PendingChangesDialog({
             name
           )
         `)
-        .eq("status", "pending" as ChangeStatus)
+        .eq("status", "pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -50,14 +50,14 @@ export function PendingChangesDialog({
     enabled: open,
   });
 
-  async function handleChangeStatus(change: EquipmentChange, status: 'approved' | 'rejected') {
+  async function handleChangeStatus(changeItem: any, status: 'approved' | 'rejected') {
     try {
       if (status === 'approved') {
         // First update the equipment
         const { error: equipmentError } = await supabase
           .from("equipment")
-          .update(change.changes as any)
-          .eq("id", change.equipment_id as string);
+          .update(changeItem.changes as any)
+          .eq("id", changeItem.equipment_id);
 
         if (equipmentError) throw equipmentError;
       }
@@ -66,10 +66,10 @@ export function PendingChangesDialog({
       const { error: statusError } = await supabase
         .from("equipment_changes")
         .update({
-          status: status as ChangeStatus,
+          status: status,
           approved_by: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .eq("id", change.id as string);
+        } as any)
+        .eq("id", changeItem.id);
 
       if (statusError) throw statusError;
 
@@ -106,7 +106,7 @@ export function PendingChangesDialog({
                 // Type guard to ensure change is not null
                 if (!change) return null;
                 
-                // Safe type casting to access nested properties
+                // Safely access nested properties
                 const anyChange = change as any;
                 const requestedByName = anyChange?.requested_by?.name || 'משתמש לא ידוע';
                 const equipmentName = anyChange?.equipment?.name || 'ציוד לא ידוע';
@@ -132,8 +132,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            // Use type assertion to safely pass change to handler
-                            handleChangeStatus(change as EquipmentChange, "rejected");
+                            handleChangeStatus(anyChange, "rejected");
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -143,8 +142,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            // Use type assertion to safely pass change to handler
-                            handleChangeStatus(change as EquipmentChange, "approved");
+                            handleChangeStatus(anyChange, "approved");
                           }}
                         >
                           <Check className="h-4 w-4" />

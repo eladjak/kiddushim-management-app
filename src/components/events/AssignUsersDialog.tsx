@@ -86,7 +86,7 @@ export function AssignUsersDialog({
         .match({
           event_id: eventId,
           role: role,
-        });
+        } as any);
 
       if (deleteError) throw deleteError;
 

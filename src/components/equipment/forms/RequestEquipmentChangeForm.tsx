@@ -79,7 +79,7 @@ export function RequestEquipmentChangeForm({
 
       const { error } = await supabase
         .from("equipment_changes")
-        .insert(insertData);
+        .insert(insertData as any);
 
       if (error) throw error;
 
