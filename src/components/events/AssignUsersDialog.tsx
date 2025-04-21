@@ -68,7 +68,11 @@ export function AssignUsersDialog({
     if (currentAssignments && currentAssignments.length > 0) {
       const userIds = currentAssignments
         .filter(assignment => assignment && typeof assignment === 'object' && 'user_id' in assignment)
-        .map(assignment => (assignment as any).user_id as string);
+        .map(assignment => {
+          // Safe type casting
+          const typedAssignment = assignment as { user_id: string };
+          return typedAssignment.user_id;
+        });
       
       setSelectedUsers(userIds);
     } else {
@@ -132,32 +136,41 @@ export function AssignUsersDialog({
             <>
               {roleUsers && roleUsers.length > 0 ? (
                 <div className="space-y-2">
-                  {roleUsers.map((user: any) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center space-x-2 rtl:space-x-reverse"
-                    >
-                      <Checkbox
-                        id={user.id}
-                        checked={selectedUsers.includes(user.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedUsers([...selectedUsers, user.id]);
-                          } else {
-                            setSelectedUsers(
-                              selectedUsers.filter((id) => id !== user.id)
-                            );
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={user.id}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  {roleUsers.map((user: any) => {
+                    // Ensure user has id and name properties
+                    if (!user || typeof user !== 'object') return null;
+                    const userId = user.id;
+                    const userName = user.name;
+                    
+                    if (!userId) return null;
+                    
+                    return (
+                      <div
+                        key={userId}
+                        className="flex items-center space-x-2 rtl:space-x-reverse"
                       >
-                        {user.name}
-                      </label>
-                    </div>
-                  ))}
+                        <Checkbox
+                          id={userId}
+                          checked={selectedUsers.includes(userId)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedUsers([...selectedUsers, userId]);
+                            } else {
+                              setSelectedUsers(
+                                selectedUsers.filter((id) => id !== userId)
+                              );
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={userId}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {userName || "משתמש ללא שם"}
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center">אין משתמשים זמינים עם תפקיד זה</div>

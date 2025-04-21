@@ -11,9 +11,9 @@ export const useAssignments = (userId?: string) => {
       
       try {
         const { data, error } = await supabase
-          .from('event_assignments') // Changed from 'assignments' to 'event_assignments'
+          .from('event_assignments')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', userId as any)
           .order('created_at', { ascending: false });
         
         if (error) throw error;

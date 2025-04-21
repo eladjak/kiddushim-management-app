@@ -106,13 +106,15 @@ export function PendingChangesDialog({
                 // Type guard to ensure change is not null
                 if (!change) return null;
                 
+                // Safely extract properties with type assertions
+                const changeId = (change as any)?.id;
+                if (!changeId) return null;
+                
                 // Access properties safely after type checking
-                const anyChange = change as any;
-                const requestedByName = anyChange?.requested_by?.name || 'משתמש לא ידוע';
-                const equipmentName = anyChange?.equipment?.name || 'ציוד לא ידוע';
-                const changeId = anyChange?.id || '';
-                const changeNotes = anyChange?.notes || '';
-                const changeChanges = anyChange?.changes || {};
+                const requestedByName = (change as any)?.requested_by?.name || 'משתמש לא ידוע';
+                const equipmentName = (change as any)?.equipment?.name || 'ציוד לא ידוע';
+                const changeNotes = (change as any)?.notes || '';
+                const changeChanges = (change as any)?.changes || {};
 
                 return (
                   <div
@@ -132,7 +134,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            handleChangeStatus(anyChange, "rejected");
+                            handleChangeStatus(change as any, "rejected");
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -142,7 +144,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            handleChangeStatus(anyChange, "approved");
+                            handleChangeStatus(change as any, "approved");
                           }}
                         >
                           <Check className="h-4 w-4" />

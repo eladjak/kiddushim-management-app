@@ -151,16 +151,17 @@ export const useEventForm = () => {
         throw error;
       }
       
+      // Use optional chaining and safe type assertion for the event ID
       const eventId = data?.[0]?.id;
       logger.info("Event created successfully", { eventId });
       
-      if (user.id) {
+      if (user.id && eventId) {
         await createNotification({
           userId: user.id,
           content: `האירוע "${formData.title}" נוצר בהצלחה`,
           type: "event",
           link: `/events/${eventId}`,
-          metadata: { eventId: eventId as string }
+          metadata: { eventId }
         });
       }
       

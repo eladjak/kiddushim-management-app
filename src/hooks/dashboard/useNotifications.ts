@@ -29,15 +29,15 @@ export const useNotifications = (userId?: string) => {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userId as any)
         .order("created_at", { ascending: false });
       
       if (error) {
         throw error;
       }
       
-      // Convert the data to our Notification type
-      const notifications = data as Notification[];
+      // Convert the data to our Notification type with a proper type assertion
+      const notifications = data as unknown as Notification[];
       
       // Update unread count
       const unreadNotifications = notifications.filter(notif => !notif.read);
@@ -70,9 +70,9 @@ export const useNotifications = (userId?: string) => {
       
       const { error } = await supabase
         .from("notifications")
-        .update({ read: true })
-        .eq("id", notificationId)
-        .eq("user_id", userId);
+        .update({ read: true } as any)
+        .eq("id", notificationId as any)
+        .eq("user_id", userId as any);
       
       if (error) {
         throw error;
@@ -104,9 +104,9 @@ export const useNotifications = (userId?: string) => {
       
       const { error } = await supabase
         .from("notifications")
-        .update({ read: true })
-        .eq("user_id", userId)
-        .eq("read", false);
+        .update({ read: true } as any)
+        .eq("user_id", userId as any)
+        .eq("read", false as any);
       
       if (error) {
         throw error;

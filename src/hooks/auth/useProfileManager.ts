@@ -21,7 +21,7 @@ export function useProfileManager() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", userId as any)
         .maybeSingle();
       
       if (error) {
@@ -73,7 +73,7 @@ export function useProfileManager() {
       
       const { data, error } = await supabase
         .from("profiles")
-        .insert(profileData)
+        .insert(profileData as any)
         .select()
         .single();
       

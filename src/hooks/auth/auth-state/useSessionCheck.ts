@@ -1,65 +1,47 @@
-
-import { useRef } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
-import type { Logger } from "@/utils/logger";
+import { useAuth } from "@/context/AuthContext";
+import { logger } from "@/utils/logger";
+import { LoggerType } from "./types";
 
-interface SessionCheckParams {
-  mountedRef: React.MutableRefObject<boolean>;
-  setSession: (session: Session | null) => void;
-  setUser: (user: User | null) => void;
-  setIsLoading: (isLoading: boolean) => void;
-  log: Logger;
-}
+/**
+ * Hook to check and handle existing Supabase sessions
+ */
+export function useSessionCheck() {
+  const { session, setSession, setIsLoading } = useAuth();
+  const navigate = useNavigate();
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const log: LoggerType = logger.createLogger({ component: 'useSessionCheck' });
 
-export function useSessionCheck({
-  mountedRef,
-  setSession,
-  setUser,
-  setIsLoading,
-  log
-}: SessionCheckParams) {
-  const checkSessionCalledRef = useRef(false);
-
-  if (checkSessionCalledRef.current) return;
-  checkSessionCalledRef.current = true;
-  
-  const checkSession = async () => {
-    try {
-      log.info("Checking for existing session");
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        log.error("Error getting session:", { error });
-        if (mountedRef.current) setIsLoading(false);
-        return;
-      }
-      
-      log.info("Session check result:", { 
-        hasSession: !!data.session,
-        userId: data.session?.user?.id
-      });
-      
-      if (!mountedRef.current) return;
-      
-      if (data.session) {
-        log.info("Setting user and session from existing session", { userId: data.session.user.id });
-        setSession(data.session);
-        setUser(data.session.user);
-      }
-      
-      // אנחנו נותנים קצת זמן לטעינת פרופילים ומידע נוסף
-      setTimeout(() => {
-        if (mountedRef.current) {
-          log.info("Completing initial loading state");
-          setIsLoading(false);
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      setIsLoading(true);
+      try {
+        log.info("Checking existing session...");
+        
+        // Check if there's an existing session in local storage
+        const storedSession = supabase.auth.getSession();
+        
+        if (storedSession) {
+          log.info("Existing session found in local storage");
+          setSession(storedSession);
+        } else {
+          log.info("No existing session found in local storage");
         }
-      }, 500);
-    } catch (err) {
-      log.error("Unexpected error checking session:", { error: err });
-      if (mountedRef.current) setIsLoading(false);
+      } catch (error) {
+        log.error("Error checking existing session:", error);
+      } finally {
+        setIsLoading(false);
+        setSessionChecked(true);
+      }
+    };
+
+    // Run the check only once when the component mounts
+    if (!sessionChecked) {
+      checkExistingSession();
     }
-  };
-  
-  checkSession();
+  }, [navigate, setSession, setIsLoading, sessionChecked, log]);
+
+  return sessionChecked;
 }
