@@ -1,81 +1,47 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import type { User } from "@supabase/supabase-js";
 
-/**
- * Hook to handle profile fetching logic
- */
 export function useProfileFetcher(user: User | null, setIsLoading: (value: boolean) => void) {
   const [retryCount, setRetryCount] = useState(0);
-  const log = logger.createLogger({ component: 'useProfileFetcher' });
-  const mountedRef = useRef(true);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profileCreationAttemptedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const log = logger.createLogger({ component: 'useProfileFetcher' });
 
-  /**
-   * Fetch user profile from the database
-   */
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
-      log.info("Fetching profile for user:", { userId, retry: retryCount });
+      setRetryCount(prev => prev + 1);
       
-      const { data, error } = await supabase
+      // Type assertion for userId to handle Supabase parameter typing
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (!mountedRef.current) return null;
+        .eq("id", userId as any)
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') { // Row not found
-          log.info("Profile not found, it may be created by the trigger soon");
-          
-          // Wait a moment and try again
-          if (retryCount < 5) { // Increased from 3 to 5 for more retries
-            const newRetryCount = retryCount + 1;
-            log.info("Retrying profile fetch...", { retryCount: newRetryCount });
-            if (mountedRef.current) setRetryCount(newRetryCount);
-            
-            return new Promise(resolve => {
-              retryTimerRef.current = setTimeout(() => {
-                if (mountedRef.current) {
-                  resolve(fetchProfile(userId));
-                } else {
-                  resolve(null);
-                }
-              }, 1500);
-            });
-          }
-          
-          return null;
-        }
-        
-        log.error("Error fetching profile:", { error });
-        if (mountedRef.current) setIsLoading(false);
+        log.error("Error fetching profile:", { error, userId });
         return null;
       }
 
-      log.info("Profile fetched successfully");
-      return data;
+      if (!profile) {
+        log.warn("No profile found for user:", { userId, retryAttempt: retryCount });
+        return null;
+      }
+
+      log.info("Profile fetched successfully:", { userId });
+      return profile;
     } catch (error) {
-      log.error("Error fetching profile:", { error });
-      if (mountedRef.current) setIsLoading(false);
+      log.error("Unexpected error in fetchProfile:", error);
       return null;
     }
-  };
+  }, [retryCount]);
 
-  /**
-   * Cleanup function to handle component unmounting
-   */
-  const cleanup = () => {
+  const cleanup = useCallback(() => {
     mountedRef.current = false;
-    if (retryTimerRef.current) {
-      clearTimeout(retryTimerRef.current);
-    }
-  };
+  }, []);
 
   return {
     fetchProfile,

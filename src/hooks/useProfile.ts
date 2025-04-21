@@ -48,17 +48,22 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (profileData) {
         // Type guard to check if profileData has necessary properties
         if (typeof profileData === 'object' && profileData !== null) {
-          const typedProfile = profileData as Profile;
+          // Type assertion to treat profileData as Profile
+          const typedProfile = profileData as any;
           
           // Ensure all required fields have valid values
           const normalizedProfile: Profile = {
-            ...typedProfile,
-            avatar_url: typedProfile.avatar_url ?? null,
+            id: typedProfile.id,
+            name: typedProfile.name,
             email: typedProfile.email ?? null,
             phone: typedProfile.phone ?? null,
-            last_active: typedProfile.last_active ?? null,
-            notification_settings: typedProfile.notification_settings ?? {},
+            avatar_url: typedProfile.avatar_url ?? null,
+            role: typedProfile.role,
+            created_at: typedProfile.created_at,
+            updated_at: typedProfile.updated_at,
             settings: typedProfile.settings ?? {},
+            notification_settings: typedProfile.notification_settings ?? {},
+            last_active: typedProfile.last_active ?? null,
             language: typedProfile.language ?? 'he',
             shabbat_mode: typedProfile.shabbat_mode ?? false,
             encoding_support: typedProfile.encoding_support ?? true
@@ -95,18 +100,25 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         if (!mountedRef.current) return;
         
         if (createdProfile) {
+          // Type assertion to treat createdProfile as Profile
+          const typedProfile = createdProfile as any;
+          
           // Ensure all required fields have valid values
           const normalizedProfile: Profile = {
-            ...createdProfile,
-            avatar_url: createdProfile.avatar_url ?? null,
-            email: createdProfile.email ?? null,
-            phone: createdProfile.phone ?? null,
-            last_active: createdProfile.last_active ?? null,
-            notification_settings: createdProfile.notification_settings ?? {},
-            settings: createdProfile.settings ?? {},
-            language: createdProfile.language ?? 'he',
-            shabbat_mode: createdProfile.shabbat_mode ?? false,
-            encoding_support: createdProfile.encoding_support ?? true
+            id: typedProfile.id,
+            name: typedProfile.name,
+            email: typedProfile.email ?? null,
+            phone: typedProfile.phone ?? null,
+            avatar_url: typedProfile.avatar_url ?? null,
+            role: typedProfile.role,
+            created_at: typedProfile.created_at,
+            updated_at: typedProfile.updated_at,
+            settings: typedProfile.settings ?? {},
+            notification_settings: typedProfile.notification_settings ?? {},
+            last_active: typedProfile.last_active ?? null,
+            language: typedProfile.language ?? 'he',
+            shabbat_mode: typedProfile.shabbat_mode ?? false,
+            encoding_support: typedProfile.encoding_support ?? true
           };
           
           setProfile(normalizedProfile);

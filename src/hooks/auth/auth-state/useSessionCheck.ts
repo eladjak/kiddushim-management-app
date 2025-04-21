@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
-import { LoggerType } from "./types";
 
 /**
  * Hook to check and handle existing Supabase sessions
@@ -17,23 +16,34 @@ export function useSessionCheck() {
 
   useEffect(() => {
     const checkExistingSession = async () => {
-      auth.setIsLoading(true);
+      // Safely access setIsLoading if it exists
+      if (typeof auth.setIsLoading === 'function') {
+        auth.setIsLoading(true);
+      }
+      
       try {
         log.info("Checking existing session...");
         
         // Check if there's an existing session in local storage
-        const storedSession = supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
+        const storedSession = data?.session;
         
         if (storedSession) {
           log.info("Existing session found in local storage");
-          auth.setSession(storedSession);
+          // Safely access setSession if it exists
+          if (typeof auth.setSession === 'function') {
+            auth.setSession(storedSession);
+          }
         } else {
           log.info("No existing session found in local storage");
         }
       } catch (error) {
         log.error("Error checking existing session:", error);
       } finally {
-        auth.setIsLoading(false);
+        // Safely access setIsLoading if it exists
+        if (typeof auth.setIsLoading === 'function') {
+          auth.setIsLoading(false);
+        }
         setSessionChecked(true);
       }
     };
