@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -88,7 +89,7 @@ export function EditEquipmentForm({
     }
   }
 
-  async function onDelete() {
+  async function handleDelete() {
     if (!equipment) return;
 
     try {
@@ -136,7 +137,7 @@ export function EditEquipmentForm({
             <FormItem>
               <FormLabel>תיאור</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ""} />
+                <Textarea {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -198,8 +199,8 @@ export function EditEquipmentForm({
             </FormItem>
           )}
         />
-        <div className="flex justify-between">
-          <Button type="button" variant="destructive" onClick={onDelete}>
+        <div className="flex justify-between gap-2">
+          <Button type="button" variant="destructive" onClick={handleDelete}>
             מחק
           </Button>
           <Button type="submit">שמור</Button>

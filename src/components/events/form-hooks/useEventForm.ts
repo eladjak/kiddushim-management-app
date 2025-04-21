@@ -160,7 +160,7 @@ export const useEventForm = () => {
           content: `האירוע "${formData.title}" נוצר בהצלחה`,
           type: "event",
           link: `/events/${eventId}`,
-          metadata: { eventId }
+          metadata: { eventId: eventId as string }
         });
       }
       

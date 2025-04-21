@@ -69,7 +69,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
         .update({
           role: selectedRole,
           updated_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", selectedUser.id);
 
       if (error) throw error;

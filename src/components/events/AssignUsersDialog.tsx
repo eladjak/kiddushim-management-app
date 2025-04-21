@@ -39,7 +39,7 @@ export function AssignUsersDialog({
       const { data, error } = await supabase
         .from("profiles")
         .select("id, name")
-        .eq("role", role);
+        .eq("role", role as any);
 
       if (error) throw error;
       return data || [];
@@ -54,8 +54,8 @@ export function AssignUsersDialog({
       const { data, error } = await supabase
         .from("event_assignments")
         .select("user_id")
-        .eq("event_id", eventId)
-        .eq("role", role);
+        .eq("event_id", eventId as any)
+        .eq("role", role as any);
 
       if (error) throw error;
       return data || [];
@@ -66,10 +66,9 @@ export function AssignUsersDialog({
   // Set initial selected users based on current assignments
   useEffect(() => {
     if (currentAssignments && currentAssignments.length > 0) {
-      // Safe access with type checking
       const userIds = currentAssignments
         .filter(assignment => assignment && typeof assignment === 'object' && 'user_id' in assignment)
-        .map(assignment => assignment.user_id as string);
+        .map(assignment => (assignment as any).user_id as string);
       
       setSelectedUsers(userIds);
     } else {
@@ -133,7 +132,7 @@ export function AssignUsersDialog({
             <>
               {roleUsers && roleUsers.length > 0 ? (
                 <div className="space-y-2">
-                  {roleUsers.map((user) => (
+                  {roleUsers.map((user: any) => (
                     <div
                       key={user.id}
                       className="flex items-center space-x-2 rtl:space-x-reverse"

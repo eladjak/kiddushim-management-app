@@ -41,7 +41,7 @@ export function PendingChangesDialog({
             name
           )
         `)
-        .eq("status", "pending")
+        .eq("status", "pending" as any)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -57,7 +57,7 @@ export function PendingChangesDialog({
         const { error: equipmentError } = await supabase
           .from("equipment")
           .update(changeItem.changes as any)
-          .eq("id", changeItem.equipment_id);
+          .eq("id", changeItem.equipment_id as any);
 
         if (equipmentError) throw equipmentError;
       }
@@ -66,10 +66,10 @@ export function PendingChangesDialog({
       const { error: statusError } = await supabase
         .from("equipment_changes")
         .update({
-          status: status,
+          status: status as ChangeStatus,
           approved_by: (await supabase.auth.getUser()).data.user?.id,
         } as any)
-        .eq("id", changeItem.id);
+        .eq("id", changeItem.id as any);
 
       if (statusError) throw statusError;
 
@@ -106,13 +106,13 @@ export function PendingChangesDialog({
                 // Type guard to ensure change is not null
                 if (!change) return null;
                 
-                // Safely access nested properties
+                // Access properties safely after type checking
                 const anyChange = change as any;
                 const requestedByName = anyChange?.requested_by?.name || 'משתמש לא ידוע';
                 const equipmentName = anyChange?.equipment?.name || 'ציוד לא ידוע';
-                const changeId = change?.id || '';
-                const changeNotes = change?.notes || '';
-                const changeChanges = change?.changes || {};
+                const changeId = anyChange?.id || '';
+                const changeNotes = anyChange?.notes || '';
+                const changeChanges = anyChange?.changes || {};
 
                 return (
                   <div
