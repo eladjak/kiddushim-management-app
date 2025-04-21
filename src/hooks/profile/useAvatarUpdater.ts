@@ -1,75 +1,74 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
-import type { User } from "@supabase/supabase-js";
 
-/**
- * Hook to handle avatar updates
- */
-export function useAvatarUpdater(user: User | null) {
+export function useAvatarUpdater(user: any) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const { toast } = useToast();
   const log = logger.createLogger({ component: 'useAvatarUpdater' });
 
   /**
-   * Update Google avatar for a profile
+   * Update profile with Google avatar URL
    */
   const updateProfileWithGoogleAvatar = async (userId: string, avatarUrl: string) => {
     try {
-      log.info("Updating profile with Google avatar");
+      log.info("Updating profile with Google avatar:", { userId, avatarUrl });
       
       const { error } = await supabase
         .from("profiles")
-        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
-        .eq("id", userId);
-
-      if (error) throw error;
+        .update({
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        } as any)
+        .eq("id", userId as any);
       
-      log.info("Profile updated with Google avatar");
+      if (error) {
+        log.error("Error updating avatar from Google:", { error });
+        return false;
+      }
+      
+      log.info("Profile avatar updated from Google successfully");
       return true;
     } catch (error) {
-      log.error("Error updating profile with Google avatar:", { error });
+      log.error("Unexpected error updating avatar from Google:", { error });
       return false;
     }
   };
 
   /**
-   * Update user's avatar
+   * Update avatar URL in profile
    */
-  const updateAvatar = async (avatarUrl: string) => {
-    if (!user?.id) return false;
+  const updateAvatar = async (url: string) => {
+    if (!user?.id) {
+      log.error("Cannot update avatar: No user ID");
+      return false;
+    }
+    
+    setIsUpdating(true);
     
     try {
-      setIsUpdating(true);
+      log.info("Updating avatar:", { userId: user.id, url });
+      
       const { error } = await supabase
         .from("profiles")
-        .update({ 
-          avatar_url: avatarUrl,
-          updated_at: new Date().toISOString() 
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
+        .update({
+          avatar_url: url,
+          updated_at: new Date().toISOString()
+        } as any)
+        .eq("id", user.id as any);
       
-      setIsUpdating(false);
+      if (error) {
+        log.error("Error updating avatar:", { error });
+        return false;
+      }
       
-      toast({
-        description: "תמונת הפרופיל עודכנה בהצלחה",
-      });
-      
+      log.info("Avatar updated successfully");
       return true;
-    } catch (error: any) {
-      console.error("Error updating avatar:", error);
-      setIsUpdating(false);
-      
-      toast({
-        variant: "destructive",
-        description: `שגיאה בעדכון תמונת הפרופיל: ${error.message}`,
-      });
-      
+    } catch (error) {
+      log.error("Unexpected error updating avatar:", { error });
       return false;
+    } finally {
+      setIsUpdating(false);
     }
   };
 

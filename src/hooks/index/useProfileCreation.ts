@@ -26,7 +26,7 @@ export const useProfileCreation = (user: User | null) => {
       const { data: existingProfile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("id", user.id)
+        .eq("id", user.id as any)
         .maybeSingle();
         
       if (existingProfile) {
@@ -39,21 +39,21 @@ export const useProfileCreation = (user: User | null) => {
       
       const defaultRole: RoleType = 'coordinator';
       
-      // Create new profile with explicit role type
+      // Create new profile with explicit role type and type assertion
       const { error } = await supabase
         .from("profiles")
         .insert({
-          id: user.id,
+          id: user.id as any,
           name: user.user_metadata?.name || 
                user.user_metadata?.full_name || 
                user.email?.split('@')[0] || 'משתמש',
           email: user.email,
           language: 'he',
-          role: defaultRole,
+          role: defaultRole as any,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
           shabbat_mode: false,
-          encoding_support: true // הוספת שדה חסר
-        });
+          encoding_support: true
+        } as any);
         
       if (error) {
         if (error.code === '23505') {

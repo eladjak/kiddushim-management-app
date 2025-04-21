@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -46,14 +47,12 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
 
       const { data, error } = await supabase
         .from("reports")
-        .insert([
-          {
-            type: reportType,
-            content: encodedContent,
-            event_id: eventId,
-            reporter_id: user.id,
-          },
-        ])
+        .insert({
+          type: reportType,
+          content: encodedContent,
+          event_id: eventId,
+          reporter_id: user.id,
+        })
         .select();
 
       if (error) {
@@ -61,7 +60,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
         throw new Error(`שגיאה ביצירת הדיווח: ${error.message}`);
       }
 
-      // This would be at line 74, assuming the error is about safely accessing the id property:
+      // Safe access to the id property
       const reportId = data?.[0] ? (data[0] as any).id : undefined;
 
       toast({

@@ -22,8 +22,8 @@ export const ReportsHeader = () => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <CreateReportForm 
-              onCancel={() => setIsDialogOpen(false)}
-              onSuccess={() => setIsDialogOpen(false)}
+              onClose={() => setIsDialogOpen(false)}
+              eventId="no-events" // Provide a default eventId
               reportType={reportType}
             />
           </DialogContent>

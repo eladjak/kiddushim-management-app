@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -9,13 +10,13 @@ import { LoggerType } from "./types";
  * Hook to listen for authentication state changes and update the user context.
  */
 export const useAuthListener = () => {
-  const { setUser, setProfile, setIsLoading } = useAuth();
+  const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const log: LoggerType = logger.createLogger({ component: 'useAuthListener' });
+  const log = logger.createLogger({ component: 'useAuthListener' });
 
   useEffect(() => {
-    setIsLoading(true);
+    auth.setIsLoading(true);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -23,7 +24,7 @@ export const useAuthListener = () => {
         
         if (session) {
           log.info("User session detected", { userId: session.user.id });
-          setUser(session.user);
+          auth.setUser(session.user);
           
           // Redirect from auth callback page
           if (location.pathname === '/auth-callback') {
@@ -32,8 +33,8 @@ export const useAuthListener = () => {
           }
         } else {
           log.info("No user session detected, clearing user context");
-          setUser(null);
-          setProfile(null);
+          auth.setUser(null);
+          auth.setProfile(null);
           
           // Redirect to signin page if not already there
           if (!['/signin', '/signup', '/auth-callback'].includes(location.pathname)) {
@@ -42,7 +43,7 @@ export const useAuthListener = () => {
           }
         }
         
-        setIsLoading(false);
+        auth.setIsLoading(false);
       }
     );
 
@@ -50,6 +51,5 @@ export const useAuthListener = () => {
       log.info("Removing auth state change subscription");
       subscription.unsubscribe();
     };
-  }, [setUser, setProfile, navigate, location, setIsLoading, log]);
+  }, [auth, navigate, location]);
 };
-

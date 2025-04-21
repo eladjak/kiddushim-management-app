@@ -151,8 +151,8 @@ export const useEventForm = () => {
         throw error;
       }
       
-      // Use optional chaining and safe type assertion for the event ID
-      const eventId = data?.[0]?.id;
+      // Safe access to the event ID using type assertion
+      const eventId = data && data[0] ? (data[0] as any).id : undefined;
       logger.info("Event created successfully", { eventId });
       
       if (user.id && eventId) {

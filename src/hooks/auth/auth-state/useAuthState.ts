@@ -3,8 +3,15 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { logger } from "@/utils/logger";
-import { useAuthListener } from "./useAuthListener";
-import { useSessionCheck } from "./useSessionCheck";
+import { LoggerType } from "./types";
+
+interface AuthContextState {
+  mountedRef: React.MutableRefObject<boolean>;
+  setSession: (session: Session | null) => void;
+  setUser: (user: User | null) => void;
+  setIsLoading: (loading: boolean) => void;
+  log: LoggerType;
+}
 
 export function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
@@ -12,7 +19,9 @@ export function useAuthState() {
   const [isLoading, setIsLoading] = useState(true);
   const log = logger.createLogger({ component: 'useAuthState' });
   const mountedRef = useRef(true);
+  const subscriptionRef = useRef<{ data: { subscription: { unsubscribe: () => void } } } | null>(null);
   const initializeRef = useRef(false);
+  const checkSessionCalledRef = useRef(false);
 
   useEffect(() => {
     if (initializeRef.current) return;
@@ -20,47 +29,103 @@ export function useAuthState() {
     
     log.info("Initializing auth state");
     
-    // Set up auth listener
-    const { subscription, cleanup: cleanupListener } = useAuthListener({
-      mountedRef,
-      setSession,
-      setUser,
-      setIsLoading,
-      log
-    });
+    // Set up listener before checking session
+    const setupAuthListener = () => {
+      try {
+        const authListener = supabase.auth.onAuthStateChange(async (event, newSession) => {
+          log.info("Auth state changed:", { 
+            event, 
+            hasSession: !!newSession,
+            userId: newSession?.user?.id
+          });
+          
+          if (!mountedRef.current) return;
+          
+          if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+            if (newSession) {
+              setSession(newSession);
+              setUser(newSession.user);
+              setIsLoading(false);
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setSession(null);
+            setUser(null);
+            setIsLoading(false);
+          }
+        });
+        
+        subscriptionRef.current = authListener;
+      } catch (error) {
+        log.error("Error setting up auth listener:", { error });
+        setIsLoading(false);
+      }
+    };
     
-    // Check for existing session
-    useSessionCheck({
-      mountedRef,
-      setSession,
-      setUser,
-      setIsLoading,
-      log
-    });
+    // Set up auth listener first
+    setupAuthListener();
+    
+    // Then check for existing session
+    const checkSession = async () => {
+      if (checkSessionCalledRef.current) return;
+      checkSessionCalledRef.current = true;
+      
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          log.error("Error getting session:", { error });
+          if (mountedRef.current) setIsLoading(false);
+          return;
+        }
+        
+        log.info("Session check result:", { 
+          hasSession: !!data.session,
+          userId: data.session?.user?.id
+        });
+        
+        if (!mountedRef.current) return;
+        
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+        }
+        
+        // Short delay before completing loading to ensure profiles have time to load
+        setTimeout(() => {
+          if (mountedRef.current) {
+            setIsLoading(false);
+          }
+        }, 300);
+      } catch (err) {
+        log.error("Unexpected error checking session:", { error: err });
+        if (mountedRef.current) setIsLoading(false);
+      }
+    };
+    
+    checkSession();
 
-    // הגדרת טיימאאוט כמנגנון גיבוי למצב שהטעינה תקועה
+    // Set a backup timeout to ensure loading state doesn't get stuck
     const loadingTimeout = setTimeout(() => {
       if (isLoading && mountedRef.current) {
         log.warn("Force completing auth loading state after timeout");
         setIsLoading(false);
       }
-    }, 2000); // הגדלנו את הזמן כדי לתת מספיק זמן לתהליך האימות
+    }, 700);
 
     return () => {
-      log.info("Cleanup auth state hook");
       mountedRef.current = false;
-      cleanupListener();
+      
+      if (subscriptionRef.current?.data?.subscription) {
+        try {
+          subscriptionRef.current.data.subscription.unsubscribe();
+        } catch (error) {
+          log.error("Error unsubscribing from auth state changes:", { error });
+        }
+      }
+      
       clearTimeout(loadingTimeout);
     };
   }, [isLoading]);
-
-  // בדיקה נוספת אם יש לנו סשן וחיבור של המשתמש
-  useEffect(() => {
-    if (session && !user && !isLoading) {
-      log.info("Session exists but no user - fixing state");
-      setUser(session.user);
-    }
-  }, [session, user, isLoading]);
 
   return { user, session, setIsLoading, isLoading };
 }

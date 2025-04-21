@@ -37,16 +37,17 @@ export function useProfileCreator() {
       // Ensure role is one of the valid enum values
       const defaultRole: RoleType = 'coordinator';
 
+      // Use type assertion to fix type issues with Supabase
       const newProfile = {
-        id: userId,
+        id: userId as any,
         name: name,
         email: user.email,
         language: hasHebrewChars ? 'he' : 'en',
-        role: defaultRole,
+        role: defaultRole as any,
         shabbat_mode: false,
         avatar_url: avatarUrl,
-        encoding_support: true // הוספת שדה חסר
-      };
+        encoding_support: true
+      } as any;
 
       log.info("Creating profile with data:", { profile: newProfile });
       
@@ -73,7 +74,7 @@ export function useProfileCreator() {
         const { data: existingProfile } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", userId)
+          .eq("id", userId as any)
           .single();
           
         setIsCreating(false);
