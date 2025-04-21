@@ -19,15 +19,18 @@ export const useUsersData = (searchTerm: string, toast: any) => {
         .order("name");
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Safe data access with type assertion
+      const usersData = data as any[] || [];
+      setUsers(usersData);
 
-      // Apply initial filtering
-      const filtered = data?.filter(
+      // Apply initial filtering with safe property access
+      const filtered = usersData.filter(
         (user) =>
-          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.phone?.includes(searchTerm)
-      ) || [];
+          user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user?.phone?.includes(searchTerm)
+      );
       
       setFilteredUsers(filtered);
     } catch (error: any) {
@@ -45,9 +48,9 @@ export const useUsersData = (searchTerm: string, toast: any) => {
     if (users.length > 0) {
       const filtered = users.filter(
         (user) =>
-          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.phone?.includes(searchTerm)
+          user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user?.phone?.includes(searchTerm)
       );
       setFilteredUsers(filtered);
     }
@@ -58,13 +61,16 @@ export const useUsersData = (searchTerm: string, toast: any) => {
     try {
       setLoading(true);
       
+      // Use type assertion for update data
+      const updateData = {
+        role: role,
+        updated_at: new Date().toISOString(),
+      } as any;
+      
       const { error } = await supabase
         .from("profiles")
-        .update({
-          role: role,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
+        .update(updateData)
+        .eq("id", userId as any);
 
       if (error) throw error;
       
@@ -81,9 +87,9 @@ export const useUsersData = (searchTerm: string, toast: any) => {
       // Re-apply filtering
       const filtered = updatedUsers.filter(
         (user) =>
-          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.phone?.includes(searchTerm)
+          user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user?.phone?.includes(searchTerm)
       );
       setFilteredUsers(filtered);
       

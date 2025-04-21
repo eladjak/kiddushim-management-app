@@ -51,7 +51,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
         content: encodedContent,
         event_id: eventId,
         reporter_id: user.id,
-      } as any; // Type assertion to avoid strict type checking for insert
+      } as any; // Type assertion for insert
 
       const { data, error } = await supabase
         .from("reports")

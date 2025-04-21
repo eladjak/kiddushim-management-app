@@ -16,11 +16,6 @@ export function useSessionCheck() {
 
   useEffect(() => {
     const checkExistingSession = async () => {
-      // Safely access setIsLoading if it exists
-      if (typeof auth.setIsLoading === 'function') {
-        auth.setIsLoading(true);
-      }
-      
       try {
         log.info("Checking existing session...");
         
@@ -30,20 +25,14 @@ export function useSessionCheck() {
         
         if (storedSession) {
           log.info("Existing session found in local storage");
-          // Safely access setSession if it exists
-          if (typeof auth.setSession === 'function') {
-            auth.setSession(storedSession);
-          }
+          // Note: We're not directly updating session state since
+          // that's handled by the useAuthentication hook now
         } else {
           log.info("No existing session found in local storage");
         }
       } catch (error) {
         log.error("Error checking existing session:", error);
       } finally {
-        // Safely access setIsLoading if it exists
-        if (typeof auth.setIsLoading === 'function') {
-          auth.setIsLoading(false);
-        }
         setSessionChecked(true);
       }
     };

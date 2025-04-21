@@ -30,13 +30,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     flowType: 'implicit', // Use implicit flow which is more reliable across browsers
     debug: import.meta.env.DEV, // Enable debug mode in development
-    // Fixed cookie options to ensure consistent behavior across domains
-    cookieOptions: {
-      path: '/',
-      sameSite: 'lax',
-      domain: undefined, // Let the browser determine the domain
-      secure: window.location.protocol === 'https:'
-    }
   },
   global: {
     headers: {
