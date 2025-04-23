@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -14,10 +15,15 @@ export const useAuthListener = () => {
   const log = logger.createLogger({ component: 'useAuthListener' });
 
   useEffect(() => {
-    // Using a standard variable to avoid TS error
-    const isLoadingSetter = auth.isLoading !== undefined ? 
-      () => auth.setIsLoading?.(true) : () => {};
-    isLoadingSetter();
+    // Check if loading can be updated via auth context
+    const updateLoading = (value: boolean) => {
+      // Only attempt to update if the function exists
+      if (auth.isLoading !== undefined && typeof auth.setIsLoading === 'function') {
+        auth.setIsLoading(value);
+      }
+    };
+    
+    updateLoading(true);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -25,7 +31,8 @@ export const useAuthListener = () => {
         
         if (session) {
           log.info("User session detected", { userId: session.user.id });
-          // Safely access setUser if it exists
+          
+          // Update user if setter exists
           if (typeof auth.setUser === 'function') {
             auth.setUser(session.user);
           }
@@ -37,10 +44,12 @@ export const useAuthListener = () => {
           }
         } else {
           log.info("No user session detected, clearing user context");
-          // Safely access context methods if they exist
+          
+          // Update user context if setters exist
           if (typeof auth.setUser === 'function') {
             auth.setUser(null);
           }
+          
           if (typeof auth.setProfile === 'function') {
             auth.setProfile(null);
           }
@@ -52,10 +61,7 @@ export const useAuthListener = () => {
           }
         }
         
-        // Safely access setIsLoading if it exists
-        if (typeof auth.setIsLoading === 'function') {
-          auth.setIsLoading(false);
-        }
+        updateLoading(false);
       }
     );
 

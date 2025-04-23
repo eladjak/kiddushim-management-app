@@ -15,6 +15,19 @@ export function useSessionCheck() {
   const log = logger.createLogger({ component: 'useSessionCheck' });
 
   useEffect(() => {
+    // Helper functions to safely update state via context
+    const updateLoading = (value: boolean) => {
+      if (auth.isLoading !== undefined && typeof auth.setIsLoading === 'function') {
+        auth.setIsLoading(value);
+      }
+    };
+    
+    const updateSession = (session: any) => {
+      if (typeof auth.setSession === 'function') {
+        auth.setSession(session);
+      }
+    };
+    
     const checkExistingSession = async () => {
       try {
         log.info("Checking existing session...");
@@ -25,8 +38,8 @@ export function useSessionCheck() {
         
         if (storedSession) {
           log.info("Existing session found in local storage");
-          // Note: We're not directly updating session state since
-          // that's handled by the useAuthentication hook now
+          // Update session if the setter exists
+          updateSession(storedSession);
         } else {
           log.info("No existing session found in local storage");
         }
@@ -34,11 +47,13 @@ export function useSessionCheck() {
         log.error("Error checking existing session:", error);
       } finally {
         setSessionChecked(true);
+        updateLoading(false);
       }
     };
 
     // Run the check only once when the component mounts
     if (!sessionChecked) {
+      updateLoading(true);
       checkExistingSession();
     }
   }, [navigate, auth, sessionChecked, log]);

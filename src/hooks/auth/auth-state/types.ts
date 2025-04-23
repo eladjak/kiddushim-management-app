@@ -18,14 +18,26 @@ export type LoggerType = {
   createLogger: (options: { component: string }) => LoggerType;
 };
 
-// AuthContext state interface
+// AuthContext state interface - updated to include optional setter methods
 export interface AuthContextState {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
-  setSession: (session: Session | null) => void;
-  setProfile: (profile: Profile | null) => void;
-  setIsLoading: (loading: boolean) => void;
+  setUser?: (user: User | null) => void;
+  setSession?: (session: Session | null) => void;
+  setProfile?: (profile: Profile | null) => void;
+  setIsLoading?: (loading: boolean) => void;
+}
+
+// Debug panel props type
+export interface DebugPanelProps {
+  directSessionInfo: {
+    hasSession: boolean;
+    userId: string | null;
+    loading: boolean;
+    error: any | null;
+  };
+  onSignOut: () => void;
+  onExitDebugMode: () => void;
 }

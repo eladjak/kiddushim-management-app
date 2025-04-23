@@ -4,13 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import type { User } from '@supabase/supabase-js';
 
+// Define the structure of the session info object
+export interface DirectSessionInfo {
+  hasSession: boolean;
+  userId: string | null;
+  loading: boolean;
+  error: any | null;
+}
+
 export function useDirectSessionCheck(user: User | null) {
-  const [directSessionInfo, setDirectSessionInfo] = useState<{
-    hasSession: boolean;
-    userId: string | null;
-    loading: boolean;
-    error: any | null;
-  }>({
+  const [directSessionInfo, setDirectSessionInfo] = useState<DirectSessionInfo>({
     hasSession: false,
     userId: null,
     loading: true,
