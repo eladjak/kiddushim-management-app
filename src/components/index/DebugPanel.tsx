@@ -4,8 +4,13 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 interface DebugPanelProps {
-  directSessionInfo: string | null;
-  onSignOut: () => Promise<void>;
+  directSessionInfo: {
+    hasSession: boolean;
+    userId: string | null;
+    loading: boolean;
+    error: any | null;
+  };
+  onSignOut: () => void;
   onExitDebugMode: () => void;
 }
 
@@ -31,7 +36,9 @@ export const DebugPanel = ({
         
         <div>
           <h2 className="font-bold">בדיקת סשן ישירה:</h2>
-          <p>{directSessionInfo || "טרם נבדק"}</p>
+          <p>{directSessionInfo.hasSession ? `סשן נמצא (${directSessionInfo.userId?.slice(0, 6)}...)` : "לא נמצא סשן"}</p>
+          <p>מצב טעינה: {directSessionInfo.loading ? "טוען" : "סיים טעינה"}</p>
+          {directSessionInfo.error && <p className="text-red-500">שגיאה: {JSON.stringify(directSessionInfo.error)}</p>}
         </div>
         
         <div className="flex gap-4 mt-4">
