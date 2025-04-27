@@ -33,7 +33,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   global: {
     headers: {
-      'X-Client-Info': 'lovable-web-app'
+      'X-Client-Info': 'kidushishi-web-app'
     }
   }
 });
@@ -45,10 +45,17 @@ export const getAuthStorageKey = getStorageKey;
 export const getNormalizedDomain = () => {
   try {
     const hostname = window.location.hostname;
+    
+    // דוגמין שמתחיל ב-local או localhost אינו צריך www
+    if (hostname.startsWith('local') || hostname.includes('lovableproject.com')) {
+      return hostname;
+    }
+    
     // Ensure we use www for the production domain to match SSL certificate
     if (hostname === 'kidushishi-menegment-app.co.il') {
       return 'www.kidushishi-menegment-app.co.il';
     }
+    
     return hostname;
   } catch (e) {
     return '';

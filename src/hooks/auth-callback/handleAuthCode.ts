@@ -22,6 +22,9 @@ export async function handleAuthCode(
   });
   
   try {
+    // ניקוי כל מונים של רידיירקט
+    sessionStorage.removeItem('auth_redirect_count');
+    
     // החלפת הקוד לסשן
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     

@@ -31,6 +31,11 @@ export const GoogleAuthButton = () => {
     
     keysToRemove.forEach(key => localStorage.removeItem(key));
     log.info('Cleared auth data, keys removed:', { count: keysToRemove.length });
+    
+    // גם לנקות מסשן סטורג'
+    sessionStorage.removeItem('auth_redirect_count');
+    sessionStorage.removeItem('auth_redirect_initiated');
+    sessionStorage.removeItem('auth_redirect_time');
   };
 
   /**
@@ -116,12 +121,12 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // שמירת מצב האימות ב-localStorage לזיהוי אם הופנינו מאימות
+      // שמירת מצב האימות בסשן סטורג' במקום לוקל סטורג'
       try {
-        localStorage.setItem('auth_redirect_initiated', 'true');
-        localStorage.setItem('auth_redirect_time', new Date().toISOString());
+        sessionStorage.setItem('auth_redirect_initiated', 'true');
+        sessionStorage.setItem('auth_redirect_time', new Date().toISOString());
       } catch (e) {
-        log.warn('Could not save auth state to localStorage', { error: e });
+        log.warn('Could not save auth state to sessionStorage', { error: e });
       }
       
       // ניווט לכתובת האימות

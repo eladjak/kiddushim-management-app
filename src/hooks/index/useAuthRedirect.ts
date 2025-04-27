@@ -11,9 +11,10 @@ export const useAuthRedirect = () => {
   const navigate = useNavigate();
   const log = logger.createLogger({ component: 'useAuthRedirect' });
   const hashCheckedRef = useRef(false);
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
-    if (hashCheckedRef.current) return;
+    if (hashCheckedRef.current || redirectedRef.current) return;
     hashCheckedRef.current = true;
     
     try {
@@ -23,12 +24,24 @@ export const useAuthRedirect = () => {
       
       // If we're on the wrong domain, redirect to the correct one
       if (currentDomain !== normalizedDomain && currentDomain === 'kidushishi-menegment-app.co.il') {
+        // Check if we're already handling this to prevent loops
+        const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
+        if (redirectCount > 2) {
+          log.error("Detected redirect loop in useAuthRedirect, breaking the cycle");
+          sessionStorage.removeItem('auth_redirect_count');
+          return;
+        }
+        
         // Need to redirect to www version for SSL certificate
         const protocol = window.location.protocol;
         const pathname = window.location.pathname;
         const search = window.location.search;
         const hash = window.location.hash;
         const port = window.location.port ? `:${window.location.port}` : '';
+        
+        redirectedRef.current = true;
+        // Store redirect count in sessionStorage
+        sessionStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
         
         const newUrl = `${protocol}//${normalizedDomain}${port}${pathname}${search}${hash}`;
         log.info("Redirecting to normalized domain for SSL certificate", {
@@ -126,8 +139,10 @@ export const useAuthRedirect = () => {
       }
 
       // Check if we were previously redirected from auth
-      const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true';
-      const redirectTime = localStorage.getItem('auth_redirect_time');
+      const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' ||
+                            sessionStorage.getItem('auth_redirect_initiated') === 'true';
+      const redirectTime = localStorage.getItem('auth_redirect_time') || 
+                           sessionStorage.getItem('auth_redirect_time');
       
       if (wasRedirected && redirectTime) {
         // Only consider redirects within the last 5 minutes
@@ -144,6 +159,8 @@ export const useAuthRedirect = () => {
           // Clear the redirect flag
           localStorage.removeItem('auth_redirect_initiated');
           localStorage.removeItem('auth_redirect_time');
+          sessionStorage.removeItem('auth_redirect_initiated');
+          sessionStorage.removeItem('auth_redirect_time');
           
           navigate("/auth/callback", { 
             replace: true,
@@ -158,6 +175,8 @@ export const useAuthRedirect = () => {
           // Clear stale redirect flags
           localStorage.removeItem('auth_redirect_initiated');
           localStorage.removeItem('auth_redirect_time');
+          sessionStorage.removeItem('auth_redirect_initiated');
+          sessionStorage.removeItem('auth_redirect_time');
         }
       }
 

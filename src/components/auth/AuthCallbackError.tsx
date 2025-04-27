@@ -24,6 +24,9 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     if ((window.location.search || window.location.hash) && window.history.replaceState) {
       window.history.replaceState(null, document.title, window.location.pathname);
     }
+    
+    // Clean up any redirect counters to avoid loops
+    sessionStorage.removeItem('auth_redirect_count');
   }, [error]);
   
   // Format error message to be user-friendly
@@ -45,6 +48,11 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
     
     // Handle domain redirection issues
     if (error.includes("התחברות נכשלה בגלל בעיית תעודה")) {
+      return error;
+    }
+    
+    // Handle detected redirect loop
+    if (error.includes("זוהתה לולאת הפניות")) {
       return error;
     }
         
@@ -88,6 +96,11 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       
       keysToRemove.forEach(key => localStorage.removeItem(key));
       log.info("Cleaned up auth data from localStorage", { count: keysToRemove.length });
+      
+      // Also clean sessionStorage
+      sessionStorage.removeItem('auth_redirect_count');
+      sessionStorage.removeItem('auth_redirect_initiated');
+      sessionStorage.removeItem('auth_redirect_time');
       
       // Redirect to auth page
       navigate("/auth", { replace: true });
