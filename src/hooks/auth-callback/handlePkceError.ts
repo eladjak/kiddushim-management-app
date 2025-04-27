@@ -54,15 +54,29 @@ export async function handlePkceError(
     log.info("Found access_token in hash fragment but couldn't process it");
     
     try {
-      // נסה לקבל סשן מה-URL למקרה שהזיהוי האוטומטי נכשל
-      const { data, error } = await supabase.auth.getSessionFromUrl();
+      // נסה לעבד את ה-access_token מה-hash
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
       
-      if (!error && data?.session) {
-        log.info("Successfully retrieved session from URL hash");
-        navigate('/', { replace: true });
-        return;
-      } else if (error) {
-        log.error("Error getting session from URL:", { error });
+      if (accessToken) {
+        // אם יש לנו את ה-access_token, ננסה לחתום באמצעותו
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            skipBrowserRedirect: true,
+            queryParams: {
+              access_token: accessToken
+            }
+          }
+        });
+        
+        if (!error && data) {
+          log.info("Successfully processed access token from URL hash");
+          navigate('/', { replace: true });
+          return;
+        } else if (error) {
+          log.error("Error authenticating with access token:", { error });
+        }
       }
     } catch (hashError) {
       log.error("Error processing URL hash:", { error: hashError });

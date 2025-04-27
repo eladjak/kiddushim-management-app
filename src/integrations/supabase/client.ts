@@ -25,10 +25,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true, // חשוב! הפעל זיהוי אוטומטי
+    detectSessionInUrl: true, // חשוב! מאפשר זיהוי אוטומטי של access_token ב-URL
     storageKey: getStorageKey(),
     storage: localStorage,
     debug: import.meta.env.DEV, // Enable debug mode in development
+    flowType: 'implicit' // משתמש בזרימת אימות מסוג implicit flow לתמיכה טובה יותר ב-Google Auth
   },
   global: {
     headers: {

@@ -24,16 +24,27 @@ export async function handleImplicitAuth(
       
       try {
         // נסה לעבד את ה-hash לאימות
-        const { data, error } = await supabase.auth.getSessionFromUrl();
+        // השיטה getSessionFromUrl לא קיימת יותר, במקומה נשתמש ב-signInWithOtp שמקבל את ה-URL
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            skipBrowserRedirect: true, // מונע הפניה נוספת
+            queryParams: {
+              access_token: new URLSearchParams(window.location.hash.substring(1)).get('access_token') || ''
+            }
+          }
+        });
         
         if (error) {
-          log.error("Error getting session from URL:", { error });
+          log.error("Error processing hash URL for auth:", { error });
           return false;
         }
         
-        if (data?.session) {
+        // בדיקה אם הפעולה יצרה סשן
+        const sessionResult = await supabase.auth.getSession();
+        if (sessionResult.data.session) {
           log.info("Successfully established session from hash URL", { 
-            userId: data.session.user.id 
+            userId: sessionResult.data.session.user.id 
           });
           
           // נקה את הפרמטרים מהכתובת
