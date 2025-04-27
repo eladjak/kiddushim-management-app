@@ -11,7 +11,7 @@ import type { UserProfile } from '@/types/profile';
 export const useUpdateAvatar = (userId?: string) => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (avatarUrl: string) => {
       if (!userId) {
         throw new Error('Missing user ID');
@@ -38,5 +38,12 @@ export const useUpdateAvatar = (userId?: string) => {
       });
     }
   });
-};
 
+  // Return a function that returns a Promise
+  return {
+    ...mutation,
+    updateAvatar: async (avatarUrl: string): Promise<void> => {
+      await mutation.mutateAsync(avatarUrl);
+    }
+  };
+};

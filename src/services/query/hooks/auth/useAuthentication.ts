@@ -52,7 +52,7 @@ export const useAuthentication = () => {
   useAuthStateChange();
   
   const signOut = useSignOut();
-  const updateAvatar = useUpdateAvatar(user?.id);
+  const avatarMutation = useUpdateAvatar(user?.id);
   
   const isLoading = isSessionLoading || isUserLoading || 
                    (!!user && isProfileLoading && !profileError);
@@ -79,7 +79,9 @@ export const useAuthentication = () => {
     isLoading: isLoadingState,
     isAuthenticated: !!session && !!user,
     signOut: signOut.mutate,
-    updateAvatar: (url: string) => updateAvatar.mutate(url),
+    updateAvatar: async (url: string): Promise<void> => {
+      return avatarMutation.updateAvatar(url);
+    },
     // Expose setters
     setUser: setUserState,
     setSession: setSessionState,
