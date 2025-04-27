@@ -36,33 +36,41 @@ export function useAuthCallback() {
         const fullUrl = location.state?.fullUrl || window.location.href;
         log.info("Processing callback URL", { url: fullUrl });
         
-        // First try to extract and use access token from hash fragment (highest priority for Google Auth)
+        // First priority: Extract and process access_token from hash fragment
+        // This is critical for Google OAuth which can use implicit flow
         if (window.location.hash && window.location.hash.includes('access_token')) {
+          log.info("Found access_token in URL hash, processing first");
           const tokenSuccess = await extractAccessToken();
+          
           if (tokenSuccess) {
+            log.info("Successfully extracted and used access token");
             toast.toast({
               description: "התחברת בהצלחה",
             });
             
+            // Short delay before redirecting to ensure state updates
             setTimeout(() => {
               if (isMounted) {
                 navigate("/", { replace: true });
               }
             }, 300);
             return;
+          } else {
+            log.error("Failed to use access token from URL hash");
           }
         }
         
-        // Check if we have already processed this auth
+        // Second priority: Check if we have already processed this auth
         const sessionExists = await handleExistingSession(navigate, toast);
         if (sessionExists) return;
         
-        // Try to extract code from state (preferred method as it's most reliable)
+        // Third priority: Handle code from state (from redirection)
         const stateCode = location.state?.code;
         const authSource = location.state?.authSource;
         
         if (stateCode && stateCode.length > 10) {
           try {
+            log.info("Using code from location state");
             await handleAuthCode(stateCode, authSource || 'location_state', navigate, toast);
             return;
           } catch (err) {
@@ -74,12 +82,11 @@ export function useAuthCallback() {
           }
         }
 
-        // בדוק אם יש תהליך אימות אימפליסיטי (כלומר, תגיות באש URL)
-        // זו הבדיקה החשובה ביותר עבור התחברות Google!
+        // Fourth priority: Handle implicit auth flow
         const implicitAuthSuccess = await handleImplicitAuth(navigate, toast);
         if (implicitAuthSuccess) return;
                 
-        // בדיקה לקוד ב-URL params  
+        // Fifth priority: Look for code in URL parameters
         try {
           const urlCodeSuccess = await handleUrlCode(navigate, toast);
           if (urlCodeSuccess) return;
@@ -91,8 +98,9 @@ export function useAuthCallback() {
           }
         }
         
-        // אין קוד ואין סשן, כנראה שגיאה עם הפניות דומיין
+        // If we reach this point, no authentication method worked
         if (isMounted) {
+          log.error("No authentication method succeeded");
           await handlePkceError(navigate, setError, setLoading);
         }
       } catch (err: any) {

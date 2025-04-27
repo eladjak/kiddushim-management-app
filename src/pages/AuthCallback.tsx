@@ -20,8 +20,9 @@ const AuthCallback = () => {
   useEffect(() => {
     const logInfo = async () => {
       try {
-        // First, directly try to use the access token if it's available
+        // Additional direct access token processing for improved reliability
         if (window.location.hash && window.location.hash.includes('access_token')) {
+          log.info("AuthCallback page attempting direct access token extraction");
           const success = await extractAccessToken();
           if (success) {
             log.info("Successfully extracted and used access token directly in callback page");
@@ -46,14 +47,14 @@ const AuthCallback = () => {
           log.error("Error checking session in callback page:", { error: sessionError });
         }
         
-        // מידע מפורט על מצב ה-URL
+        // Detailed URL state information
         const fullUrl = window.location.href;
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
         
-        // בדיקה אם יש קוד בהאש או בנתיב
+        // Check for code in hash or path
         let hashCode = null;
         let hashAccessToken = null;
         if (window.location.hash) {
@@ -62,12 +63,12 @@ const AuthCallback = () => {
           hashAccessToken = hashParams.get("access_token");
         }
         
-        // בדיקה לקוד בנתיב
+        // Check for code in path
         const pathParts = window.location.pathname.split('/');
         const lastPart = pathParts[pathParts.length - 1];
         const pathCode = lastPart !== 'callback' ? lastPart : null;
         
-        // בדיקת נתוני מצב
+        // Check state data
         const stateData = location.state || {};
         
         log.info("Auth callback page loaded", { 

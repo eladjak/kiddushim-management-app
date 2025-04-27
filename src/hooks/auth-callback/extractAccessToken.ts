@@ -19,6 +19,7 @@ export async function extractAccessToken(): Promise<boolean> {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
+    const expiresIn = hashParams.get('expires_in');
     
     if (!accessToken) {
       log.error("No access token found in hash");
@@ -27,7 +28,8 @@ export async function extractAccessToken(): Promise<boolean> {
     
     log.info("Extracted access token from hash", {
       tokenLength: accessToken.length,
-      hasRefreshToken: !!refreshToken
+      hasRefreshToken: !!refreshToken,
+      hasExpiresIn: !!expiresIn
     });
     
     // Try to set the session with the token
@@ -47,7 +49,7 @@ export async function extractAccessToken(): Promise<boolean> {
         provider: data.session.user.app_metadata?.provider
       });
       
-      // Clear the hash from the URL
+      // Clear the hash from the URL for security
       if (window.history.replaceState) {
         window.history.replaceState(null, document.title, window.location.pathname);
       }

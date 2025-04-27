@@ -11,7 +11,6 @@ const getStorageKey = () => {
   try {
     const hostname = window.location.hostname;
     // Handle both www and non-www versions to use the same storage key
-    // Strip www prefix for consistency and to avoid SSL issues
     const normalizedHostname = hostname.replace(/^www\./, '');
     return `kidushishi-auth-token-${normalizedHostname}`;
   } catch (e) {
@@ -23,13 +22,13 @@ const getStorageKey = () => {
 // Create a single supabase client instance for the entire app
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true, // חשוב! מאפשר זיהוי אוטומטי של access_token ב-URL
+    persistSession: true, // Enable session persistence
+    autoRefreshToken: true, // Automatically refresh tokens
+    detectSessionInUrl: true, // IMPORTANT! Auto-detect access_token in URL
     storageKey: getStorageKey(),
-    storage: localStorage,
+    storage: localStorage, // Use localStorage for persistence
     debug: import.meta.env.DEV, // Enable debug mode in development
-    flowType: 'implicit', // משתמש בזרימת אימות מסוג implicit flow לתמיכה טובה יותר ב-Google Auth
+    flowType: 'implicit', // Use implicit flow for better Google Auth support
   },
   global: {
     headers: {
@@ -46,7 +45,7 @@ export const getNormalizedDomain = () => {
   try {
     const hostname = window.location.hostname;
     
-    // דומיין שמתחיל ב-local או localhost אינו צריך www
+    // Local or development domains don't need www prefix
     if (hostname.startsWith('local') || hostname.includes('lovableproject.com')) {
       return hostname;
     }

@@ -20,7 +20,7 @@ export const GoogleAuthButton = () => {
    */
   const clearAuthData = () => {
     log.info('Clearing auth data from localStorage');
-    // הסרת כל הפריטים הקשורים לאימות
+    // Remove all auth-related items
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -30,9 +30,9 @@ export const GoogleAuthButton = () => {
     }
     
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    log.info('Cleared auth data, keys removed:', { count: keysToRemove.length });
+    log.info('Cleared auth data from localStorage', { count: keysToRemove.length });
     
-    // גם לנקות מסשן סטורג'
+    // Also clear from sessionStorage
     sessionStorage.removeItem('auth_redirect_count');
     sessionStorage.removeItem('auth_redirect_initiated');
     sessionStorage.removeItem('auth_redirect_time');
@@ -43,7 +43,6 @@ export const GoogleAuthButton = () => {
    * Always uses the www. subdomain on production to match SSL certificate
    */
   const getRedirectUrl = () => {
-    // קבלת המיקום הנוכחי
     const normalizedDomain = getNormalizedDomain();
     const protocol = window.location.protocol;
     const port = window.location.port ? `:${window.location.port}` : '';
@@ -58,10 +57,10 @@ export const GoogleAuthButton = () => {
   };
 
   /**
-   * Initiates Google Sign In flow
+   * Initiates Google Sign In flow - optimized for working correctly with access tokens
    */
   const signInWithGoogle = async () => {
-    // מניעת לחיצות מרובות
+    // Prevent multiple clicks
     if (authInProgressRef.current || isLoading) return;
     
     log.info('Initiating Google sign in');
@@ -70,34 +69,34 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
-      // קבלת כתובת הפניה מנורמלת
+      // Get normalized redirect URL
       const redirectUrl = getRedirectUrl();
       log.info('Using redirect URL for OAuth flow:', { redirectUrl });
       
-      // ניקוי נתוני אימות קיימים
+      // Clean up existing auth data
       clearAuthData();
       
-      // ביצוע התנתקות מפורשת לפני התחלת זרימת התחברות חדשה
+      // Explicit sign out before starting new sign in flow
       try {
         await supabase.auth.signOut({ scope: 'local' });
         log.info('Successfully signed out before new sign in');
       } catch (signOutError) {
         log.warn('Error during sign out before sign in:', { error: signOutError });
-        // נמשיך בכל מקרה כי זה לא קריטי
+        // Continue anyway as it's not critical
       }
       
-      // המתנה לפני התחלת תהליך חדש
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Short delay before starting new process
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // התנעת תהליך האימות עם גוגל
+      // Initiate Google auth - using implicit flow which works better with Google
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
           skipBrowserRedirect: false,
           queryParams: {
-            prompt: 'select_account',
-            access_type: 'offline',
+            prompt: 'select_account', // Always show account selector
+            access_type: 'offline',   // Get refresh token
           },
         },
       });
@@ -121,7 +120,7 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // שמירת מצב האימות בסשן סטורג' במקום לוקל סטורג'
+      // Store auth state in sessionStorage instead of localStorage
       try {
         sessionStorage.setItem('auth_redirect_initiated', 'true');
         sessionStorage.setItem('auth_redirect_time', new Date().toISOString());
@@ -129,7 +128,7 @@ export const GoogleAuthButton = () => {
         log.warn('Could not save auth state to sessionStorage', { error: e });
       }
       
-      // ניווט לכתובת האימות - עם דגל חדש לעקיפת בלוקרים
+      // Navigate to auth URL - with new flag to bypass blockers
       window.location.href = data.url;
       
     } catch (error: any) {
@@ -146,7 +145,7 @@ export const GoogleAuthButton = () => {
         description: errorMessage,
       });
       
-      // איפוס מצב
+      // Reset state
       setIsLoading(false);
       authInProgressRef.current = false;
     }
