@@ -7,17 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import type { UserProfile } from "@/types/profile";
 import { supabase } from "@/integrations/supabase/client";
-
-// טיפוס עבור קונטקסט האימות
-interface AuthContextType {
-  user: SupabaseUser | null;
-  session: Session | null;
-  profile: UserProfile | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  signOut: () => void;
-  updateAvatar: (url: string) => void;
-}
+import type { AuthContextType } from "@/types/auth";
 
 // יצירת קונטקסט עם ערכי ברירת מחדל
 const AuthContext = createContext<AuthContextType>({
@@ -27,7 +17,11 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   isAuthenticated: false,
   signOut: () => {},
-  updateAvatar: () => {},
+  updateAvatar: async () => {},
+  setUser: () => {},
+  setSession: () => {},
+  setProfile: () => {},
+  setIsLoading: () => {},
 });
 
 // ספק האימות
@@ -108,7 +102,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [auth.user, auth.profile, auth.isLoading, auth.isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={auth as AuthContextType}>
+    <AuthContext.Provider value={{
+      ...auth,
+      setUser: auth.setUser, 
+      setSession: auth.setSession,
+      setProfile: auth.setProfile,
+      setIsLoading: auth.setIsLoading
+    }}>
       {children}
     </AuthContext.Provider>
   );
