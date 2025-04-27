@@ -23,50 +23,35 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // First attempt: Try to directly process access token
+        // Check if there's an access token in the hash
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Attempting direct access token extraction in AuthCallback component");
+          log.info("Attempting direct access token extraction in callback component");
+          
+          // Process the token directly
           const success = await extractAccessToken();
           
           if (success) {
-            log.info("Successfully extracted and used access token in callback component");
+            log.info("Successfully processed access token in component");
             
             toast({
               description: "התחברת בהצלחה",
             });
             
-            // Navigate to home page after successful login
+            // Navigate home
             setTimeout(() => {
               navigate("/", { replace: true });
             }, 300);
             
             return;
           } else {
-            log.error("Direct access token extraction failed in callback component");
+            log.error("Direct token extraction failed in component");
           }
         }
         
-        // Detailed URL state information for debugging
-        const fullUrl = window.location.href;
+        // Log URL data for debugging
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
-        
-        // Extract data from hash
-        let hashData = {};
-        if (window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          hashData = {
-            code: hashParams.get("code"),
-            access_token: hashParams.get("access_token"),
-            token_type: hashParams.get("token_type"),
-            expires_in: hashParams.get("expires_in")
-          };
-        }
-        
-        // Check state data
-        const stateData = location.state || {};
         
         log.info("Auth callback page loaded", { 
           loading, 
@@ -74,22 +59,18 @@ const AuthCallback = () => {
           errorMessage: error,
           hasCode: !!code,
           codeLength: code?.length,
-          hash: hashData,
-          errorParam,
-          errorDescription,
-          locationStateData: stateData,
-          fullUrl: fullUrl.substring(0, 100) + (fullUrl.length > 100 ? '...' : '')
+          hasHash: !!window.location.hash,
+          error: errorParam
         });
         
-        // Check current session as a last resort
+        // Final attempt: check for existing session
         try {
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
-            log.error("Error checking session in callback page:", { error: sessionError });
+            log.error("Error checking session:", { error: sessionError });
           }
           
-          // If we already have a session at this point, go to home
           if (session) {
             log.info("Session already exists, redirecting to home");
             toast({
@@ -98,36 +79,23 @@ const AuthCallback = () => {
             navigate("/", { replace: true });
           }
         } catch (err) {
-          log.error("Error checking final session state:", { error: err });
+          log.error("Error in final session check:", { error: err });
         }
       } catch (err) {
-        log.error("Error in auth callback handler:", { error: err });
+        log.error("Unexpected error in callback handler:", { error: err });
       }
     };
     
-    // Only run this effect once when the component mounts
+    // Handle the callback once
     handleCallback();
     
-    // Monitor hash changes on this page
-    const handleHashChange = () => {
-      log.info("Hash changed in auth callback page, reprocessing");
-      handleCallback();
-    };
-    
-    window.addEventListener('hashchange', handleHashChange);
-    
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      log.info("Auth callback page unmounted");
-    };
   }, [loading, error, location, navigate, toast]);
 
-  // If we are still loading and haven't redirected yet
+  // Display loading or error UI
   if (loading) {
     return <AuthCallbackLoading />;
   }
 
-  // If we have an error
   if (error) {
     return <AuthCallbackError error={error} />;
   }

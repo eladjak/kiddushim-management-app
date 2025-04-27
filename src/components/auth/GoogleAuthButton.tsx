@@ -52,8 +52,7 @@ export const GoogleAuthButton = () => {
   };
 
   /**
-   * Gets a normalized redirect URL that works in both development and production
-   * Always uses the www. subdomain on production to match SSL certificate
+   * Gets a normalized redirect URL with www subdomain if needed
    */
   const getRedirectUrl = () => {
     const normalizedDomain = getNormalizedDomain();
@@ -65,7 +64,6 @@ export const GoogleAuthButton = () => {
     const fullRedirectUrl = `${baseUrl}${redirectPath}`;
     
     log.info('Generated redirect URL:', { redirectUrl: fullRedirectUrl });
-    
     return fullRedirectUrl;
   };
 
@@ -89,43 +87,47 @@ export const GoogleAuthButton = () => {
       // Clean up existing auth data
       clearAuthData();
       
-      // Explicit sign out before starting new sign in flow
+      // Sign out before starting new sign in flow
       try {
-        await supabase.auth.signOut({ scope: 'global' });
+        await supabase.auth.signOut();
         log.info('Successfully signed out before new sign in');
       } catch (signOutError) {
         log.warn('Error during sign out before sign in:', { error: signOutError });
-        // Continue anyway as it's not critical
+        // Continue anyway
       }
       
-      // Short delay before starting new process
+      // Small delay before starting new process
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Initiate Google auth with minimal options (more reliable)
+      // Initiate Google auth with explicit provider options
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
           queryParams: {
+            // Ensures we get a refresh token
             access_type: 'offline',
-            prompt: 'consent'
-          }
+            // Forces consent screen to always appear
+            prompt: 'consent',
+            // Request email scope
+            scope: 'email profile',
+          },
+          // Always use implicit flow for Google
+          flowType: 'implicit',
         },
       });
       
       if (error) {
-        log.error("Google auth error:", { error });
         throw error;
       }
       
       if (!data?.url) {
-        log.error("Google auth failed - No URL returned");
         throw new Error("לא התקבלה כתובת התחברות מתאימה");
       }
       
       log.info('Google auth initiated successfully', { 
         provider: data.provider,
-        url: data.url.substring(0, 50) + '...'
+        urlLength: data.url.length
       });
       
       toast({
@@ -143,7 +145,7 @@ export const GoogleAuthButton = () => {
         log.error('Could not save auth state to storage', { error: e });
       }
       
-      // Navigate to auth URL
+      // Navigate to Google auth URL
       window.location.href = data.url;
       
     } catch (error: any) {

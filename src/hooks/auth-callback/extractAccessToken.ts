@@ -37,6 +37,9 @@ export async function extractAccessToken(): Promise<boolean> {
       tokenType
     });
 
+    // Clear the URL hash immediately for security
+    clearUrlHash();
+
     // First approach: Try to directly set the session
     try {
       log.info("Attempting to set session with access token");
@@ -55,7 +58,6 @@ export async function extractAccessToken(): Promise<boolean> {
         log.info("Successfully established session with full data", {
           userId: data.session.user.id,
         });
-        clearUrlHash();
         return true;
       }
       
@@ -64,7 +66,10 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("Error in session data approach:", { error: err });
     }
     
-    // Second approach: Try with minimal session data
+    // Second approach: Add small delay before trying again (helps with race conditions)
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Try with minimal session data
     try {
       const minimalData = {
         access_token: accessToken,
@@ -77,7 +82,6 @@ export async function extractAccessToken(): Promise<boolean> {
         log.info("Successfully established session with minimal data", {
           userId: data.session.user.id, 
         });
-        clearUrlHash();
         return true;
       }
       
@@ -86,12 +90,12 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("Error in minimal data approach:", { error: err });
     }
 
-    // Third approach: Try OAuth signIn flow
+    // Third approach: Try OAuth signIn flow with Google
     try {
-      log.info("Attempting OAuth signin flow with token");
-      
-      // Create a new OAuth provider session
       if (providerToken) {
+        log.info("Attempting Google signin flow with provider token");
+        
+        // Create a new provider session using signInWithIdToken
         const { data, error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: accessToken,
@@ -102,11 +106,12 @@ export async function extractAccessToken(): Promise<boolean> {
           log.info("Successfully established session via signInWithIdToken", {
             userId: data.session.user.id,
           });
-          clearUrlHash();
           return true;
         }
         
-        log.warn("OAuth signin flow failed", { error });
+        log.warn("signInWithIdToken flow failed", { error });
+      } else {
+        log.warn("No provider token available for OAuth flow");
       }
     } catch (err) {
       log.error("Error in OAuth signin flow approach:", { error: err });
@@ -114,7 +119,7 @@ export async function extractAccessToken(): Promise<boolean> {
     
     // Fourth approach: Try setting auth token directly in storage
     try {
-      // Wait a moment before the third attempt (sometimes helps with timing issues)
+      // Wait a moment before the next attempt
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Force the token to be updated in local storage
@@ -154,7 +159,6 @@ export async function extractAccessToken(): Promise<boolean> {
               log.info("Successfully established session via storage modification + refresh", {
                 userId: refreshResult.data.session.user.id,
               });
-              clearUrlHash();
               return true;
             } else {
               log.warn("Session refresh after storage modification failed", { 
@@ -174,11 +178,7 @@ export async function extractAccessToken(): Promise<boolean> {
         // Use the ANON key from environment instead of accessing protected property
         const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
         
-        const authHeaders = {
-          Authorization: `Bearer ${accessToken}`,
-          apikey: apiKey
-        };
-        
+        // Try to get the user directly with the access token
         const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
         
         if (!userError && userData?.user) {
@@ -186,7 +186,9 @@ export async function extractAccessToken(): Promise<boolean> {
             userId: userData.user.id,
           });
           
-          // Now try to establish session again
+          // Try once more with a direct session establishment
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || undefined
@@ -196,23 +198,47 @@ export async function extractAccessToken(): Promise<boolean> {
             log.info("Successfully established session after user verification", {
               userId: sessionData.session.user.id,
             });
-            clearUrlHash();
             return true;
           }
           
           log.warn("Session establishment after user verification failed", { error: sessionError });
+        } else {
+          log.error("User verification failed", { error: userError });
         }
       } catch (err) {
         log.error("Error in direct user verification approach:", { error: err });
       }
       
-      // Last-ditch attempt: Get the current session
+      // Last attempt: Try exchanging provider token if available
+      if (providerToken) {
+        try {
+          log.info("Attempting to use provider token directly");
+          
+          // Try a second OAuth approach with provider token
+          const { data: oauthData, error: oauthError } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: providerToken,
+          });
+          
+          if (!oauthError && oauthData.session) {
+            log.info("Successfully established session using provider token", {
+              userId: oauthData.session.user.id,
+            });
+            return true;
+          }
+          
+          log.error("Provider token approach failed", { error: oauthError });
+        } catch (err) {
+          log.error("Error using provider token:", { error: err });
+        }
+      }
+      
+      // Final check: Get the current session
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData.session) {
         log.info("Session already exists after all attempts", {
           userId: sessionData.session.user.id,
         });
-        clearUrlHash();
         return true;
       }
     } catch (err) {

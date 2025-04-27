@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { getNormalizedDomain } from "@/integrations/supabase/client";
-import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook to handle OAuth redirects when an auth code or hash is present in the URL
@@ -19,11 +18,14 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
-      // IMPORTANT: First priority - If we have a hash with access_token, try to handle it immediately
+      // If we have a hash with access_token, redirect to auth callback
       if (window.location.hash && window.location.hash.includes('access_token')) {
         log.info("Detected access_token in URL hash, redirecting to auth callback");
         
+        // Set redirect flag
         redirectedRef.current = true;
+        
+        // Send to auth callback page
         navigate("/auth/callback", { 
           replace: true,
           state: { 
@@ -35,13 +37,12 @@ export const useAuthRedirect = () => {
         return;
       }
 
-      // Check for domain mismatch and redirect if needed
+      // Check if we need to redirect to www subdomain
       const currentDomain = window.location.hostname;
       const normalizedDomain = getNormalizedDomain();
       
-      // If we're on the wrong domain, redirect to the correct one
       if (currentDomain !== normalizedDomain && currentDomain === 'kidushishi-menegment-app.co.il') {
-        // Check if we're already handling this to prevent loops
+        // Check for redirect loops
         const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
         if (redirectCount > 2) {
           log.error("Detected redirect loop in useAuthRedirect, breaking the cycle");
@@ -49,18 +50,18 @@ export const useAuthRedirect = () => {
           return;
         }
         
-        // Need to redirect to www version for SSL certificate
+        // Redirect to www version for SSL certificate
         const protocol = window.location.protocol;
         const pathname = window.location.pathname;
         const search = window.location.search;
         const hash = window.location.hash;
-        const port = window.location.port ? `:${window.location.port}` : '';
         
+        // Set redirect flag to prevent further redirects
         redirectedRef.current = true;
-        // Store redirect count in sessionStorage
         sessionStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
         
-        const newUrl = `${protocol}//${normalizedDomain}${port}${pathname}${search}${hash}`;
+        // Build the normalized URL
+        const newUrl = `${protocol}//${normalizedDomain}${pathname}${search}${hash}`;
         log.info("Redirecting to normalized domain for SSL certificate", {
           from: currentDomain,
           to: normalizedDomain,
@@ -71,7 +72,7 @@ export const useAuthRedirect = () => {
         return;
       }
       
-      // Check if there's an auth code in search parameters
+      // Check for auth code in search parameters
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       
@@ -100,7 +101,7 @@ export const useAuthRedirect = () => {
         return;
       }
 
-      // Check if we were previously redirected from auth
+      // Check for implicit auth redirects from OAuth providers
       const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' ||
                           sessionStorage.getItem('auth_redirect_initiated') === 'true';
       const redirectTime = localStorage.getItem('auth_redirect_time') || 
@@ -113,7 +114,7 @@ export const useAuthRedirect = () => {
         const diffMinutes = (now - redirectTimeMs) / (1000 * 60);
         
         if (diffMinutes < 5) {
-          log.info("Detected return from auth without visible code, redirecting to callback page");
+          log.info("Detected recent OAuth redirect, redirecting to callback");
           
           // Clear the redirect flag
           localStorage.removeItem('auth_redirect_initiated');
@@ -121,6 +122,7 @@ export const useAuthRedirect = () => {
           sessionStorage.removeItem('auth_redirect_initiated');
           sessionStorage.removeItem('auth_redirect_time');
           
+          // Force redirect to callback page
           redirectedRef.current = true;
           navigate("/auth/callback", { 
             replace: true,
