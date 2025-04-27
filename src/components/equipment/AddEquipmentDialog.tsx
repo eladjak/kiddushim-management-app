@@ -58,7 +58,16 @@ export function AddEquipmentDialog({
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSubmit(values);
+    // Ensure name is treated as a required field when submitting to match the database requirements
+    const equipmentData: EquipmentInsert = {
+      name: values.name, // This is always required
+      description: values.description || null,
+      quantity: values.quantity,
+      location: values.location || null,
+      status: values.status,
+    };
+    
+    onSubmit(equipmentData);
   };
 
   return (
