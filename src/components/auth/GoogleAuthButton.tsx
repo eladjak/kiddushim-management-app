@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { supabase, configureAuthProvider, getNormalizedDomain } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
