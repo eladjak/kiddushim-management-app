@@ -25,10 +25,15 @@ export async function handleUrlCode(
         codeLength: urlCode.length 
       });
       
-      return await handleAuthCode(urlCode, 'url_params', navigate, toastHelper);
+      try {
+        return await handleAuthCode(urlCode, 'url_params', navigate, toastHelper);
+      } catch (error) {
+        log.error("Error handling URL code:", { error });
+        // ממשיך לבדוק אפשרויות אחרות אם נכשל
+      }
     }
     
-    // Check for code in URL hash params
+    // בדיקה האם יש קוד בפרגמנט (שמתחיל ב-#)
     if (window.location.hash) {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const hashCode = hashParams.get('code');
@@ -38,7 +43,11 @@ export async function handleUrlCode(
           codeLength: hashCode.length 
         });
         
-        return await handleAuthCode(hashCode, 'url_hash', navigate, toastHelper);
+        try {
+          return await handleAuthCode(hashCode, 'url_hash', navigate, toastHelper);
+        } catch (error) {
+          log.error("Error handling hash code:", { error });
+        }
       }
     }
     

@@ -84,9 +84,10 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account',
-          },
-          // Use PKCE explicitly with our verifier
-          codeVerifier
+            // Pass code verifier through queryParams as some versions might require this
+            code_challenge: codeVerifier,
+            code_challenge_method: 'plain'
+          }
         }
       });
       
