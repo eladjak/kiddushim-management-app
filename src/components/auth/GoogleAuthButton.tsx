@@ -20,22 +20,35 @@ export const GoogleAuthButton = () => {
    */
   const clearAuthData = () => {
     log.info('Clearing auth data from localStorage');
-    // Remove all auth-related items
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith('supabase.auth.') || key.includes('kidushishi-auth-token'))) {
-        keysToRemove.push(key);
+    
+    try {
+      // Remove all auth-related items
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.startsWith('supabase.auth.') || 
+          key.includes('kidushishi-auth-token') ||
+          key.includes('oauth')
+        )) {
+          keysToRemove.push(key);
+        }
       }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      log.info('Cleared auth data from localStorage', { count: keysToRemove.length });
+    } catch (err) {
+      log.error('Error clearing localStorage:', { error: err });
     }
     
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    log.info('Cleared auth data from localStorage', { count: keysToRemove.length });
-    
     // Also clear from sessionStorage
-    sessionStorage.removeItem('auth_redirect_count');
-    sessionStorage.removeItem('auth_redirect_initiated');
-    sessionStorage.removeItem('auth_redirect_time');
+    try {
+      sessionStorage.removeItem('auth_redirect_count');
+      sessionStorage.removeItem('auth_redirect_initiated');
+      sessionStorage.removeItem('auth_redirect_time');
+    } catch (err) {
+      log.error('Error clearing sessionStorage:', { error: err });
+    }
   };
 
   /**
@@ -57,7 +70,7 @@ export const GoogleAuthButton = () => {
   };
 
   /**
-   * Initiates Google Sign In flow - optimized for working correctly with access tokens
+   * Initiates Google Sign In flow
    */
   const signInWithGoogle = async () => {
     // Prevent multiple clicks
@@ -88,7 +101,7 @@ export const GoogleAuthButton = () => {
       // Short delay before starting new process
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Initiate Google auth - using implicit flow which works better with Google
+      // Initiate Google auth
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -98,7 +111,6 @@ export const GoogleAuthButton = () => {
             prompt: 'select_account', // Always show account selector
             access_type: 'offline',   // Get refresh token
           }
-          // Removed flowType option as it's not supported
         },
       });
       
@@ -113,7 +125,6 @@ export const GoogleAuthButton = () => {
       }
       
       log.info('Google auth initiated successfully', { 
-        url: data.url.substring(0, 50) + '...',
         provider: data.provider
       });
       
@@ -121,7 +132,7 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Store auth state in sessionStorage instead of localStorage
+      // Store auth state in sessionStorage
       try {
         sessionStorage.setItem('auth_redirect_initiated', 'true');
         sessionStorage.setItem('auth_redirect_time', new Date().toISOString());
@@ -129,7 +140,7 @@ export const GoogleAuthButton = () => {
         log.warn('Could not save auth state to sessionStorage', { error: e });
       }
       
-      // Navigate to auth URL - with new flag to bypass blockers
+      // Navigate to auth URL
       window.location.href = data.url;
       
     } catch (error: any) {

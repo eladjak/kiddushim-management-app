@@ -4,105 +4,83 @@ import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { ToastType } from "./types";
 import { showToast } from "./toastHelpers";
+import { extractAccessToken } from "./extractAccessToken";
 
 /**
- * Check if session is already established via implicit flow
- * או שיש hash fragment שמכיל access_token
+ * Handle implicit auth flow (missing code but was redirected)
  */
 export async function handleImplicitAuth(
   navigate: NavigateFunction,
   toast: ToastType
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleImplicitAuth' });
-
+  
   try {
-    // בדוק אם יש פרגמנט בכתובת שמכיל access_token
+    log.info("Checking for implicit auth flow");
+    
+    // First check for access_token in hash
     if (window.location.hash && window.location.hash.includes('access_token')) {
-      log.info("Found access_token in URL hash, processing implicit flow", {
-        hashLength: window.location.hash.length
-      });
+      log.info("Found access_token in hash, processing");
+      const success = await extractAccessToken();
       
-      try {
-        // Extract access token directly from the hash
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
+      if (success) {
+        log.info("Successfully processed access token from hash");
+        showToast(toast, "התחברת בהצלחה");
         
-        if (!accessToken) {
-          log.error("No access token found in hash");
-          return false;
-        }
-
-        log.info("Extracted access token from hash", { 
-          tokenLength: accessToken.length
-        });
+        // Navigate home
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 300);
         
-        // Try to set session with the token
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
-        });
-        
-        if (error) {
-          log.error("Error setting session with access token:", { error });
-          return false;
-        }
-        
-        // Check if we have a session now
-        if (data.session) {
-          log.info("Successfully established session from hash URL", { 
-            userId: data.session.user.id 
-          });
-          
-          // Clear the hash from URL
-          if (window.history.replaceState) {
-            window.history.replaceState(null, document.title, window.location.pathname);
-          }
-          
-          // Show success message
-          showToast(toast, "התחברת בהצלחה");
-          
-          // Navigate home
-          setTimeout(() => {
-            log.info("Redirecting to home with hash-based auth session");
-            navigate("/", { replace: true });
-          }, 300);
-          
-          return true;
-        }
-      } catch (hashError) {
-        log.error("Error processing URL hash for auth:", { error: hashError });
+        return true;
       }
     }
     
-    // Check for existing session
-    const { data: sessionData } = await supabase.auth.getSession();
+    // Check if we were redirected from auth
+    const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' || 
+                         sessionStorage.getItem('auth_redirect_initiated') === 'true';
     
-    if (sessionData.session) {
-      log.info("Session already established via implicit flow", { 
-        userId: sessionData.session.user.id 
+    if (!wasRedirected) {
+      log.info("Not part of an auth redirect flow");
+      return false;
+    }
+    
+    // Clear the redirect flags
+    localStorage.removeItem('auth_redirect_initiated');
+    localStorage.removeItem('auth_redirect_time');
+    sessionStorage.removeItem('auth_redirect_initiated');
+    sessionStorage.removeItem('auth_redirect_time');
+    
+    log.info("Was redirected from auth, checking current session");
+    
+    // Check if we have a session now (might have been set by OAuth provider)
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      log.error("Error checking session after redirect:", { error });
+      return false;
+    }
+    
+    if (data.session) {
+      log.info("Found session after auth redirect", {
+        userId: data.session.user.id,
       });
-      
-      // Clear any hash or params
-      if (window.history.replaceState) {
-        window.history.replaceState(null, document.title, window.location.pathname);
-      }
       
       // Show success message
       showToast(toast, "התחברת בהצלחה");
       
       // Navigate home
       setTimeout(() => {
-        log.info("Redirecting to home with implicit auth session");
         navigate("/", { replace: true });
       }, 300);
       
       return true;
     }
     
+    log.info("No session found after auth redirect");
     return false;
   } catch (err) {
-    log.error("Error checking for implicit session:", { error: err });
+    log.error("Error in handleImplicitAuth:", { error: err });
     return false;
   }
 }

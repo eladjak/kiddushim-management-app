@@ -13,9 +13,9 @@ export async function extractAccessToken(): Promise<boolean> {
   }
   
   try {
-    log.info("Attempting to extract access token from URL hash");
+    log.info("Processing access token from URL hash");
     
-    // Extract the access token
+    // Extract the access token and all other parameters
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
@@ -29,7 +29,7 @@ export async function extractAccessToken(): Promise<boolean> {
       return false;
     }
     
-    log.info("Extracted access token from hash", {
+    log.info("Processing token data", {
       tokenLength: accessToken.length,
       hasRefreshToken: !!refreshToken,
       hasExpiresIn: !!expiresIn,
@@ -37,77 +37,104 @@ export async function extractAccessToken(): Promise<boolean> {
       tokenType
     });
 
-    // Create a session object with comprehensive data from the hash
-    const sessionData = {
-      access_token: accessToken,
-      refresh_token: refreshToken || '',
-      expires_in: expiresIn ? parseInt(expiresIn) : 3600,
-      provider_token: providerToken || '',
-      token_type: tokenType || 'bearer'
-    };
-    
-    // Add expires_at if available 
-    const sessionWithExpiry = expiresAt
-      ? { ...sessionData, expires_at: parseInt(expiresAt) }
-      : sessionData;
+    // We'll try three different approaches to set the session
 
-    // First try to set session using setSession method
-    const { data, error } = await supabase.auth.setSession(sessionWithExpiry);
-    
-    if (error) {
-      log.error("Error setting session with access token (first attempt):", { error });
+    // First approach: Try with full session data
+    try {
+      const sessionData = {
+        access_token: accessToken,
+        refresh_token: refreshToken || null,
+        expires_in: expiresIn ? parseInt(expiresIn) : undefined,
+        expires_at: expiresAt ? parseInt(expiresAt) : undefined,
+        provider_token: providerToken || null,
+        token_type: tokenType || 'bearer'
+      };
       
-      // Second fallback attempt - try again with just the tokens
-      try {
-        const simplifiedData = {
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
-        };
-        
-        const fallbackResult = await supabase.auth.setSession(simplifiedData);
-        
-        if (fallbackResult.error) {
-          log.error("Error in fallback session setting:", { error: fallbackResult.error });
-          return false;
-        }
-        
-        if (fallbackResult.data.session) {
-          log.info("Successfully established session using fallback method", {
-            userId: fallbackResult.data.session.user.id,
-            provider: fallbackResult.data.session.user.app_metadata?.provider
-          });
-          
-          // Clear the hash from the URL for security
-          if (window.history.replaceState) {
-            window.history.replaceState(null, document.title, window.location.pathname);
-          }
-          
-          return true;
-        }
-      } catch (innerErr) {
-        log.error("Error in fallback processing:", { error: innerErr });
+      const { data, error } = await supabase.auth.setSession(sessionData);
+      
+      if (!error && data.session) {
+        log.info("Successfully established session with full data", {
+          userId: data.session.user.id,
+        });
+        clearUrlHash();
+        return true;
       }
       
-      return false;
+      log.warn("First attempt with full session data failed", { error });
+    } catch (err) {
+      log.error("Error in first approach:", { error: err });
     }
     
-    if (data.session) {
-      log.info("Successfully established session from access token", {
-        userId: data.session.user.id,
-        provider: data.session.user.app_metadata?.provider
-      });
+    // Second approach: Try with minimal session data
+    try {
+      const minimalData = {
+        access_token: accessToken,
+        refresh_token: refreshToken || null
+      };
       
-      // Clear the hash from the URL for security
-      if (window.history.replaceState) {
-        window.history.replaceState(null, document.title, window.location.pathname);
+      const { data, error } = await supabase.auth.setSession(minimalData);
+      
+      if (!error && data.session) {
+        log.info("Successfully established session with minimal data", {
+          userId: data.session.user.id,
+        });
+        clearUrlHash();
+        return true;
       }
       
-      return true;
+      log.warn("Second attempt with minimal session data failed", { error });
+    } catch (err) {
+      log.error("Error in second approach:", { error: err });
     }
     
+    // Third approach: Try setting auth token directly
+    try {
+      // Wait a moment before the third attempt (sometimes helps with timing issues)
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Access local storage directly as a last resort
+      const storageKey = localStorage.getItem('supabase.auth.token');
+      if (storageKey) {
+        try {
+          // Try to parse existing token
+          const existingData = JSON.parse(storageKey);
+          // Modify it with our new token
+          existingData.access_token = accessToken;
+          if (refreshToken) existingData.refresh_token = refreshToken;
+          // Save it back
+          localStorage.setItem('supabase.auth.token', JSON.stringify(existingData));
+          log.info("Modified existing auth token in storage");
+        } catch (err) {
+          log.error("Error updating existing token:", { error: err });
+        }
+      }
+      
+      // Force refresh the session
+      const refreshResult = await supabase.auth.refreshSession();
+      if (!refreshResult.error && refreshResult.data.session) {
+        log.info("Successfully established session via refresh", {
+          userId: refreshResult.data.session.user.id,
+        });
+        clearUrlHash();
+        return true;
+      }
+    } catch (err) {
+      log.error("Error in third approach:", { error: err });
+    }
+    
+    log.error("All approaches to establish session failed");
     return false;
   } catch (err) {
-    log.error("Error processing access token:", { error: err });
+    log.error("Unexpected error processing access token:", { error: err });
     return false;
+  }
+}
+
+/**
+ * Clears the URL hash for security
+ */
+function clearUrlHash() {
+  if (window.history.replaceState) {
+    window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
   }
 }

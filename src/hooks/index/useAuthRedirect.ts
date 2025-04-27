@@ -18,19 +18,17 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
-      // בדיקה אם יש hash עם access_token
+      // Check if there's an access_token in the hash fragment
       if (window.location.hash && window.location.hash.includes('access_token')) {
         log.info("Detected access_token in URL hash, redirecting to auth callback", { 
           hashLength: window.location.hash.length
         });
         
-        // שמירת מצב ה-URL המלא
-        const fullUrl = window.location.href;
-        
+        redirectedRef.current = true;
         navigate("/auth/callback", { 
           replace: true,
           state: { 
-            fullUrl,
+            fullUrl: window.location.href,
             authSource: 'hash_fragment'
           }
         });
@@ -73,19 +71,17 @@ export const useAuthRedirect = () => {
         return;
       }
       
-      // Capture raw URL for debugging
-      const fullUrl = window.location.href;
-      
       // Check if there's an auth code in search parameters
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       
       if (code) {
-        log.info("Detected auth code in URL, redirecting to callback page", { url: fullUrl });
+        log.info("Detected auth code in URL, redirecting to callback page");
+        redirectedRef.current = true;
         navigate("/auth/callback", { 
           replace: true,
           state: { 
-            fullUrl,
+            fullUrl: window.location.href,
             code,
             authSource: 'query'
           }
@@ -93,75 +89,22 @@ export const useAuthRedirect = () => {
         return;
       }
       
-      // Check if there's auth code in hash fragment
-      if (window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const hashCode = hashParams.get("code");
-        
-        if (hashCode) {
-          log.info("Detected auth code in URL hash, redirecting to callback page", { url: fullUrl });
-          navigate("/auth/callback", { 
-            replace: true,
-            state: { 
-              fullUrl,
-              code: hashCode,
-              authSource: 'hash' 
-            }
-          });
-          return;
-        }
-      }
-      
-      // Check for code in path
-      if (window.location.pathname.includes('/code=')) {
-        const pathCode = window.location.pathname.split('code=')[1];
-        if (pathCode) {
-          log.info("Detected auth code in path, redirecting to callback page", { url: fullUrl });
-          navigate("/auth/callback", { 
-            replace: true,
-            state: { 
-              fullUrl,
-              code: pathCode,
-              authSource: 'path' 
-            }
-          });
-          return;
-        }
-      }
-      
-      // Check if there are error parameters
+      // Check for error parameters
       if (urlParams.has('error') || urlParams.has('error_description')) {
-        log.info("Detected auth error in URL, redirecting to callback page", { url: fullUrl });
+        log.info("Detected auth error in URL, redirecting to callback page");
+        redirectedRef.current = true;
         navigate("/auth/callback", { 
           replace: true,
-          state: { fullUrl, hasError: true }
-        });
-        return;
-      }
-      
-      // Check for special path formats (some OAuth providers add the code to the path)
-      const pathParts = window.location.pathname.split('/');
-      if (pathParts.length > 2 && 
-          pathParts[1] === 'auth' && 
-          pathParts[2] !== 'callback' && 
-          pathParts[2].length > 20) { // Auth codes are usually long
-        log.info("Detected potential auth code in path, redirecting to callback page", { url: fullUrl });
-        navigate("/auth/callback", { 
-          replace: true,
-          state: { 
-            fullUrl,
-            code: pathParts[2],
-            authSource: 'pathComponent' 
-          }
+          state: { fullUrl: window.location.href, hasError: true }
         });
         return;
       }
 
       // Check if we were previously redirected from auth
       const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' ||
-                            sessionStorage.getItem('auth_redirect_initiated') === 'true';
+                          sessionStorage.getItem('auth_redirect_initiated') === 'true';
       const redirectTime = localStorage.getItem('auth_redirect_time') || 
-                           sessionStorage.getItem('auth_redirect_time');
+                         sessionStorage.getItem('auth_redirect_time');
       
       if (wasRedirected && redirectTime) {
         // Only consider redirects within the last 5 minutes
@@ -170,10 +113,7 @@ export const useAuthRedirect = () => {
         const diffMinutes = (now - redirectTimeMs) / (1000 * 60);
         
         if (diffMinutes < 5) {
-          log.info("Detected return from auth without visible code, redirecting to callback page", { 
-            redirectTime, 
-            diffMinutes 
-          });
+          log.info("Detected return from auth without visible code, redirecting to callback page");
           
           // Clear the redirect flag
           localStorage.removeItem('auth_redirect_initiated');
@@ -181,10 +121,11 @@ export const useAuthRedirect = () => {
           sessionStorage.removeItem('auth_redirect_initiated');
           sessionStorage.removeItem('auth_redirect_time');
           
+          redirectedRef.current = true;
           navigate("/auth/callback", { 
             replace: true,
             state: { 
-              fullUrl,
+              fullUrl: window.location.href,
               authSource: 'implicit',
               wasRedirected: true
             }
@@ -198,8 +139,6 @@ export const useAuthRedirect = () => {
           sessionStorage.removeItem('auth_redirect_time');
         }
       }
-
-      log.info("No auth code, hash or params detected, proceeding with normal page load");
     } catch (error) {
       log.error("Error checking for auth redirect:", { error });
     }
