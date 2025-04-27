@@ -1,10 +1,10 @@
 
 import { NavigateFunction } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
 /**
- * Handle PKCE errors or certificate domain mismatches
+ * טיפול בשגיאות PKCE או אי-התאמת דומיין לתעודה
  */
 export async function handlePkceError(
   navigate: NavigateFunction,
@@ -14,7 +14,7 @@ export async function handlePkceError(
   const log = logger.createLogger({ component: 'handlePkceError' });
   log.info("Handling potential PKCE error or SSL certificate domain mismatch");
   
-  // Check if we are stuck in redirect loop
+  // בדיקה אם אנחנו תקועים בלולאת הפניה
   const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
   if (redirectCount > 2) {
     log.error("Detected redirect loop, breaking the cycle");
@@ -22,7 +22,7 @@ export async function handlePkceError(
     setError("זוהתה לולאת הפניות. הקשר לתמיכה הטכנית אם הבעיה נמשכת.");
     setLoading(false);
     
-    // נעביר את המשתמש לדף הבית במקום להישאר בלופ
+    // מעביר את המשתמש לדף הבית במקום להישאר בלופ
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 2000);
@@ -30,10 +30,10 @@ export async function handlePkceError(
     return;
   }
   
-  // Clear callback specific session storage
+  // ניקוי נתוני סשן ספציפיים
   sessionStorage.removeItem('auth_redirect_attempts');
   
-  // Check if we were redirected from www.domain to domain or vice versa
+  // בדיקה אם הופנינו מ-www.domain ל-domain או להיפך
   const hostname = window.location.hostname;
   const isNonWwwDomain = hostname === 'kidushishi-menegment-app.co.il';
   
@@ -42,10 +42,10 @@ export async function handlePkceError(
     
     setError("ההתחברות נכשלה בגלל בעיית תעודת SSL - התעודה תקפה עבור www.kidushishi-menegment-app.co.il בלבד. מועבר אוטומטית לכתובת הנכונה...");
     
-    // Store the redirect count in sessionStorage
+    // שמירת מספר ההפניות ב-sessionStorage
     sessionStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
     
-    // Give user time to see the message before redirecting
+    // זמן למשתמש לראות את ההודעה לפני הפניה מחדש
     setTimeout(() => {
       const protocol = window.location.protocol;
       const pathname = window.location.pathname;
@@ -58,12 +58,12 @@ export async function handlePkceError(
     return;
   }
   
-  // בדוק אם יש פרמטרי access_token בפרגמנט
+  // בדיקה אם יש פרמטרי access_token בפרגמנט
   if (window.location.hash && window.location.hash.includes('access_token')) {
     log.info("Found access_token in hash fragment, attempting to process");
     
     try {
-      // Extract token directly
+      // חילוץ טוקן ישירות
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
@@ -71,7 +71,7 @@ export async function handlePkceError(
       if (accessToken) {
         log.info("Extracted access token from hash fragment, attempting to set session");
         
-        // Try to set the session directly with the token
+        // ניסיון להגדיר את הסשן ישירות עם הטוקן
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken || '',
@@ -92,29 +92,17 @@ export async function handlePkceError(
 
   // נסיון אחרון - מחיקת כל נתוני האימות ומעבר לדף הבית
   try {
-    // Clean up all auth state and clear data
+    // ניקוי כל מצב האימות ומחיקת נתונים
     await supabase.auth.signOut({ scope: 'local' });
     
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith('supabase.auth.') || key.includes('kidushishi-auth-token'))) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    // ניקוי מושלם של נתוני אימות
+    clearAuthStorage();
     
-    // Clear any session storage data
-    sessionStorage.removeItem('auth_redirect_count');
-    sessionStorage.removeItem('auth_redirect_initiated');
-    sessionStorage.removeItem('auth_redirect_time');
-    sessionStorage.removeItem('auth_redirect_attempts');
-    
-    // Set error message and loading state
+    // הגדרת הודעת שגיאה ומצב טעינה
     setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
     setLoading(false);
     
-    // Navigate to home after delay
+    // ניווט הביתה אחרי השהיה
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 2000);
@@ -123,7 +111,7 @@ export async function handlePkceError(
     setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
     setLoading(false);
     
-    // Navigate to home even if cleanup fails
+    // ניווט הביתה גם אם ניקוי נכשל
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 2000);

@@ -1,90 +1,82 @@
 
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { clearAuthStorage } from "@/integrations/supabase/client";
 
 /**
- * Extracts the access token from the URL hash and processes it
- * @returns boolean indicating success or failure
+ * מוציא access_token מה-hash והופך אותו לסשן
+ * משמש במיוחד עבור אותנטיקציית גוגל שמחזירה access_token בחלק ה-hash של ה-URL
  */
-export const extractAccessToken = async (): Promise<boolean> => {
+export async function extractAccessToken(): Promise<boolean> {
   const log = logger.createLogger({ component: 'extractAccessToken' });
-  let isSuccess = false;
   
   try {
-    // Check if there's a hash in the URL
-    if (!window.location.hash) {
-      log.info("No hash found in URL");
+    // בדיקה אם יש hash ואם הוא מכיל access_token
+    if (!window.location.hash || !window.location.hash.includes('access_token')) {
+      log.info("No access_token found in hash");
       return false;
     }
+
+    log.info("Found access_token in hash, attempting extraction");
     
-    log.info("Processing URL hash:", { hashLength: window.location.hash.length });
-    
-    // Extract token information from hash
+    // חילוץ הפרמטרים מה-hash
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get("access_token");
-    const refreshToken = hashParams.get("refresh_token");
-    const expiresIn = hashParams.get("expires_in");
-    const expiresAt = hashParams.get("expires_at");
-    const tokenType = hashParams.get("token_type") || "bearer";
-    const providerToken = hashParams.get("provider_token");
-    const providerRefreshToken = hashParams.get("provider_refresh_token");
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || '';
+    const expiresIn = hashParams.get('expires_in');
     
-    // Validate essential parameters
     if (!accessToken) {
-      log.error("No access_token found in hash");
+      log.error("Access token not found in hash params");
       return false;
     }
-    
-    log.info("Found access_token in hash, processing...", {
+
+    log.info("Successfully extracted token info from hash", { 
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
-      hasExpiresIn: !!expiresIn,
-      hasExpiresAt: !!expiresAt,
-      hasProviderToken: !!providerToken,
-      hasProviderRefreshToken: !!providerRefreshToken,
-      accessTokenLength: accessToken.length,
+      expiresIn 
     });
-    
-    // Build session object
-    const session = {
+
+    // מיפוי הפרמטרים לסשן 
+    const { data, error } = await supabase.auth.setSession({
       access_token: accessToken,
-      refresh_token: refreshToken || null,
-      expires_in: expiresIn ? parseInt(expiresIn, 10) : undefined,
-      expires_at: expiresAt ? parseInt(expiresAt, 10) : undefined,
-      token_type: tokenType,
-      provider_token: providerToken || null,
-      provider_refresh_token: providerRefreshToken || null,
-    };
-    
-    log.info("Setting session from hash", { 
-      sessionProperties: Object.keys(session),
-      accessTokenLength: session.access_token.length,
-      refreshTokenPresent: !!session.refresh_token,
+      refresh_token: refreshToken
+    });
+
+    // בדיקה אם הצלחנו להגדיר את הסשן
+    if (error) {
+      log.error("Error setting session with token:", { error });
+      
+      // ניסיון נקיון ונסיון חוזר אם נכשלנו
+      clearAuthStorage();
+      
+      // נסיון נוסף עם setSession אחרי ניקוי האחסון
+      const retryResult = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      
+      if (retryResult.error) {
+        log.error("Second attempt to set session also failed:", { error: retryResult.error });
+        return false;
+      }
+      
+      log.info("Second attempt to set session succeeded");
+      return true;
+    }
+
+    // נקה את ה-hash מהכתובת URL למניעת ניסיון עיבוד חוזר
+    if (window.history.replaceState) {
+      window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+    }
+
+    log.info("Successfully set session with access token", {
+      hasUser: !!data.session?.user,
+      userId: data.session?.user?.id
     });
     
-    // Set the session in Supabase auth
-    const { data, error } = await supabase.auth.setSession(session);
-    
-    if (error) {
-      log.error("Error setting session from hash", { error, errorMessage: error.message });
-      return false;
-    }
-    
-    if (data?.session) {
-      log.info("Successfully set session from hash", { 
-        user: data.session.user.id,
-        expires: new Date(data.session.expires_at * 1000).toISOString(),
-        sessionAccessTokenLength: data.session.access_token.length
-      });
-      isSuccess = true;
-    } else {
-      log.error("No session returned after setting from hash");
-    }
-    
+    return true;
   } catch (err) {
-    log.error("Error extracting access token from hash", { error: err });
+    log.error("Error in extractAccessToken:", { error: err });
+    return false;
   }
-  
-  return isSuccess;
-};
+}

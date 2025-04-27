@@ -2,36 +2,69 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Define the Supabase URL and key
+// הגדר את כתובת וקוד ה-API של Supabase
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://uqumzjmyejlhoyliyesu.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdW16am15ZWpsaG95bGl5ZXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkwODA1MDIsImV4cCI6MjA1NDY1NjUwMn0.btzU9O72DPhxW_gm_G_AKPOaVBuKI8F4KSrnhdNmRO8";
 
-// Create a unique key for this domain to avoid storage conflicts
+/**
+ * קביעת מפתח ייחודי לאחסון כדי למנוע התנגשויות
+ */
 const getStorageKey = () => {
   try {
     const hostname = window.location.hostname;
-    // Handle both www and non-www versions to use the same storage key
+    // טיפול בדומיין עם ובלי www
     const normalizedHostname = hostname.replace(/^www\./, '');
     return `kidushishi-auth-token-${normalizedHostname}`;
   } catch (e) {
-    // Fallback if window is not available (SSR)
+    // מנגנון גיבוי אם window לא זמין (SSR)
     return 'kidushishi-auth-token-default';
   }
 };
 
-// Get the storage key
+// קבלת מפתח האחסון
 const storageKey = getStorageKey();
 
-// Create a single supabase client instance for the entire app
+/**
+ * פונקציית עזר לזיהוי אם הדפדפן תומך בלוקל סטורג'
+ */
+const getStorageProvider = () => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      // בדיקה שהלוקל סטורג' עובד
+      localStorage.setItem('supabase_test', 'test');
+      localStorage.removeItem('supabase_test');
+      return localStorage;
+    }
+  } catch (e) {
+    console.warn("localStorage is not available, using in-memory storage");
+  }
+
+  // מנגנון גיבוי באחסון בזיכרון אם localStorage לא זמין
+  const memoryStorage: Record<string, string> = {};
+  return {
+    getItem: (key: string) => memoryStorage[key] || null,
+    setItem: (key: string, value: string) => { memoryStorage[key] = value },
+    removeItem: (key: string) => { delete memoryStorage[key] }
+  };
+};
+
+// יצירת מופע של לקוח supabase עבור כל האפליקציה
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    persistSession: true,          // Enable session persistence
-    autoRefreshToken: true,        // Automatically refresh tokens
-    detectSessionInUrl: true,      // Auto-detect access_token in URL
-    storageKey: storageKey,        // Use a consistent storage key
-    storage: localStorage,         // Use localStorage for persistence
-    debug: import.meta.env.DEV,    // Enable debug mode in development
-    flowType: 'pkce',              // Use PKCE for OAuth flow
+    persistSession: true,          // אפשר שמירת סשן
+    autoRefreshToken: true,        // רענון אוטומטי של טוקנים
+    detectSessionInUrl: true,      // זיהוי אוטומטי של access_token בכתובת
+    storageKey: storageKey,        // מפתח אחסון עקבי
+    storage: getStorageProvider(),  // השתמש בלוקל סטורג' או במנגנון גיבוי
+    debug: import.meta.env.DEV,    // הפעל מצב דיבאג בסביבת פיתוח
+    flowType: 'pkce',              // השתמש ב-PKCE עבור אימות OAuth
+    cookieOptions: {
+      name: `sb-${storageKey}`,    // שם העוגיה שתואם את מפתח האחסון
+      domain: window.location.hostname, // תקף רק עבור הדומיין הנוכחי
+      sameSite: "lax",            // מדיניות SameSite מתאימה לרוב המקרים
+      secure: window.location.protocol === "https:", // אבטחה לפי הפרוטוקול
+      path: "/",                  // תקף עבור כל הנתיבים באתר
+    },
   },
   global: {
     headers: {
@@ -40,22 +73,22 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Export a function to get the storage key for other components
+// ייצוא פונקציה לקבלת מפתח האחסון עבור רכיבים אחרים
 export const getAuthStorageKey = getStorageKey;
 
-// Export a domain normalization function to help with URL redirection issues
+// ייצוא פונקצית נרמול דומיין לעזרה בבעיות הפניה
 export const getNormalizedDomain = () => {
   try {
     const hostname = window.location.hostname;
     
-    // Local or development domains don't need www prefix
+    // דומיינים לוקליים או פיתוח לא צריכים קידומת www
     if (hostname.startsWith('local') || 
         hostname.includes('localhost') || 
         hostname.includes('lovableproject.com')) {
       return hostname;
     }
     
-    // Ensure we use www for the production domain to match SSL certificate
+    // וודא שאנחנו משתמשים ב-www עבור דומיין הפרודקשן כדי להתאים לתעודת SSL
     if (hostname === 'kidushishi-menegment-app.co.il') {
       return 'www.kidushishi-menegment-app.co.il';
     }
@@ -66,28 +99,66 @@ export const getNormalizedDomain = () => {
   }
 };
 
-// הוספת פונקציות עזר לניקוי אחסון ומידע של אימות
+/**
+ * ניקוי אחסון ומידע של אימות
+ */
 export const clearAuthStorage = () => {
   try {
-    // Clear localStorage items related to auth
+    // ניקוי פריטי localStorage הקשורים לאימות
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith('supabase.auth.') || key.includes(storageKey))) {
+      if (key && (
+        key.startsWith('supabase.auth.') || 
+        key.includes(storageKey) ||
+        key.includes('sb-') ||
+        key.includes('_supabase_') ||
+        key.includes('code_verifier')
+      )) {
         keysToRemove.push(key);
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
     
-    // Clear sessionStorage items related to auth
-    sessionStorage.removeItem('auth_redirect_count');
-    sessionStorage.removeItem('auth_redirect_initiated');
-    sessionStorage.removeItem('auth_redirect_time');
-    sessionStorage.removeItem('auth_redirect_attempts');
+    // ניקוי פריטי sessionStorage הקשורים לאימות
+    const sessionKeysToRemove = [
+      'auth_redirect_count',
+      'auth_redirect_initiated',
+      'auth_redirect_time',
+      'auth_redirect_attempts',
+      'supabase_access_token',
+      'supabase_refresh_token',
+      'supabase_pkce_verifier',
+      'supabase_pkce_code',
+    ];
+    
+    sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+    
+    // ניקוי קוקיות Supabase אם קיימות
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith('sb-') || cookie.includes('supabase')) {
+        const name = cookie.split('=')[0];
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    }
     
     return true;
   } catch (error) {
     console.error("Error clearing auth storage:", error);
     return false;
+  }
+};
+
+/**
+ * פונקציה להגדרת האימות לשימוש עם פרוטוקול אימות מתאים לפי הספק
+ */
+export const configureAuthProvider = (provider: string) => {
+  // עבור גוגל אנחנו רוצים לתמוך גם ב-implicit flow
+  if (provider === 'google') {
+    // סמן שמדובר בתהליך אימות בהפניה
+    sessionStorage.setItem('auth_redirect_initiated', 'true');
+    sessionStorage.setItem('auth_redirect_time', Date.now().toString());
   }
 };

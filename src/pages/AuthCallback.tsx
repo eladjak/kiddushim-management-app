@@ -4,14 +4,13 @@ import { logger } from "@/utils/logger";
 import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
 import { useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { extractAccessToken } from "@/hooks/auth-callback/extractAccessToken";
 import { useToast } from "@/hooks/use-toast";
 
 /**
- * This page handles OAuth callback and session establishment
- * It should be configured as the redirect URL in Auth providers
+ * דף זה מטפל בקולבק OAuth ובהקמת סשן
+ * יש להגדיר אותו ככתובת הפניה בספקי אימות
  */
 const AuthCallback = () => {
   const { loading, error } = useAuthCallback();
@@ -41,14 +40,14 @@ const AuthCallback = () => {
         // סימן שהתחלנו לעבד
         processedRef.current = true;
         
-        // Check if there's an access token in the hash - HIGHEST PRIORITY
+        // בדיקה באופן מיידי אם יש access_token בחלק ה-hash - עדיפות גבוהה
         if (window.location.hash && window.location.hash.includes('access_token')) {
           log.info("Found access_token in hash, processing directly");
           
-          // Wait a moment to ensure the DOM is fully loaded
+          // המתנה לרגע קצר כדי לוודא שה-DOM נטען במלואו
           await new Promise(resolve => setTimeout(resolve, 100));
           
-          // Process the token directly
+          // עיבוד הטוקן ישירות
           const success = await extractAccessToken();
           
           if (success) {
@@ -58,7 +57,7 @@ const AuthCallback = () => {
               description: "התחברת בהצלחה",
             });
             
-            // Navigate home with small delay to ensure state is updated
+            // מעבר הביתה עם השהיה קצרה כדי להבטיח שהסטייט מתעדכן
             setTimeout(() => {
               navigate("/", { replace: true });
             }, 300);
@@ -69,7 +68,7 @@ const AuthCallback = () => {
           }
         }
         
-        // Log URL data for debugging
+        // נתוני URL לצורכי דיבאג
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
@@ -88,7 +87,7 @@ const AuthCallback = () => {
       }
     };
     
-    // Handle the callback once
+    // טיפול בקולבק פעם אחת בלבד
     handleCallback();
     
     // הוספת טיימר בטיחות להפסקת טעינה
@@ -105,7 +104,7 @@ const AuthCallback = () => {
     
   }, []);  // הסרת dependency כדי למנוע ריצה חוזרת
 
-  // Display loading or error UI
+  // הצגת טעינה או שגיאה בממשק המשתמש
   if (loading) {
     return <AuthCallbackLoading />;
   }
@@ -114,7 +113,7 @@ const AuthCallback = () => {
     return <AuthCallbackError error={error} />;
   }
 
-  // Show loading anyway as we should redirect soon
+  // הצגת טעינה בכל מקרה כי אנחנו צפויים לנתב בקרוב
   return <AuthCallbackLoading />;
 };
 

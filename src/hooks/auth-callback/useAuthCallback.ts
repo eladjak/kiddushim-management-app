@@ -9,10 +9,10 @@ import { handleImplicitAuth } from "./handleImplicitAuth";
 import { handleUrlCode } from "./handleUrlCode";
 import { handlePkceError } from "./handlePkceError";
 import { extractAccessToken } from "./extractAccessToken";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
 
 /**
- * Hook to handle the authentication callback process
+ * הוק לטיפול בתהליך קולבק האימות
  */
 export function useAuthCallback() {
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ export function useAuthCallback() {
   const navigate = useNavigate();
   const location = useLocation();
   const log = logger.createLogger({ component: 'useAuthCallback' });
-  const toastHelper = useToast(); // Get the toast object
+  const toastHelper = useToast(); 
   const processingRef = useRef(false);
   const maxRetriesRef = useRef(2);
   const hasRunRef = useRef(false);
@@ -29,7 +29,7 @@ export function useAuthCallback() {
   useEffect(() => {
     let isMounted = true;
     
-    // מניעת ריצה כפולה - וגם מונע לולאה אינסופית
+    // מניעת ריצה כפולה וגם מניעת לולאה אינסופית
     if (processingRef.current || hasRunRef.current) {
       return () => {};
     }
@@ -52,7 +52,7 @@ export function useAuthCallback() {
           }
         }, 1000);
       }
-    }, 10000);
+    }, 8000); // הורדת הזמן ל-8 שניות
 
     async function processAuthCallback() {
       try {
@@ -68,6 +68,8 @@ export function useAuthCallback() {
           
           setTimeout(() => {
             if (isMounted) {
+              // ניקוי נתוני אימות לפני הניווט
+              clearAuthStorage();
               navigate("/", { replace: true });
             }
           }, 1500);
@@ -77,16 +79,16 @@ export function useAuthCallback() {
         
         setProcessAttempts(prev => prev + 1);
 
-        // Check if we have access_token in hash
+        // בדיקה אם יש access_token בחלק ה-hash
         const hasAccessTokenInHash = window.location.hash && window.location.hash.includes('access_token');
         
-        // First priority: Process access_token from hash fragment - MOST IMPORTANT FOR GOOGLE OAUTH
+        // עדיפות ראשונה: עיבוד access_token מה-hash - החשוב ביותר עבור GOOGLE OAUTH
         if (hasAccessTokenInHash) {
           log.info("Found access_token in hash, processing directly", {
             hashLength: window.location.hash.length
           });
           
-          // Force a short delay to ensure DOM is fully loaded
+          // המתנה קצרה כדי להבטיח שה-DOM טעון במלואו
           await new Promise(resolve => setTimeout(resolve, 150));
           
           const tokenSuccess = await extractAccessToken();
@@ -99,7 +101,7 @@ export function useAuthCallback() {
             });
             
             if (isMounted) {
-              // Navigate home
+              // ניווט הביתה
               setTimeout(() => {
                 navigate("/", { replace: true });
               }, 300);
@@ -107,14 +109,16 @@ export function useAuthCallback() {
             return;
           } else {
             log.error("Failed to process access token from hash");
+            // ניקוי נתוני אימות לניסיון חדש
+            clearAuthStorage();
           }
         }
         
-        // Second priority: Check for existing session
+        // עדיפות שנייה: בדיקה לסשן קיים
         const sessionExists = await handleExistingSession(navigate, toastHelper);
         if (sessionExists) return;
         
-        // Third priority: Handle code from state (from redirection)
+        // עדיפות שלישית: טיפול בקוד מ-state (מהפניה)
         if (location.state?.code && location.state.code.length > 10) {
           try {
             log.info("Using code from location state");
@@ -123,33 +127,35 @@ export function useAuthCallback() {
           } catch (err) {
             log.error("Error handling state code:", { error: err });
             if (isMounted) {
+              clearAuthStorage();
               await handlePkceError(navigate, setError, setLoading);
               return;
             }
           }
         }
 
-        // Fourth priority: Handle implicit auth flow
+        // עדיפות רביעית: טיפול בפלואו אוטנטיקציה של implicit
         const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
         if (implicitAuthSuccess) return;
         
-        // Fifth priority: Check for code in URL
+        // עדיפות חמישית: בדיקה לקוד ב-URL
         try {
           const urlCodeSuccess = await handleUrlCode(navigate, toastHelper);
           if (urlCodeSuccess) return;
         } catch (err) {
           log.error("Error processing URL code:", { error: err });
           if (isMounted) {
+            clearAuthStorage();
             await handlePkceError(navigate, setError, setLoading);
             return;
           }
         }
 
-        // Sixth priority: One more try with access token if present
+        // עדיפות שישית: ניסיון נוסף עם access token אם קיים
         if (hasAccessTokenInHash) {
           log.info("Trying access_token extraction one more time");
           
-          // Wait a moment before trying again
+          // המתנה קצרה לפני ניסיון נוסף
           await new Promise(resolve => setTimeout(resolve, 500));
           
           const secondTokenSuccess = await extractAccessToken();
@@ -168,21 +174,21 @@ export function useAuthCallback() {
           }
         }
         
-        // If we get here, authentication failed
+        // אם הגענו לכאן, האימות נכשל
         if (isMounted) {
           log.error("No authentication method succeeded", {
             hasHash: !!window.location.hash,
             hashIncludesAccessToken: hasAccessTokenInHash
           });
           
-          // למנוע הפניה אינסופית
-          // Check if we're on a domain without www prefix (could cause SSL issues)
+          // מניעת הפניה אינסופית
+          // בדיקה אם אנחנו בדומיין ללא קידומת www (יכול לגרום לבעיות SSL)
           const hostname = window.location.hostname;
           if (hostname === 'kidushishi-menegment-app.co.il' && processAttempts < 1) {
             log.info("Detected non-www domain, redirecting to www version");
             setError("מועבר לכתובת עם תעודת SSL תקינה...");
             
-            // Short delay to show the message
+            // השהיה קצרה להצגת ההודעה
             setTimeout(() => {
               const protocol = window.location.protocol;
               const pathname = window.location.pathname;
@@ -193,6 +199,7 @@ export function useAuthCallback() {
             return;
           }
           
+          clearAuthStorage(); // ניקוי נתוני אימות לפני טיפול בשגיאה
           await handlePkceError(navigate, setError, setLoading);
         }
       } catch (err: any) {
@@ -203,6 +210,7 @@ export function useAuthCallback() {
           
           // ניווט לדף הבית במקרה של שגיאה
           setTimeout(() => {
+            clearAuthStorage(); // ניקוי נתוני אימות
             navigate("/", { replace: true });
           }, 2000);
         }
@@ -215,7 +223,7 @@ export function useAuthCallback() {
       }
     }
 
-    // Process the callback
+    // עיבוד הקולבק
     processAuthCallback();
 
     return () => {

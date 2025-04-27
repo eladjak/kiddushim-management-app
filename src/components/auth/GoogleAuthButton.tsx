@@ -1,9 +1,9 @@
-
 import { useToast } from "@/hooks/use-toast";
-import { supabase, getNormalizedDomain } from "@/integrations/supabase/client";
+import { supabase, configureAuthProvider, getNormalizedDomain } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
+import { FcGoogle } from "react-icons/fc";
 
 /**
  * Google authentication button component
@@ -70,7 +70,7 @@ export const GoogleAuthButton = () => {
   /**
    * Initiates Google Sign In flow
    */
-  const signInWithGoogle = async () => {
+  const handleGoogleSignIn = async () => {
     // Prevent multiple clicks
     if (authInProgressRef.current || isLoading) return;
     
@@ -100,19 +100,14 @@ export const GoogleAuthButton = () => {
       await new Promise(resolve => setTimeout(resolve, 200));
       
       // Initiate Google auth with explicit provider options
+      configureAuthProvider('google');
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            // Ensures we get a refresh token
-            access_type: 'offline',
-            // Forces consent screen to always appear
-            prompt: 'consent',
-            // Request email scope
-            scope: 'email profile',
-          }
-        },
+          redirectTo: `${window.location.origin}/auth/callback`,
+          skipBrowserRedirect: false,
+        }
       });
       
       if (error) {
@@ -172,16 +167,12 @@ export const GoogleAuthButton = () => {
     <Button
       type="button"
       variant="outline"
-      onClick={signInWithGoogle}
+      onClick={handleGoogleSignIn}
       disabled={isLoading}
       className="w-full h-10 border border-gray-200 hover:bg-secondary/50 transition-all duration-200 flex items-center justify-center gap-2"
       data-testid="google-auth-button"
     >
-      <img
-        src="https://www.google.com/favicon.ico"
-        alt="Google"
-        className="w-4 h-4"
-      />
+      <FcGoogle className="w-4 h-4" />
       {isLoading ? "טוען..." : "התחבר עם Google"}
     </Button>
   );

@@ -1,13 +1,13 @@
 
 import { NavigateFunction } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { ToastType } from "./types";
 import { showToast } from "./toastHelpers";
 import { extractAccessToken } from "./extractAccessToken";
 
 /**
- * Handle implicit auth flow (missing code but was redirected)
+ * טיפול במצב של אימות שמגיע מפרוטוקול implicit flow
+ * במיוחד רלוונטי לספקי זהות שמחזירים access_token במקום קוד אוטוריזציה
  */
 export async function handleImplicitAuth(
   navigate: NavigateFunction,
@@ -16,70 +16,47 @@ export async function handleImplicitAuth(
   const log = logger.createLogger({ component: 'handleImplicitAuth' });
   
   try {
-    log.info("Checking for implicit auth flow");
+    // בדיקה אם מדובר באימות בפרוטוקול implicit flow (לא PKCE)
+    const isRedirectAuth = sessionStorage.getItem('auth_redirect_initiated') === 'true';
+    const authTimestamp = parseInt(sessionStorage.getItem('auth_redirect_time') || '0');
+    const currentTime = Date.now();
     
-    // First priority: check for access_token in hash
+    // אם לא התחיל תהליך אימות או שעבר יותר מדי זמן, זה כנראה לא חלק מתהליך אימות
+    if (!isRedirectAuth || currentTime - authTimestamp > 300000) { // 5 דקות
+      log.info("Not part of an auth redirect flow", {
+        isRedirectAuth,
+        timeDiff: currentTime - authTimestamp
+      });
+      return false;
+    }
+
+    log.info("Detected return from auth redirect, checking for tokens");
+    
+    // ניקוי נתוני מעקב אימות
+    sessionStorage.removeItem('auth_redirect_initiated');
+    sessionStorage.removeItem('auth_redirect_time');
+    
+    // בדיקה אם יש access_token בחלק ה-hash של הכתובת
     if (window.location.hash && window.location.hash.includes('access_token')) {
       log.info("Found access_token in hash, processing");
+      
       const success = await extractAccessToken();
       
       if (success) {
-        log.info("Successfully processed access token from hash");
+        log.info("Successfully set session from implicit flow");
+        
         showToast(toastHelper, "התחברת בהצלחה");
         
-        // Navigate home
+        // ניווט לדף הבית
         setTimeout(() => {
           navigate("/", { replace: true });
         }, 300);
         
         return true;
-      } else {
-        log.error("Failed to process access token from hash");
       }
     }
     
-    // Second priority: Check if we were redirected from auth
-    const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' || 
-                         sessionStorage.getItem('auth_redirect_initiated') === 'true';
-    
-    if (!wasRedirected) {
-      log.info("Not part of an auth redirect flow");
-      return false;
-    }
-    
-    log.info("Was redirected from auth, checking current session");
-    
-    // Clear the redirect flags
-    localStorage.removeItem('auth_redirect_initiated');
-    localStorage.removeItem('auth_redirect_time');
-    sessionStorage.removeItem('auth_redirect_initiated');
-    sessionStorage.removeItem('auth_redirect_time');
-    
-    // Check if we have a session now (might have been set by OAuth provider)
-    const { data, error } = await supabase.auth.getSession();
-    
-    if (error) {
-      log.error("Error checking session after redirect:", { error });
-      return false;
-    }
-    
-    if (data.session) {
-      log.info("Found session after auth redirect", {
-        userId: data.session.user.id,
-      });
-      
-      // Show success message
-      showToast(toastHelper, "התחברת בהצלחה");
-      
-      // Navigate home
-      setTimeout(() => {
-        navigate("/", { replace: true });
-      }, 300);
-      
-      return true;
-    }
-    
-    log.info("No session found after auth redirect");
+    log.info("No tokens found or failed to process tokens");
     return false;
   } catch (err) {
     log.error("Error in handleImplicitAuth:", { error: err });
