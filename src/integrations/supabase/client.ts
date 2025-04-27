@@ -58,6 +58,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: getStorageProvider(),  // השתמש בלוקל סטורג' או במנגנון גיבוי
     debug: import.meta.env.DEV,    // הפעל מצב דיבאג בסביבת פיתוח
     flowType: 'pkce',              // השתמש ב-PKCE עבור אימות OAuth
+    // אין צורך ב-cookieOptions יותר
   },
   global: {
     headers: {

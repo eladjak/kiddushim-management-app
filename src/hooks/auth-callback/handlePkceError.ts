@@ -2,6 +2,7 @@
 import { NavigateFunction } from "react-router-dom";
 import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { extractAccessToken } from "./extractAccessToken";
 
 /**
  * טיפול בשגיאות PKCE או אי-התאמת דומיין לתעודה
@@ -62,46 +63,30 @@ export async function handlePkceError(
   
   // בדיקה אם יש פרמטרי access_token בפרגמנט
   if (window.location.hash && window.location.hash.includes('access_token')) {
-    log.info("Found access_token in hash fragment, attempting to process");
+    log.info("Found access_token in hash fragment, attempting direct extraction");
     
     try {
-      // חילוץ טוקן ישירות
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const expiresIn = hashParams.get('expires_in');
-      const expiresAt = hashParams.get('expires_at');
+      // נסיון לחלץ ולעבד את הטוקן ישירות
+      const extractSuccess = await extractAccessToken();
       
-      if (accessToken) {
-        log.info("Extracted access token from hash fragment, attempting to set session");
+      if (extractSuccess) {
+        log.info("Successfully extracted and processed access token from URL hash");
         
-        // ניסיון להגדיר את הסשן ישירות עם הטוקן
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
-        });
-        
-        if (!error && data.session) {
-          log.info("Successfully processed access token from URL hash");
-          
-          // נקה פרמטרים של הפניה
-          try {
-            sessionStorage.removeItem('auth_redirect_initiated');
-            sessionStorage.removeItem('auth_redirect_time');
-            sessionStorage.removeItem('auth_redirect_count');
-          } catch (e) {
-            log.warn("Error clearing auth redirect indicators:", e);
-          }
-          
-          // הצג הודעת הצלחה
-          setError('');
-          setLoading(false);
-          
-          navigate('/', { replace: true });
-          return;
-        } else if (error) {
-          log.error("Error authenticating with access token:", { error });
+        // נקה פרמטרים של הפניה
+        try {
+          sessionStorage.removeItem('auth_redirect_initiated');
+          sessionStorage.removeItem('auth_redirect_time');
+          sessionStorage.removeItem('auth_redirect_count');
+        } catch (e) {
+          log.warn("Error clearing auth redirect indicators:", e);
         }
+        
+        // הצג הודעת הצלחה
+        setError('');
+        setLoading(false);
+        
+        navigate('/', { replace: true });
+        return;
       }
     } catch (hashError) {
       log.error("Error processing URL hash:", { error: hashError });
@@ -111,7 +96,7 @@ export async function handlePkceError(
   // נסיון אחרון - מחיקת כל נתוני האימות ומעבר לדף הבית
   try {
     // ניקוי כל מצב האימות ומחיקת נתונים
-    await supabase.auth.signOut({ scope: 'local' });
+    await supabase.auth.signOut({ scope: 'global' });
     
     // ניקוי מושלם של נתוני אימות
     clearAuthStorage();

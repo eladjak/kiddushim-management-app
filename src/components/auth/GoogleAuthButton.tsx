@@ -45,30 +45,37 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
-      // Clean up existing auth data
-      clearAuthStorage();
-      
-      // Sign out before starting new sign in flow
+      // Clean up existing auth data and session
       try {
-        await supabase.auth.signOut();
-        log.info('Successfully signed out before new sign in');
+        clearAuthStorage();
+        await supabase.auth.signOut({ scope: 'global' });
+        log.info('Successfully cleared auth state before new sign in');
       } catch (signOutError) {
-        log.warn('Error during sign out before sign in:', { error: signOutError });
+        log.warn('Error during cleanup before sign in:', { error: signOutError });
       }
       
       // Small delay before starting new process
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Get proper redirect URL
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      // Get proper redirect URL with www prefix if needed
+      const redirectTo = getRedirectUrl();
       
-      // Generate and store code verifier for PKCE - בשלב זה כבר לא צריך בזכות flowType: 'pkce' בקליינט
-      // supabase.auth עושה את זה אוטומטית
+      // Generate a code verifier and store it for PKCE
+      const codeVerifier = generateRandomString(64);
+      try {
+        sessionStorage.setItem('supabase-code-verifier', codeVerifier);
+        log.info('Generated and stored code verifier for PKCE', { 
+          verifierLength: codeVerifier.length,
+          verifierStart: codeVerifier.substring(0, 5) + '...'
+        });
+      } catch (storageError) {
+        log.error('Error storing code verifier:', { error: storageError });
+      }
       
-      // Initiate Google auth with explicit provider options
+      // Configure auth provider with appropriate flow
       configureAuthProvider('google');
       
-      // הוספנו אופציות מפורטות יותר לאימות כדי לפתור בעיות שונות
+      // Initiate OAuth flow with detailed options
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -77,7 +84,9 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account',
-          }
+          },
+          // Use PKCE explicitly with our verifier
+          codeVerifier
         }
       });
       
@@ -128,6 +137,29 @@ export const GoogleAuthButton = () => {
       // Reset state
       setIsLoading(false);
       authInProgressRef.current = false;
+    }
+  };
+
+  // Generate a random string for PKCE verifier
+  const generateRandomString = (length: number) => {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    let result = '';
+    const randomValues = new Uint8Array(length);
+    
+    try {
+      // Use secure random values if available
+      window.crypto.getRandomValues(randomValues);
+      
+      for (let i = 0; i < length; i++) {
+        result += charset[randomValues[i] % charset.length];
+      }
+      return result;
+    } catch (e) {
+      // Fallback to less secure but functional method
+      for (let i = 0; i < length; i++) {
+        result += charset.charAt(Math.floor(Math.random() * charset.length));
+      }
+      return result;
     }
   };
 

@@ -70,13 +70,16 @@ export function useProcessAuthCallback({
           return;
         }
         
-        // שינוי כאן - הפיכת הקריאה לקריאה ישירה עם מספר במקום פונקציה
+        // כעת משתמשים בגרסה מתוקנת - מספר במקום פונקציה
         setProcessAttempts(processAttempts + 1);
 
-        // Try each auth method in sequence
+        // בדיקת כל מקורות האימות האפשריים
+        
+        // 1. בדיקה אם כבר קיים סשן פעיל
         const sessionExists = await handleExistingSession(navigate, toastHelper);
         if (sessionExists) return;
         
+        // 2. אם יש קוד אימות בסטייט (מהנתב)
         if (location.state?.code && location.state.code.length > 10) {
           try {
             log.info("Using code from location state");
@@ -92,9 +95,18 @@ export function useProcessAuthCallback({
           }
         }
 
-        const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
-        if (implicitAuthSuccess) return;
+        // 3. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          try {
+            log.info("Found access_token in hash, trying implicit flow");
+            const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
+            if (implicitAuthSuccess) return;
+          } catch (err) {
+            log.error("Error in implicit auth flow:", { error: err });
+          }
+        }
         
+        // 4. טיפול בקוד אימות מה-URL
         try {
           const urlCodeSuccess = await handleUrlCode(navigate, toastHelper);
           if (urlCodeSuccess) return;
@@ -107,6 +119,7 @@ export function useProcessAuthCallback({
           }
         }
 
+        // אם אף שיטה לא הצליחה
         if (isMounted) {
           log.error("No authentication method succeeded");
           clearAuthStorage();

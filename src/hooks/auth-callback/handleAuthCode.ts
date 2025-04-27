@@ -33,44 +33,86 @@ export async function handleAuthCode(
       verifierLength: codeVerifier?.length 
     });
     
-    // Try to perform code exchange
-    const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
-    
-    if (error) {
-      log.error("Error exchanging code for session:", { error, source });
-      throw error;
-    }
-    
-    if (data.session) {
-      log.info("Successfully exchanged code for session", { 
-        userId: data.session.user.id, 
-        source 
-      });
+    // Try to perform code exchange with PKCE
+    if (codeVerifier) {
+      log.info("Attempting PKCE code exchange with verifier");
+      const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
       
-      // Show success message
-      showToast(toastHelper, "התחברת בהצלחה");
-      
-      // Clear auth redirect indicators after successful auth
-      try {
-        sessionStorage.removeItem('auth_redirect_initiated');
-        sessionStorage.removeItem('auth_redirect_time');
-        sessionStorage.removeItem('auth_redirect_count');
-        // מחיקת מפתח ה-code_verifier אחרי שהיה בשימוש מוצלח
-        sessionStorage.removeItem('supabase-code-verifier');
-      } catch (e) {
-        log.warn("Error clearing auth redirect indicators:", e);
+      if (error) {
+        log.error("Error exchanging code for session with PKCE:", { error, source });
+        // המשך עם כישלון
+      } else {
+        if (data.session) {
+          log.info("Successfully exchanged code for session with PKCE", { 
+            userId: data.session.user.id, 
+            source 
+          });
+          
+          // Show success message
+          showToast(toastHelper, "התחברת בהצלחה");
+          
+          // Clear auth redirect indicators after successful auth
+          try {
+            sessionStorage.removeItem('auth_redirect_initiated');
+            sessionStorage.removeItem('auth_redirect_time');
+            sessionStorage.removeItem('auth_redirect_count');
+            // מחיקת מפתח ה-code_verifier אחרי שהיה בשימוש מוצלח
+            sessionStorage.removeItem('supabase-code-verifier');
+          } catch (e) {
+            log.warn("Error clearing auth redirect indicators:", e);
+          }
+          
+          // Navigate home
+          setTimeout(() => {
+            log.info("Redirecting to home after code exchange");
+            navigate("/", { replace: true });
+          }, 300);
+          
+          return true;
+        }
       }
+    } else {
+      // אם אין לנו verifier, ננסה לבצע חילוף קוד ללא PKCE
+      log.warn("No code verifier found, attempting non-PKCE code exchange");
       
-      // Navigate home
-      setTimeout(() => {
-        log.info("Redirecting to home after code exchange");
-        navigate("/", { replace: true });
-      }, 300);
-      
-      return true;
+      try {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
+        
+        if (error) {
+          log.error("Error exchanging code without PKCE:", { error });
+        } else if (data.session) {
+          log.info("Successfully exchanged code without PKCE", { 
+            userId: data.session.user.id, 
+            source 
+          });
+          
+          // Show success message
+          showToast(toastHelper, "התחברת בהצלחה");
+          
+          // Clear auth redirect indicators
+          try {
+            sessionStorage.removeItem('auth_redirect_initiated');
+            sessionStorage.removeItem('auth_redirect_time');
+            sessionStorage.removeItem('auth_redirect_count');
+          } catch (e) {
+            log.warn("Error clearing auth redirect indicators:", e);
+          }
+          
+          // Navigate home
+          setTimeout(() => {
+            log.info("Redirecting to home after non-PKCE code exchange");
+            navigate("/", { replace: true });
+          }, 300);
+          
+          return true;
+        }
+      } catch (exchangeError) {
+        log.error("Error in non-PKCE code exchange attempt:", { error: exchangeError });
+      }
     }
     
-    log.error("No session returned after code exchange", { source });
+    // אם הגענו לכאן, שתי השיטות נכשלו
+    log.error("Both PKCE and non-PKCE code exchange methods failed", { source });
     return false;
   } catch (err) {
     log.error("Error in handleAuthCode:", { error: err, source });
