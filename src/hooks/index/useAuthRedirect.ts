@@ -35,7 +35,7 @@ export const useAuthRedirect = () => {
         return;
       }
 
-      // Check for domain mismatch
+      // Check for domain mismatch and redirect if needed
       const currentDomain = window.location.hostname;
       const normalizedDomain = getNormalizedDomain();
       

@@ -1,5 +1,5 @@
 
-import { useAuthCallback } from "@/hooks/useAuthCallback";
+import { useAuthCallback } from "@/hooks/auth-callback/useAuthCallback";
 import { logger } from "@/utils/logger";
 import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";

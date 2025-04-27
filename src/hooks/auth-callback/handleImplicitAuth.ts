@@ -18,7 +18,7 @@ export async function handleImplicitAuth(
   try {
     log.info("Checking for implicit auth flow");
     
-    // First check for access_token in hash
+    // First priority: check for access_token in hash
     if (window.location.hash && window.location.hash.includes('access_token')) {
       log.info("Found access_token in hash, processing");
       const success = await extractAccessToken();
@@ -33,10 +33,12 @@ export async function handleImplicitAuth(
         }, 300);
         
         return true;
+      } else {
+        log.error("Failed to process access token from hash");
       }
     }
     
-    // Check if we were redirected from auth
+    // Second priority: Check if we were redirected from auth
     const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' || 
                          sessionStorage.getItem('auth_redirect_initiated') === 'true';
     
@@ -45,13 +47,13 @@ export async function handleImplicitAuth(
       return false;
     }
     
+    log.info("Was redirected from auth, checking current session");
+    
     // Clear the redirect flags
     localStorage.removeItem('auth_redirect_initiated');
     localStorage.removeItem('auth_redirect_time');
     sessionStorage.removeItem('auth_redirect_initiated');
     sessionStorage.removeItem('auth_redirect_time');
-    
-    log.info("Was redirected from auth, checking current session");
     
     // Check if we have a session now (might have been set by OAuth provider)
     const { data, error } = await supabase.auth.getSession();

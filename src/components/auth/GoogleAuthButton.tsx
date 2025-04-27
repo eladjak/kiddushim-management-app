@@ -132,12 +132,19 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Store auth state in sessionStorage
+      // Store auth state in sessionStorage (more reliable across redirects)
       try {
         sessionStorage.setItem('auth_redirect_initiated', 'true');
         sessionStorage.setItem('auth_redirect_time', new Date().toISOString());
       } catch (e) {
         log.warn('Could not save auth state to sessionStorage', { error: e });
+        // Try localStorage as fallback
+        try {
+          localStorage.setItem('auth_redirect_initiated', 'true');
+          localStorage.setItem('auth_redirect_time', new Date().toISOString());
+        } catch (e2) {
+          log.error('Could not save auth state to localStorage either', { error: e2 });
+        }
       }
       
       // Navigate to auth URL

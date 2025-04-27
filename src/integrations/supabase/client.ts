@@ -28,7 +28,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storageKey: getStorageKey(),
     storage: localStorage, // Use localStorage for persistence
     debug: import.meta.env.DEV, // Enable debug mode in development
-    // Removed flowType and cookieOptions as they're not supported in the current version
   },
   global: {
     headers: {
@@ -46,7 +45,9 @@ export const getNormalizedDomain = () => {
     const hostname = window.location.hostname;
     
     // Local or development domains don't need www prefix
-    if (hostname.startsWith('local') || hostname.includes('lovableproject.com')) {
+    if (hostname.startsWith('local') || 
+        hostname.includes('localhost') || 
+        hostname.includes('lovableproject.com')) {
       return hostname;
     }
     
