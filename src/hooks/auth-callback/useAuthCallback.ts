@@ -26,6 +26,9 @@ export function useAuthCallback() {
     let isMounted = true;
     let wasProcessed = false;
 
+    // Check if we have access_token in hash and immediately try to process it
+    const hasAccessTokenInHash = window.location.hash && window.location.hash.includes('access_token');
+    
     async function processAuthCallback() {
       try {
         log.info("Handling auth callback");
@@ -39,7 +42,7 @@ export function useAuthCallback() {
         
         // First priority: Extract and process access_token from hash fragment
         // This is critical for Google OAuth which can use implicit flow
-        if (window.location.hash && window.location.hash.includes('access_token')) {
+        if (hasAccessTokenInHash) {
           log.info("Found access_token in hash, processing");
           const tokenSuccess = await extractAccessToken();
           
@@ -95,6 +98,30 @@ export function useAuthCallback() {
           log.error("Error processing URL code:", { error: err });
           if (isMounted) {
             await handlePkceError(navigate, setError, setLoading);
+            return;
+          }
+        }
+
+        // Sixth priority: Try one more direct extractAccessToken approach
+        if (hasAccessTokenInHash) {
+          log.info("Trying access_token extraction one more time");
+          
+          // Wait a moment before trying again
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const secondTokenSuccess = await extractAccessToken();
+          
+          if (secondTokenSuccess) {
+            log.info("Successfully extracted and used access token on second attempt");
+            toast.toast({
+              description: "התחברת בהצלחה",
+            });
+            
+            setTimeout(() => {
+              if (isMounted) {
+                navigate("/", { replace: true });
+              }
+            }, 300);
             return;
           }
         }

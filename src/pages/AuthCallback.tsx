@@ -53,13 +53,16 @@ const AuthCallback = () => {
         const errorParam = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
         
-        // Check for code in hash or path
-        let hashCode = null;
-        let hashAccessToken = null;
+        // Extract data from hash
+        let hashData = {};
         if (window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          hashCode = hashParams.get("code");
-          hashAccessToken = hashParams.get("access_token");
+          hashData = {
+            code: hashParams.get("code"),
+            access_token: hashParams.get("access_token"),
+            token_type: hashParams.get("token_type"),
+            expires_in: hashParams.get("expires_in")
+          };
         }
         
         // Check state data
@@ -71,10 +74,7 @@ const AuthCallback = () => {
           errorMessage: error,
           hasCode: !!code,
           codeLength: code?.length,
-          hasHashCode: !!hashCode,
-          hashCodeLength: hashCode?.length,
-          hasHashAccessToken: !!hashAccessToken,
-          hashAccessTokenLength: hashAccessToken?.length,
+          hash: hashData,
           errorParam,
           errorDescription,
           locationStateData: stateData,

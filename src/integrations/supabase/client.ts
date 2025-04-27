@@ -28,6 +28,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storageKey: getStorageKey(),
     storage: localStorage, // Use localStorage for persistence
     debug: import.meta.env.DEV, // Enable debug mode in development
+    flowType: 'implicit' // Use implicit flow for Google OAuth
   },
   global: {
     headers: {

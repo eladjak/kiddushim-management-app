@@ -102,11 +102,14 @@ export const GoogleAuthButton = () => {
       await new Promise(resolve => setTimeout(resolve, 200));
       
       // Initiate Google auth with minimal options (more reliable)
-      // Important: removed skipBrowserRedirect and other options that could cause issues
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         },
       });
       

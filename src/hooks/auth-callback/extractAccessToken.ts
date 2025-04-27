@@ -37,15 +37,15 @@ export async function extractAccessToken(): Promise<boolean> {
       tokenType
     });
 
-    // Direct approach: Try to directly set the session with the token
+    // First approach: Try to directly set the session
     try {
       log.info("Attempting to set session with access token");
       const sessionData = {
         access_token: accessToken,
-        refresh_token: refreshToken || null,
+        refresh_token: refreshToken || undefined,
         expires_in: expiresIn ? parseInt(expiresIn) : undefined,
         expires_at: expiresAt ? parseInt(expiresAt) : undefined,
-        provider_token: providerToken || null,
+        provider_token: providerToken || undefined,
         token_type: tokenType || 'bearer'
       };
       
@@ -68,14 +68,14 @@ export async function extractAccessToken(): Promise<boolean> {
     try {
       const minimalData = {
         access_token: accessToken,
-        refresh_token: refreshToken || null
+        refresh_token: refreshToken || undefined
       };
       
       const { data, error } = await supabase.auth.setSession(minimalData);
       
       if (!error && data.session) {
         log.info("Successfully established session with minimal data", {
-          userId: data.session.user.id,
+          userId: data.session.user.id, 
         });
         clearUrlHash();
         return true;
@@ -86,7 +86,7 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("Error in minimal data approach:", { error: err });
     }
 
-    // Third approach: Try OAuth signInWithOAuth flow
+    // Third approach: Try OAuth signIn flow
     try {
       log.info("Attempting OAuth signin flow with token");
       
@@ -112,7 +112,7 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("Error in OAuth signin flow approach:", { error: err });
     }
     
-    // Fourth approach: Try setting auth token directly
+    // Fourth approach: Try setting auth token directly in storage
     try {
       // Wait a moment before the third attempt (sometimes helps with timing issues)
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -165,6 +165,41 @@ export async function extractAccessToken(): Promise<boolean> {
         } catch (err) {
           log.error("Error updating token in storage:", { error: err });
         }
+      }
+      
+      // Fifth approach: Try direct exchange with getUser
+      try {
+        log.info("Attempting direct user verification with token");
+        const authHeaders = {
+          Authorization: `Bearer ${accessToken}`,
+          apikey: supabase.supabaseKey
+        };
+        
+        const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
+        
+        if (!userError && userData?.user) {
+          log.info("Successfully verified user with token", {
+            userId: userData.user.id,
+          });
+          
+          // Now try to establish session again
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || undefined
+          });
+          
+          if (!sessionError && sessionData?.session) {
+            log.info("Successfully established session after user verification", {
+              userId: sessionData.session.user.id,
+            });
+            clearUrlHash();
+            return true;
+          }
+          
+          log.warn("Session establishment after user verification failed", { error: sessionError });
+        }
+      } catch (err) {
+        log.error("Error in direct user verification approach:", { error: err });
       }
       
       // Last-ditch attempt: Get the current session
