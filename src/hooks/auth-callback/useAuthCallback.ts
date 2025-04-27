@@ -19,7 +19,7 @@ export function useAuthCallback() {
   const navigate = useNavigate();
   const location = useLocation();
   const log = logger.createLogger({ component: 'useAuthCallback' });
-  const { toast } = useToast(); // Correctly destructure the toast function
+  const toast = useToast(); // Get the full toast object
 
   useEffect(() => {
     let isMounted = true;
@@ -40,7 +40,7 @@ export function useAuthCallback() {
         if (window.location.hash && window.location.hash.includes('access_token')) {
           const tokenSuccess = await extractAccessToken();
           if (tokenSuccess) {
-            toast({
+            toast.toast({
               description: "התחברת בהצלחה",
             });
             
@@ -54,7 +54,7 @@ export function useAuthCallback() {
         }
         
         // Check if we have already processed this auth
-        const sessionExists = await handleExistingSession(navigate, { toast });
+        const sessionExists = await handleExistingSession(navigate, toast);
         if (sessionExists) return;
         
         // Try to extract code from state (preferred method as it's most reliable)
@@ -63,7 +63,7 @@ export function useAuthCallback() {
         
         if (stateCode && stateCode.length > 10) {
           try {
-            await handleAuthCode(stateCode, authSource || 'location_state', navigate, { toast });
+            await handleAuthCode(stateCode, authSource || 'location_state', navigate, toast);
             return;
           } catch (err) {
             log.error("Error handling state code:", { error: err });
@@ -76,12 +76,12 @@ export function useAuthCallback() {
 
         // בדוק אם יש תהליך אימות אימפליסיטי (כלומר, תגיות באש URL)
         // זו הבדיקה החשובה ביותר עבור התחברות Google!
-        const implicitAuthSuccess = await handleImplicitAuth(navigate, { toast });
+        const implicitAuthSuccess = await handleImplicitAuth(navigate, toast);
         if (implicitAuthSuccess) return;
                 
         // בדיקה לקוד ב-URL params  
         try {
-          const urlCodeSuccess = await handleUrlCode(navigate, { toast });
+          const urlCodeSuccess = await handleUrlCode(navigate, toast);
           if (urlCodeSuccess) return;
         } catch (err) {
           log.error("Error processing URL code:", { error: err });
