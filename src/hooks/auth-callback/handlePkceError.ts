@@ -21,6 +21,12 @@ export async function handlePkceError(
     sessionStorage.removeItem('auth_redirect_count');
     setError("זוהתה לולאת הפניות. הקשר לתמיכה הטכנית אם הבעיה נמשכת.");
     setLoading(false);
+    
+    // נעביר את המשתמש לדף הבית במקום להישאר בלופ
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 2000);
+    
     return;
   }
   
@@ -81,28 +87,41 @@ export async function handlePkceError(
     }
   }
 
-  // Clean up all auth state and redirect to auth page
+  // נסיון אחרון - מחיקת כל נתוני האימות ומעבר לדף הבית
   try {
+    // Clean up all auth state and clear data
     await supabase.auth.signOut({ scope: 'local' });
+    
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('supabase.auth.') || key.includes('kidushishi-auth-token'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear any session storage data
+    sessionStorage.removeItem('auth_redirect_count');
+    sessionStorage.removeItem('auth_redirect_initiated');
+    sessionStorage.removeItem('auth_redirect_time');
+    
+    // Set error message and loading state
+    setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
+    setLoading(false);
+    
+    // Navigate to home after delay
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 2000);
   } catch (signOutError) {
     log.error("Error signing out:", { error: signOutError });
+    setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
+    setLoading(false);
+    
+    // Navigate to home even if cleanup fails
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 2000);
   }
-  
-  // Clear all auth data
-  const keysToRemove = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && (key.startsWith('supabase.auth.') || key.includes('kidushishi-auth-token'))) {
-      keysToRemove.push(key);
-    }
-  }
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-  
-  // Clear session storage
-  sessionStorage.removeItem('auth_redirect_count');
-  sessionStorage.removeItem('auth_redirect_initiated');
-  sessionStorage.removeItem('auth_redirect_time');
-  
-  setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
-  setLoading(false);
 }

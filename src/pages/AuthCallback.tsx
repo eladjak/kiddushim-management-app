@@ -3,7 +3,7 @@ import { useAuthCallback } from "@/hooks/auth-callback/useAuthCallback";
 import { logger } from "@/utils/logger";
 import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { extractAccessToken } from "@/hooks/auth-callback/extractAccessToken";
@@ -19,8 +19,16 @@ const AuthCallback = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const toastHelper = useToast();
+  const processedRef = useRef(false);
   
   useEffect(() => {
+    // מניעת עיבוד כפול
+    if (processedRef.current) {
+      return;
+    }
+    
+    processedRef.current = true;
+    
     const handleCallback = async () => {
       try {
         log.info("Processing callback URL", {
@@ -101,6 +109,18 @@ const AuthCallback = () => {
     
     // Handle the callback once
     handleCallback();
+    
+    // הוספת טיימר בטיחות להפסקת טעינה
+    const safetyTimer = setTimeout(() => {
+      if (loading && !error) {
+        log.warn("Safety timeout triggered in auth callback");
+        navigate("/", { replace: true });
+      }
+    }, 10000); // 10 שניות
+    
+    return () => {
+      clearTimeout(safetyTimer);
+    };
     
   }, [loading, error, location, navigate, toastHelper]);
 

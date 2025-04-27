@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
@@ -22,17 +22,33 @@ export function useAuthCallback() {
   const location = useLocation();
   const log = logger.createLogger({ component: 'useAuthCallback' });
   const toastHelper = useToast(); // Get the toast object
+  const processingRef = useRef(false);
+  const maxRetriesRef = useRef(2);
   
   useEffect(() => {
     let isMounted = true;
-    let wasProcessed = false;
     
+    // קבוע הבעיה: אם כבר מעבדים בקשה, אל תתחיל עוד פעם
+    if (processingRef.current) {
+      return;
+    }
+    
+    processingRef.current = true;
+
     async function processAuthCallback() {
       try {
-        if (!isMounted || wasProcessed) return;
-        wasProcessed = true;
+        if (!isMounted) return;
 
         log.info("Handling auth callback", { attemptNumber: processAttempts + 1 });
+        
+        // הגבלת מספר נסיונות העיבוד למניעת לופ אינסופי
+        if (processAttempts >= maxRetriesRef.current) {
+          log.error("Maximum auth processing attempts reached, stopping", { attempts: processAttempts });
+          setError("מספר נסיונות מקסימלי הושג. אנא נסה שוב מאוחר יותר.");
+          setLoading(false);
+          return;
+        }
+        
         setProcessAttempts(prev => prev + 1);
 
         // Check if we have access_token in hash
@@ -133,9 +149,10 @@ export function useAuthCallback() {
             hashIncludesAccessToken: hasAccessTokenInHash
           });
           
+          // למנוע הפניה אינסופית
           // Check if we're on a domain without www prefix (could cause SSL issues)
           const hostname = window.location.hostname;
-          if (hostname === 'kidushishi-menegment-app.co.il') {
+          if (hostname === 'kidushishi-menegment-app.co.il' && processAttempts < 1) {
             log.info("Detected non-www domain, redirecting to www version");
             setError("מועבר לכתובת עם תעודת SSL תקינה...");
             
@@ -156,6 +173,11 @@ export function useAuthCallback() {
         log.error("Unexpected error in auth callback:", { error: err });
         if (isMounted) {
           setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");
+          setLoading(false);
+        }
+      } finally {
+        // וודא שאנחנו מעדכנים את הסטייט ב-unmounting
+        if (isMounted) {
           setLoading(false);
         }
       }

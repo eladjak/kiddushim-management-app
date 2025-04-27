@@ -18,12 +18,24 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
+      // למנוע לופ של הפניות - בדיקה אם זה מתבצע יותר מידי פעמים
+      const redirectAttempts = parseInt(sessionStorage.getItem('auth_redirect_attempts') || '0');
+      
+      if (redirectAttempts > 3) {
+        log.error("Too many redirect attempts detected, stopping redirect cycle");
+        sessionStorage.removeItem('auth_redirect_attempts');
+        return;
+      }
+      
       // If we have a hash with access_token, redirect to auth callback
       if (window.location.hash && window.location.hash.includes('access_token')) {
         log.info("Detected access_token in URL hash, redirecting to auth callback");
         
         // Set redirect flag
         redirectedRef.current = true;
+        
+        // Increment redirect attempts counter
+        sessionStorage.setItem('auth_redirect_attempts', (redirectAttempts + 1).toString());
         
         // Send to auth callback page
         navigate("/auth/callback", { 
@@ -59,6 +71,7 @@ export const useAuthRedirect = () => {
         // Set redirect flag to prevent further redirects
         redirectedRef.current = true;
         sessionStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
+        sessionStorage.setItem('auth_redirect_attempts', (redirectAttempts + 1).toString());
         
         // Build the normalized URL
         const newUrl = `${protocol}//${normalizedDomain}${pathname}${search}${hash}`;
@@ -79,6 +92,10 @@ export const useAuthRedirect = () => {
       if (code) {
         log.info("Detected auth code in URL, redirecting to callback page");
         redirectedRef.current = true;
+        
+        // Increment redirect attempts counter
+        sessionStorage.setItem('auth_redirect_attempts', (redirectAttempts + 1).toString());
+        
         navigate("/auth/callback", { 
           replace: true,
           state: { 
@@ -94,6 +111,10 @@ export const useAuthRedirect = () => {
       if (urlParams.has('error') || urlParams.has('error_description')) {
         log.info("Detected auth error in URL, redirecting to callback page");
         redirectedRef.current = true;
+        
+        // Increment redirect attempts counter
+        sessionStorage.setItem('auth_redirect_attempts', (redirectAttempts + 1).toString());
+        
         navigate("/auth/callback", { 
           replace: true,
           state: { fullUrl: window.location.href, hasError: true }
@@ -122,6 +143,9 @@ export const useAuthRedirect = () => {
           sessionStorage.removeItem('auth_redirect_initiated');
           sessionStorage.removeItem('auth_redirect_time');
           
+          // Increment redirect attempts counter
+          sessionStorage.setItem('auth_redirect_attempts', (redirectAttempts + 1).toString());
+          
           // Force redirect to callback page
           redirectedRef.current = true;
           navigate("/auth/callback", { 
@@ -141,6 +165,12 @@ export const useAuthRedirect = () => {
           sessionStorage.removeItem('auth_redirect_time');
         }
       }
+      
+      // אם הגענו לכאן, נאפס את מונה הניסיונות
+      if (redirectAttempts > 0) {
+        sessionStorage.removeItem('auth_redirect_attempts');
+      }
+      
     } catch (error) {
       log.error("Error checking for auth redirect:", { error });
     }
