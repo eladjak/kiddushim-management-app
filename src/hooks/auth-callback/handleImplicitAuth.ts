@@ -7,6 +7,7 @@ import { showToast } from "./toastHelpers";
 
 /**
  * Check if session is already established via implicit flow
+ * או שיש hash fragment שמכיל access_token
  */
 export async function handleImplicitAuth(
   navigate: NavigateFunction,
@@ -15,6 +16,48 @@ export async function handleImplicitAuth(
   const log = logger.createLogger({ component: 'handleImplicitAuth' });
 
   try {
+    // בדוק אם יש פרגמנט בכתובת שמכיל access_token
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      log.info("Found access_token in URL hash, processing implicit flow", {
+        hashLength: window.location.hash.length
+      });
+      
+      try {
+        // נסה לעבד את ה-hash לאימות
+        const { data, error } = await supabase.auth.getSessionFromUrl();
+        
+        if (error) {
+          log.error("Error getting session from URL:", { error });
+          return false;
+        }
+        
+        if (data?.session) {
+          log.info("Successfully established session from hash URL", { 
+            userId: data.session.user.id 
+          });
+          
+          // נקה את הפרמטרים מהכתובת
+          if (window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+          
+          // הצג הודעת הצלחה
+          showToast(toast, "התחברת בהצלחה");
+          
+          // נווט הביתה
+          setTimeout(() => {
+            log.info("Redirecting to home with hash-based auth session");
+            navigate("/", { replace: true });
+          }, 300);
+          
+          return true;
+        }
+      } catch (hashError) {
+        log.error("Error processing URL hash for auth:", { error: hashError });
+      }
+    }
+    
+    // בדיקה לסשן קיים
     const { data: sessionData } = await supabase.auth.getSession();
     
     if (sessionData.session) {
@@ -22,15 +65,15 @@ export async function handleImplicitAuth(
         userId: sessionData.session.user.id 
       });
       
-      // Clear URL parameters
+      // נקה את הפרמטרים מהכתובת
       if (window.history.replaceState) {
         window.history.replaceState(null, document.title, window.location.pathname);
       }
       
-      // Show success message
+      // הצג הודעת הצלחה
       showToast(toast, "התחברת בהצלחה");
       
-      // Navigate home 
+      // נווט הביתה 
       setTimeout(() => {
         log.info("Redirecting to home with implicit auth session");
         navigate("/", { replace: true });

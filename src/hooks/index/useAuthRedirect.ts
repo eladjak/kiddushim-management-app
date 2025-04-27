@@ -18,6 +18,25 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
+      // בדיקה אם יש hash עם access_token
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        log.info("Detected access_token in URL hash, redirecting to auth callback", { 
+          hashLength: window.location.hash.length
+        });
+        
+        // שמירת מצב ה-URL המלא
+        const fullUrl = window.location.href;
+        
+        navigate("/auth/callback", { 
+          replace: true,
+          state: { 
+            fullUrl,
+            authSource: 'hash_fragment'
+          }
+        });
+        return;
+      }
+
       // Check for domain mismatch
       const currentDomain = window.location.hostname;
       const normalizedDomain = getNormalizedDomain();

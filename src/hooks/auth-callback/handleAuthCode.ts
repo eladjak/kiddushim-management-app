@@ -71,12 +71,12 @@ export async function handleAuthCode(
     // התחברות מוצלחת
     log.info("Session established successfully with code exchange", { 
       userId: data.session.user.id,
-      provider: data.session.user.app_metadata.provider
+      provider: data.session.user.app_metadata?.provider
     });
     
     // ניקוי פרמטרים מהכתובת
     if (window.history.replaceState) {
-      window.history.replaceState(null, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     // הצגת הודעת הצלחה

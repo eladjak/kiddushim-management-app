@@ -20,12 +20,16 @@ const AuthCallback = () => {
     const logInfo = async () => {
       try {
         // Check if we were redirected from auth
-        const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true';
-        const redirectTime = localStorage.getItem('auth_redirect_time');
+        const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' || 
+                             sessionStorage.getItem('auth_redirect_initiated') === 'true';
+        const redirectTime = localStorage.getItem('auth_redirect_time') || 
+                           sessionStorage.getItem('auth_redirect_time');
         
         // Clear the redirect flag
         localStorage.removeItem('auth_redirect_initiated');
         localStorage.removeItem('auth_redirect_time');
+        sessionStorage.removeItem('auth_redirect_initiated');
+        sessionStorage.removeItem('auth_redirect_time');
         
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -33,26 +37,28 @@ const AuthCallback = () => {
           log.error("Error checking session in callback page:", { error: sessionError });
         }
         
-        // Get more comprehensive information about the URL state
+        // מידע מפורט על מצב ה-URL
         const fullUrl = window.location.href;
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
         
-        // Check if we have a code in hash or path
+        // בדיקה אם יש קוד בהאש או בנתיב
         let hashCode = null;
+        let hashAccessToken = null;
         if (window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           hashCode = hashParams.get("code");
+          hashAccessToken = hashParams.get("access_token");
         }
         
-        // Check for code in path
+        // בדיקה לקוד בנתיב
         const pathParts = window.location.pathname.split('/');
         const lastPart = pathParts[pathParts.length - 1];
         const pathCode = lastPart !== 'callback' ? lastPart : null;
         
-        // Check state data
+        // בדיקת נתוני מצב
         const stateData = location.state || {};
         
         log.info("Auth callback page loaded", { 
@@ -65,6 +71,7 @@ const AuthCallback = () => {
           codeLength: code?.length,
           hasHashCode: !!hashCode,
           hashCodeLength: hashCode?.length,
+          hasHashAccessToken: !!hashAccessToken,
           pathCode: !!pathCode,
           errorParam,
           errorDescription,
@@ -72,7 +79,7 @@ const AuthCallback = () => {
           sessionUser: session?.user?.id,
           locationStateData: stateData,
           hostname: window.location.hostname,
-          fullUrl
+          fullUrl: fullUrl.substring(0, 100) + (fullUrl.length > 100 ? '...' : '')
         });
       } catch (err) {
         log.error("Error logging auth callback info:", { error: err });

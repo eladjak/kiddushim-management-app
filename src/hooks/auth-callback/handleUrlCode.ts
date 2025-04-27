@@ -21,7 +21,8 @@ export async function handleUrlCode(
     log.info("Found auth code in URL parameters", { codeLength: authCode.length });
     
     try {
-      return await handleAuthCode(authCode, "url_parameters", navigate, toast);
+      const result = await handleAuthCode(authCode, "url_parameters", navigate, toast);
+      return result;
     } catch (err) {
       log.error("Error processing URL auth code:", { error: err });
       throw err;

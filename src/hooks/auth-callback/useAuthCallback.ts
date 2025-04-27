@@ -21,11 +21,16 @@ export function useAuthCallback() {
   const toast = useToast();
 
   useEffect(() => {
+    let isMounted = true;
+    let wasProcessed = false;
+
     async function processAuthCallback() {
       try {
         log.info("Handling auth callback");
-        setLoading(true);
         
+        if (!isMounted || wasProcessed) return;
+        wasProcessed = true;
+
         // Get the full URL for better debugging
         const fullUrl = location.state?.fullUrl || window.location.href;
         log.info("Processing callback URL", { url: fullUrl });
@@ -44,35 +49,49 @@ export function useAuthCallback() {
             return;
           } catch (err) {
             log.error("Error handling state code:", { error: err });
-            await handlePkceError(navigate, setError, setLoading);
-            return;
+            if (isMounted) {
+              await handlePkceError(navigate, setError, setLoading);
+              return;
+            }
           }
         }
 
-        // Check if session is already established via implicit flow
+        // בדוק אם יש תהליך אימות אימפליסיטי (כלומר, תגיות באש URL)
+        // זו הבדיקה החשובה ביותר עבור התחברות Google!
         const implicitAuthSuccess = await handleImplicitAuth(navigate, toast);
         if (implicitAuthSuccess) return;
                 
-        // Check for code in URL parameters
+        // בדיקה לקוד ב-URL params  
         try {
           const urlCodeSuccess = await handleUrlCode(navigate, toast);
           if (urlCodeSuccess) return;
         } catch (err) {
           log.error("Error processing URL code:", { error: err });
-          await handlePkceError(navigate, setError, setLoading);
-          return;
+          if (isMounted) {
+            await handlePkceError(navigate, setError, setLoading);
+            return;
+          }
         }
         
-        // No code and no session, likely an error with domain redirects
-        await handlePkceError(navigate, setError, setLoading);
+        // אין קוד ואין סשן, כנראה שגיאה עם הפניות דומיין
+        if (isMounted) {
+          await handlePkceError(navigate, setError, setLoading);
+        }
       } catch (err: any) {
         log.error("Unexpected error in auth callback:", { error: err });
-        setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");
-        setLoading(false);
+        if (isMounted) {
+          setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");
+          setLoading(false);
+        }
       }
     }
 
     processAuthCallback();
+
+    return () => {
+      isMounted = false;
+      log.info("Auth callback page unmounted");
+    };
   }, [navigate, location, toast]);
 
   return { loading, error };

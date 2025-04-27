@@ -25,10 +25,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false, // IMPORTANT: Disable automatic detection to handle it manually
+    detectSessionInUrl: true, // חשוב! הפעל זיהוי אוטומטי
     storageKey: getStorageKey(),
     storage: localStorage,
-    flowType: 'implicit', // Use implicit flow which is more reliable across browsers
     debug: import.meta.env.DEV, // Enable debug mode in development
   },
   global: {
@@ -46,7 +45,7 @@ export const getNormalizedDomain = () => {
   try {
     const hostname = window.location.hostname;
     
-    // דוגמין שמתחיל ב-local או localhost אינו צריך www
+    // דומיין שמתחיל ב-local או localhost אינו צריך www
     if (hostname.startsWith('local') || hostname.includes('lovableproject.com')) {
       return hostname;
     }

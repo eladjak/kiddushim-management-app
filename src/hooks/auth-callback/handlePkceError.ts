@@ -44,15 +44,39 @@ export async function handlePkceError(
       const hash = window.location.hash;
       
       window.location.href = `${protocol}//www.kidushishi-menegment-app.co.il${pathname}${search}${hash}`;
-    }, 1500);
+    }, 1000);
     
     return;
   }
   
+  // בדוק אם יש פרמטרי access_token בפרגמנט
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    log.info("Found access_token in hash fragment but couldn't process it");
+    
+    try {
+      // נסה לקבל סשן מה-URL למקרה שהזיהוי האוטומטי נכשל
+      const { data, error } = await supabase.auth.getSessionFromUrl();
+      
+      if (!error && data?.session) {
+        log.info("Successfully retrieved session from URL hash");
+        navigate('/', { replace: true });
+        return;
+      } else if (error) {
+        log.error("Error getting session from URL:", { error });
+      }
+    } catch (hashError) {
+      log.error("Error processing URL hash:", { error: hashError });
+    }
+  }
+
   // Clean up all auth state and redirect to auth page
-  await supabase.auth.signOut({ scope: 'global' });
+  try {
+    await supabase.auth.signOut({ scope: 'local' });
+  } catch (signOutError) {
+    log.error("Error signing out:", { error: signOutError });
+  }
   
-  // Clear out any leftover verifiers
+  // מחיקת כל נתוני האותנטיקציה מהמערכת לפני חזרה לדף ההתחברות
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -62,7 +86,7 @@ export async function handlePkceError(
   }
   keysToRemove.forEach(key => localStorage.removeItem(key));
   
-  // Also clean sessionStorage
+  // מחיקת נתונים מסשן סטורג'
   sessionStorage.removeItem('auth_redirect_count');
   sessionStorage.removeItem('auth_redirect_initiated');
   sessionStorage.removeItem('auth_redirect_time');
