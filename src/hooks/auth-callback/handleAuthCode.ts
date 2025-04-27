@@ -22,8 +22,19 @@ export async function handleAuthCode(
       codeLength: code.length 
     });
     
+    // בדיקה אם ה-code כולל תו + שקיים ב-PKCE אך יתכן שבמהלך הניתוב התחלף לרווח
+    // זו בעיה נפוצה כאשר מפעילים PKCE עם גוגל
+    const fixedCode = code.replace(/ /g, '+');
+    
+    // וידוא שיש לנו code_verifier בסשן סטורג'
+    const codeVerifier = sessionStorage.getItem('supabase-code-verifier');
+    log.info("Code verifier status:", { 
+      hasCodeVerifier: !!codeVerifier,
+      verifierLength: codeVerifier?.length 
+    });
+    
     // Try to perform code exchange
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
     
     if (error) {
       log.error("Error exchanging code for session:", { error, source });
@@ -38,6 +49,17 @@ export async function handleAuthCode(
       
       // Show success message
       showToast(toastHelper, "התחברת בהצלחה");
+      
+      // Clear auth redirect indicators after successful auth
+      try {
+        sessionStorage.removeItem('auth_redirect_initiated');
+        sessionStorage.removeItem('auth_redirect_time');
+        sessionStorage.removeItem('auth_redirect_count');
+        // מחיקת מפתח ה-code_verifier אחרי שהיה בשימוש מוצלח
+        sessionStorage.removeItem('supabase-code-verifier');
+      } catch (e) {
+        log.warn("Error clearing auth redirect indicators:", e);
+      }
       
       // Navigate home
       setTimeout(() => {

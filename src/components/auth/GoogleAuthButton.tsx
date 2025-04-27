@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { supabase, configureAuthProvider, getNormalizedDomain } from "@/integrations/supabase/client";
+import { supabase, configureAuthProvider, getNormalizedDomain, clearAuthStorage } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
@@ -15,42 +15,6 @@ export const GoogleAuthButton = () => {
   const { toast } = useToast();
   const authInProgressRef = useRef(false);
   const log = logger.createLogger({ component: 'GoogleAuthButton' });
-
-  /**
-   * Clear all auth data from localStorage to avoid stale state
-   */
-  const clearAuthData = () => {
-    log.info('Clearing auth data from storage');
-    
-    try {
-      // Remove all auth-related items from localStorage
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (
-          key.startsWith('supabase.auth.') || 
-          key.includes('kidushishi-auth-token') ||
-          key.includes('oauth')
-        )) {
-          keysToRemove.push(key);
-        }
-      }
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      log.info('Cleared auth data from localStorage', { count: keysToRemove.length });
-    } catch (err) {
-      log.error('Error clearing localStorage:', { error: err });
-    }
-    
-    // Also clear from sessionStorage
-    try {
-      sessionStorage.removeItem('auth_redirect_count');
-      sessionStorage.removeItem('auth_redirect_initiated');
-      sessionStorage.removeItem('auth_redirect_time');
-    } catch (err) {
-      log.error('Error clearing sessionStorage:', { error: err });
-    }
-  };
 
   /**
    * Gets a normalized redirect URL with www subdomain if needed
@@ -81,12 +45,8 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
-      // Get normalized redirect URL
-      const redirectUrl = getRedirectUrl();
-      log.info('Using redirect URL for OAuth flow:', { redirectUrl });
-      
       // Clean up existing auth data
-      clearAuthData();
+      clearAuthStorage();
       
       // Sign out before starting new sign in flow
       try {
@@ -94,20 +54,30 @@ export const GoogleAuthButton = () => {
         log.info('Successfully signed out before new sign in');
       } catch (signOutError) {
         log.warn('Error during sign out before sign in:', { error: signOutError });
-        // Continue anyway
       }
       
       // Small delay before starting new process
       await new Promise(resolve => setTimeout(resolve, 200));
       
+      // Get proper redirect URL
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      
+      // Generate and store code verifier for PKCE - בשלב זה כבר לא צריך בזכות flowType: 'pkce' בקליינט
+      // supabase.auth עושה את זה אוטומטית
+      
       // Initiate Google auth with explicit provider options
       configureAuthProvider('google');
       
+      // הוספנו אופציות מפורטות יותר לאימות כדי לפתור בעיות שונות
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
           skipBrowserRedirect: false,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+          }
         }
       });
       
@@ -128,15 +98,12 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Store auth state in both localStorage and sessionStorage for reliability
+      // Store auth state in sessionStorage for reliability
       try {
         const timestamp = new Date().toISOString();
         sessionStorage.setItem('auth_redirect_initiated', 'true');
         sessionStorage.setItem('auth_redirect_time', timestamp);
-        
-        localStorage.setItem('auth_redirect_initiated', 'true');
-        localStorage.setItem('auth_redirect_time', timestamp);
-        localStorage.setItem('auth_provider', 'google');
+        sessionStorage.setItem('auth_provider', 'google');
       } catch (e) {
         log.error('Could not save auth state to storage', { error: e });
       }

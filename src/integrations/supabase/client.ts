@@ -123,6 +123,8 @@ export const clearAuthStorage = () => {
       'supabase_refresh_token',
       'supabase_pkce_verifier',
       'supabase_pkce_code',
+      'supabase-code-verifier',
+      'supabase-auth-token'
     ];
     
     sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));

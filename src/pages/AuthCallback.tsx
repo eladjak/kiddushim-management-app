@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { extractAccessToken } from "@/hooks/auth-callback/extractAccessToken";
 import { useToast } from "@/hooks/use-toast";
+import { clearAuthStorage } from "@/integrations/supabase/client";
 
 /**
  * דף זה מטפל בקולבק OAuth ובהקמת סשן
@@ -34,18 +35,17 @@ const AuthCallback = () => {
         log.info("Processing callback URL", {
           hasHash: !!window.location.hash,
           hashLength: window.location.hash ? window.location.hash.length : 0,
-          hashStarts: window.location.hash ? window.location.hash.substring(0, 20) : ""
+          hashStarts: window.location.hash ? window.location.hash.substring(0, 20) : "",
+          hasState: !!location.state,
+          stateHasAccessToken: location.state?.hasAccessToken
         });
         
         // סימן שהתחלנו לעבד
         processedRef.current = true;
-        
-        // בדיקה באופן מיידי אם יש access_token בחלק ה-hash - עדיפות גבוהה
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Found access_token in hash, processing directly");
-          
-          // המתנה לרגע קצר כדי לוודא שה-DOM נטען במלואו
-          await new Promise(resolve => setTimeout(resolve, 100));
+
+        // בדיקה אם יש לנו מידע מהסטייט על access_token - מפלואו של implicit flow
+        if (location.state?.hasAccessToken && window.location.hash && window.location.hash.includes('access_token')) {
+          log.info("Found access_token in hash from state, processing directly");
           
           // עיבוד הטוקן ישירות
           const success = await extractAccessToken();
@@ -65,6 +65,13 @@ const AuthCallback = () => {
             return;
           } else {
             log.error("Failed to process access token");
+            
+            // ננסה לנקות את כל נתוני האימות כמוצא אחרון
+            try {
+              clearAuthStorage();
+            } catch (e) {
+              log.error("Error clearing auth data:", e);
+            }
           }
         }
         

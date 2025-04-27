@@ -35,7 +35,13 @@ export function useAuthRedirect() {
         
         if (hasAccessToken) {
           log.info("Detected access_token in URL hash, redirecting to auth callback");
-          navigate("/auth/callback", { replace: true });
+          navigate("/auth/callback", { 
+            replace: true,
+            state: {
+              hasAccessToken: true,
+              authSource: 'implicit_flow'
+            }
+          });
           return true;
         }
       } catch (error) {

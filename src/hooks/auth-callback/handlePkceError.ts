@@ -30,7 +30,9 @@ export async function handlePkceError(
     return;
   }
   
-  // ניקוי נתוני סשן ספציפיים
+  // נקה שדות פקודת אימות ומאמת
+  sessionStorage.removeItem('supabase-code-verifier');
+  sessionStorage.removeItem('supabase-auth-token');
   sessionStorage.removeItem('auth_redirect_attempts');
   
   // בדיקה אם הופנינו מ-www.domain ל-domain או להיפך
@@ -67,6 +69,8 @@ export async function handlePkceError(
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
+      const expiresIn = hashParams.get('expires_in');
+      const expiresAt = hashParams.get('expires_at');
       
       if (accessToken) {
         log.info("Extracted access token from hash fragment, attempting to set session");
@@ -79,6 +83,20 @@ export async function handlePkceError(
         
         if (!error && data.session) {
           log.info("Successfully processed access token from URL hash");
+          
+          // נקה פרמטרים של הפניה
+          try {
+            sessionStorage.removeItem('auth_redirect_initiated');
+            sessionStorage.removeItem('auth_redirect_time');
+            sessionStorage.removeItem('auth_redirect_count');
+          } catch (e) {
+            log.warn("Error clearing auth redirect indicators:", e);
+          }
+          
+          // הצג הודעת הצלחה
+          setError('');
+          setLoading(false);
+          
           navigate('/', { replace: true });
           return;
         } else if (error) {
@@ -99,7 +117,7 @@ export async function handlePkceError(
     clearAuthStorage();
     
     // הגדרת הודעת שגיאה ומצב טעינה
-    setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
+    setError("התחברות נכשלה - נראה שהיתה בעיה בתהליך האימות. אנא נסה להתחבר שוב.");
     setLoading(false);
     
     // ניווט הביתה אחרי השהיה
