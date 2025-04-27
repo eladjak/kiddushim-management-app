@@ -39,3 +39,4 @@ export const useUpdateAvatar = (userId?: string) => {
     }
   });
 };
+
