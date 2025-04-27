@@ -23,39 +23,45 @@ export async function handleImplicitAuth(
       });
       
       try {
-        // נסה לעבד את ה-hash לאימות
-        // השיטה getSessionFromUrl לא קיימת יותר, במקומה נשתמש ב-signInWithOtp שמקבל את ה-URL
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            skipBrowserRedirect: true, // מונע הפניה נוספת
-            queryParams: {
-              access_token: new URLSearchParams(window.location.hash.substring(1)).get('access_token') || ''
-            }
-          }
+        // Extract access token directly from the hash
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        
+        if (!accessToken) {
+          log.error("No access token found in hash");
+          return false;
+        }
+
+        log.info("Extracted access token from hash", { 
+          tokenLength: accessToken.length
+        });
+        
+        // Try to set session with the token
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: hashParams.get('refresh_token') || '',
         });
         
         if (error) {
-          log.error("Error processing hash URL for auth:", { error });
+          log.error("Error setting session with access token:", { error });
           return false;
         }
         
-        // בדיקה אם הפעולה יצרה סשן
-        const sessionResult = await supabase.auth.getSession();
-        if (sessionResult.data.session) {
+        // Check if we have a session now
+        if (data.session) {
           log.info("Successfully established session from hash URL", { 
-            userId: sessionResult.data.session.user.id 
+            userId: data.session.user.id 
           });
           
-          // נקה את הפרמטרים מהכתובת
+          // Clear the hash from URL
           if (window.history.replaceState) {
             window.history.replaceState(null, document.title, window.location.pathname);
           }
           
-          // הצג הודעת הצלחה
+          // Show success message
           showToast(toast, "התחברת בהצלחה");
           
-          // נווט הביתה
+          // Navigate home
           setTimeout(() => {
             log.info("Redirecting to home with hash-based auth session");
             navigate("/", { replace: true });
@@ -68,7 +74,7 @@ export async function handleImplicitAuth(
       }
     }
     
-    // בדיקה לסשן קיים
+    // Check for existing session
     const { data: sessionData } = await supabase.auth.getSession();
     
     if (sessionData.session) {
@@ -76,15 +82,15 @@ export async function handleImplicitAuth(
         userId: sessionData.session.user.id 
       });
       
-      // נקה את הפרמטרים מהכתובת
+      // Clear any hash or params
       if (window.history.replaceState) {
         window.history.replaceState(null, document.title, window.location.pathname);
       }
       
-      // הצג הודעת הצלחה
+      // Show success message
       showToast(toast, "התחברת בהצלחה");
       
-      // נווט הביתה 
+      // Navigate home
       setTimeout(() => {
         log.info("Redirecting to home with implicit auth session");
         navigate("/", { replace: true });

@@ -97,6 +97,7 @@ export const GoogleAuthButton = () => {
           skipBrowserRedirect: false,
           queryParams: {
             prompt: 'select_account',
+            access_type: 'offline',
           },
         },
       });

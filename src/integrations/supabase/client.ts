@@ -29,7 +29,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storageKey: getStorageKey(),
     storage: localStorage,
     debug: import.meta.env.DEV, // Enable debug mode in development
-    flowType: 'implicit' // משתמש בזרימת אימות מסוג implicit flow לתמיכה טובה יותר ב-Google Auth
+    flowType: 'implicit', // משתמש בזרימת אימות מסוג implicit flow לתמיכה טובה יותר ב-Google Auth
+    cookieOptions: {
+      name: 'kidushishi-auth-cookie',
+      lifetime: 60 * 60 * 8, // 8 hours
+      sameSite: 'lax',
+      secure: true
+    }
   },
   global: {
     headers: {

@@ -51,26 +51,24 @@ export async function handlePkceError(
   
   // בדוק אם יש פרמטרי access_token בפרגמנט
   if (window.location.hash && window.location.hash.includes('access_token')) {
-    log.info("Found access_token in hash fragment but couldn't process it");
+    log.info("Found access_token in hash fragment, attempting to process");
     
     try {
-      // נסה לעבד את ה-access_token מה-hash
+      // Extract token directly
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
       
       if (accessToken) {
-        // אם יש לנו את ה-access_token, ננסה לחתום באמצעותו
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            skipBrowserRedirect: true,
-            queryParams: {
-              access_token: accessToken
-            }
-          }
+        log.info("Extracted access token from hash fragment, attempting to set session");
+        
+        // Try to set the session directly with the token
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
         });
         
-        if (!error && data) {
+        if (!error && data.session) {
           log.info("Successfully processed access token from URL hash");
           navigate('/', { replace: true });
           return;
@@ -90,7 +88,7 @@ export async function handlePkceError(
     log.error("Error signing out:", { error: signOutError });
   }
   
-  // מחיקת כל נתוני האותנטיקציה מהמערכת לפני חזרה לדף ההתחברות
+  // Clear all auth data
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -100,7 +98,7 @@ export async function handlePkceError(
   }
   keysToRemove.forEach(key => localStorage.removeItem(key));
   
-  // מחיקת נתונים מסשן סטורג'
+  // Clear session storage
   sessionStorage.removeItem('auth_redirect_count');
   sessionStorage.removeItem('auth_redirect_initiated');
   sessionStorage.removeItem('auth_redirect_time');
