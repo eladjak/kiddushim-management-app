@@ -9,7 +9,7 @@ import { handleAuthCode } from "./handleAuthCode";
  */
 export async function handleUrlCode(
   navigate: NavigateFunction,
-  toast: ToastType
+  toastHelper: ToastType
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleUrlCode' });
   
@@ -25,7 +25,7 @@ export async function handleUrlCode(
         codeLength: urlCode.length 
       });
       
-      return await handleAuthCode(urlCode, 'url_params', navigate, toast);
+      return await handleAuthCode(urlCode, 'url_params', navigate, toastHelper);
     }
     
     // Check for code in URL hash params
@@ -38,7 +38,7 @@ export async function handleUrlCode(
           codeLength: hashCode.length 
         });
         
-        return await handleAuthCode(hashCode, 'url_hash', navigate, toast);
+        return await handleAuthCode(hashCode, 'url_hash', navigate, toastHelper);
       }
     }
     

@@ -12,7 +12,7 @@ export async function handleAuthCode(
   code: string,
   source: string,
   navigate: NavigateFunction,
-  toast: ToastType
+  toastHelper: ToastType
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleAuthCode' });
   
@@ -37,7 +37,7 @@ export async function handleAuthCode(
       });
       
       // Show success message
-      showToast(toast, "התחברת בהצלחה");
+      showToast(toastHelper, "התחברת בהצלחה");
       
       // Navigate home
       setTimeout(() => {

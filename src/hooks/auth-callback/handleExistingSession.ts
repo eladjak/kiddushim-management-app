@@ -10,7 +10,7 @@ import { showToast } from "./toastHelpers";
  */
 export async function handleExistingSession(
   navigate: NavigateFunction,
-  toast: ToastType
+  toastHelper: ToastType
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleExistingSession' });
 
@@ -30,7 +30,7 @@ export async function handleExistingSession(
       });
       
       // Show success message
-      showToast(toast, "התחברת בהצלחה");
+      showToast(toastHelper, "התחברת בהצלחה");
       
       // Navigate home
       setTimeout(() => {

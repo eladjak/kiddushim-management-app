@@ -21,7 +21,7 @@ export function useAuthCallback() {
   const navigate = useNavigate();
   const location = useLocation();
   const log = logger.createLogger({ component: 'useAuthCallback' });
-  const { toast } = useToast(); // Get the toast object
+  const toastHelper = useToast(); // Get the toast object
   
   useEffect(() => {
     let isMounted = true;
@@ -52,7 +52,7 @@ export function useAuthCallback() {
           if (tokenSuccess) {
             log.info("Successfully processed access token from hash");
             
-            toast({
+            toastHelper.toast({
               description: "התחברת בהצלחה",
             });
             
@@ -69,14 +69,14 @@ export function useAuthCallback() {
         }
         
         // Second priority: Check for existing session
-        const sessionExists = await handleExistingSession(navigate, toast);
+        const sessionExists = await handleExistingSession(navigate, toastHelper);
         if (sessionExists) return;
         
         // Third priority: Handle code from state (from redirection)
         if (location.state?.code && location.state.code.length > 10) {
           try {
             log.info("Using code from location state");
-            await handleAuthCode(location.state.code, location.state?.authSource || 'location_state', navigate, toast);
+            await handleAuthCode(location.state.code, location.state?.authSource || 'location_state', navigate, toastHelper);
             return;
           } catch (err) {
             log.error("Error handling state code:", { error: err });
@@ -88,12 +88,12 @@ export function useAuthCallback() {
         }
 
         // Fourth priority: Handle implicit auth flow
-        const implicitAuthSuccess = await handleImplicitAuth(navigate, toast);
+        const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
         if (implicitAuthSuccess) return;
         
         // Fifth priority: Check for code in URL
         try {
-          const urlCodeSuccess = await handleUrlCode(navigate, toast);
+          const urlCodeSuccess = await handleUrlCode(navigate, toastHelper);
           if (urlCodeSuccess) return;
         } catch (err) {
           log.error("Error processing URL code:", { error: err });
@@ -115,7 +115,7 @@ export function useAuthCallback() {
           if (secondTokenSuccess) {
             log.info("Successfully extracted token on second attempt");
             
-            toast({
+            toastHelper.toast({
               description: "התחברת בהצלחה",
             });
             
@@ -168,7 +168,7 @@ export function useAuthCallback() {
       isMounted = false;
       log.info("Auth callback page unmounted");
     };
-  }, [navigate, location, toast, processAttempts]);
+  }, [navigate, location, toastHelper, processAttempts]);
 
   return { loading, error };
 }

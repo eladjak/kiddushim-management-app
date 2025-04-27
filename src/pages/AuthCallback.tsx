@@ -18,7 +18,7 @@ const AuthCallback = () => {
   const log = logger.createLogger({ component: 'AuthCallback' });
   const location = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const toastHelper = useToast();
   
   useEffect(() => {
     const handleCallback = async () => {
@@ -42,7 +42,7 @@ const AuthCallback = () => {
           if (success) {
             log.info("Successfully processed access token");
             
-            toast({
+            toastHelper.toast({
               description: "התחברת בהצלחה",
             });
             
@@ -85,7 +85,7 @@ const AuthCallback = () => {
               userId: session.user.id
             });
             
-            toast({
+            toastHelper.toast({
               description: "התחברת בהצלחה",
             });
             
@@ -102,7 +102,7 @@ const AuthCallback = () => {
     // Handle the callback once
     handleCallback();
     
-  }, [loading, error, location, navigate, toast]);
+  }, [loading, error, location, navigate, toastHelper]);
 
   // Display loading or error UI
   if (loading) {

@@ -11,7 +11,7 @@ import { extractAccessToken } from "./extractAccessToken";
  */
 export async function handleImplicitAuth(
   navigate: NavigateFunction,
-  toast: ToastType
+  toastHelper: ToastType
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleImplicitAuth' });
   
@@ -25,7 +25,7 @@ export async function handleImplicitAuth(
       
       if (success) {
         log.info("Successfully processed access token from hash");
-        showToast(toast, "התחברת בהצלחה");
+        showToast(toastHelper, "התחברת בהצלחה");
         
         // Navigate home
         setTimeout(() => {
@@ -69,7 +69,7 @@ export async function handleImplicitAuth(
       });
       
       // Show success message
-      showToast(toast, "התחברת בהצלחה");
+      showToast(toastHelper, "התחברת בהצלחה");
       
       // Navigate home
       setTimeout(() => {
