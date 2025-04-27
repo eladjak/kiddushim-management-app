@@ -20,6 +20,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import type { Database } from "@/integrations/supabase/types";
+
+// Define the equipment insert type based on the Database type
+type EquipmentInsert = Database["public"]["Tables"]["equipment"]["Insert"];
 
 const formSchema = z.object({
   name: z.string().min(1, "נדרש למלא שם"),
@@ -32,7 +36,7 @@ const formSchema = z.object({
 interface AddEquipmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: z.infer<typeof formSchema>) => void;
+  onSubmit: (data: EquipmentInsert) => void;
   isSubmitting: boolean;
 }
 

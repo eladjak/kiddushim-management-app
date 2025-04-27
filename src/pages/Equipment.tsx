@@ -15,6 +15,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 // Define types explicitly to fix type errors
 type EquipmentType = Database["public"]["Tables"]["equipment"]["Row"];
+type EquipmentInsertType = Database["public"]["Tables"]["equipment"]["Insert"];
 type EquipmentChangeStatus = Database["public"]["Enums"]["change_status"];
 
 const Equipment = () => {
@@ -66,7 +67,7 @@ const Equipment = () => {
   });
 
   const addEquipmentMutation = useMutation({
-    mutationFn: async (newEquipment: Partial<EquipmentType>) => {
+    mutationFn: async (newEquipment: EquipmentInsertType) => {
       const { data, error } = await supabase
         .from("equipment")
         .insert(newEquipment)
