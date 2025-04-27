@@ -21,15 +21,43 @@ const AuthCallback = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    const logInfo = async () => {
+    const handleCallback = async () => {
       try {
-        // Additional direct access token processing for improved reliability
+        // First attempt: Use parseFragmentHash directly if hash is present
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("AuthCallback page attempting direct access token extraction");
+          log.info("Attempting direct hash parsing in AuthCallback component");
+          try {
+            const { data, error } = await supabase.auth.parseFragmentHash(window.location.hash);
+            if (!error && data?.session) {
+              log.info("Successfully authenticated via parseFragmentHash in component", {
+                userId: data.session.user.id
+              });
+              
+              toast({
+                description: "התחברת בהצלחה",
+              });
+              
+              // Navigate to home page after successful login
+              setTimeout(() => {
+                navigate("/", { replace: true });
+              }, 300);
+              
+              return;
+            } else {
+              log.warn("parseFragmentHash in component returned error or no session", { error });
+            }
+          } catch (parseError) {
+            log.error("Error using parseFragmentHash in component:", { error: parseError });
+          }
+        }
+        
+        // Second attempt: Fall back to manual token extraction
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          log.info("AuthCallback component attempting manual access token extraction");
           const success = await extractAccessToken();
           
           if (success) {
-            log.info("Successfully extracted and used access token directly in callback page");
+            log.info("Successfully extracted and used access token in callback component");
             
             toast({
               description: "התחברת בהצלחה",
@@ -38,33 +66,15 @@ const AuthCallback = () => {
             // Navigate to home page after successful login
             setTimeout(() => {
               navigate("/", { replace: true });
-            }, 500);
+            }, 300);
             
             return;
           } else {
-            log.error("Direct access token extraction failed in callback page");
+            log.error("Direct access token extraction failed in callback component");
           }
         }
         
-        // Check if we were redirected from auth
-        const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' || 
-                             sessionStorage.getItem('auth_redirect_initiated') === 'true';
-        const redirectTime = localStorage.getItem('auth_redirect_time') || 
-                           sessionStorage.getItem('auth_redirect_time');
-        
-        // Clear the redirect flag
-        localStorage.removeItem('auth_redirect_initiated');
-        localStorage.removeItem('auth_redirect_time');
-        sessionStorage.removeItem('auth_redirect_initiated');
-        sessionStorage.removeItem('auth_redirect_time');
-        
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          log.error("Error checking session in callback page:", { error: sessionError });
-        }
-        
-        // Detailed URL state information
+        // Detailed URL state information for debugging
         const fullUrl = window.location.href;
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
@@ -80,11 +90,6 @@ const AuthCallback = () => {
           hashAccessToken = hashParams.get("access_token");
         }
         
-        // Check for code in path
-        const pathParts = window.location.pathname.split('/');
-        const lastPart = pathParts[pathParts.length - 1];
-        const pathCode = lastPart !== 'callback' ? lastPart : null;
-        
         // Check state data
         const stateData = location.state || {};
         
@@ -92,41 +97,55 @@ const AuthCallback = () => {
           loading, 
           hasError: !!error, 
           errorMessage: error,
-          wasRedirected,
-          redirectTime,
           hasCode: !!code,
           codeLength: code?.length,
           hasHashCode: !!hashCode,
           hashCodeLength: hashCode?.length,
           hasHashAccessToken: !!hashAccessToken,
           hashAccessTokenLength: hashAccessToken?.length,
-          pathCode: !!pathCode,
           errorParam,
           errorDescription,
-          hasSession: !!session,
-          sessionUser: session?.user?.id,
           locationStateData: stateData,
-          hostname: window.location.hostname,
           fullUrl: fullUrl.substring(0, 100) + (fullUrl.length > 100 ? '...' : '')
         });
         
-        // If we already have a session at this point, go to home
-        if (session) {
-          log.info("Session already exists, redirecting to home");
-          toast({
-            description: "התחברת בהצלחה",
-          });
-          navigate("/", { replace: true });
+        // Check current session as a last resort
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            log.error("Error checking session in callback page:", { error: sessionError });
+          }
+          
+          // If we already have a session at this point, go to home
+          if (session) {
+            log.info("Session already exists, redirecting to home");
+            toast({
+              description: "התחברת בהצלחה",
+            });
+            navigate("/", { replace: true });
+          }
+        } catch (err) {
+          log.error("Error checking final session state:", { error: err });
         }
-        
       } catch (err) {
-        log.error("Error logging auth callback info:", { error: err });
+        log.error("Error in auth callback handler:", { error: err });
       }
     };
     
-    logInfo();
+    // Only run this effect once when the component mounts
+    handleCallback();
+    
+    // Monitor hash changes on this page
+    const handleHashChange = () => {
+      log.info("Hash changed in auth callback page, reprocessing");
+      handleCallback();
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
     
     return () => {
+      window.removeEventListener('hashchange', handleHashChange);
       log.info("Auth callback page unmounted");
     };
   }, [loading, error, location, navigate, toast]);

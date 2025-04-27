@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
@@ -36,9 +37,27 @@ export async function extractAccessToken(): Promise<boolean> {
       tokenType
     });
 
-    // We'll try three different approaches to set the session
+    // Direct approach: Use the full URL hash directly
+    try {
+      log.info("Attempting direct hash processing with parseFragmentHash");
+      const { data: hashData, error: hashError } = await supabase.auth.parseFragmentHash(window.location.hash);
+      
+      if (!hashError && hashData?.session) {
+        log.info("Successfully established session via parseFragmentHash", {
+          userId: hashData.session.user.id,
+        });
+        clearUrlHash();
+        return true;
+      } else if (hashError) {
+        log.warn("parseFragmentHash failed", { error: hashError });
+      } else {
+        log.warn("parseFragmentHash did not return a session");
+      }
+    } catch (err) {
+      log.error("Error in parseFragmentHash approach:", { error: err });
+    }
 
-    // First approach: Try with full session data
+    // Second approach: Try with full session data
     try {
       const sessionData = {
         access_token: accessToken,
@@ -59,12 +78,12 @@ export async function extractAccessToken(): Promise<boolean> {
         return true;
       }
       
-      log.warn("First attempt with full session data failed", { error });
+      log.warn("Session approach with full data failed", { error });
     } catch (err) {
-      log.error("Error in first approach:", { error: err });
+      log.error("Error in session data approach:", { error: err });
     }
     
-    // Second approach: Try with minimal session data
+    // Third approach: Try with minimal session data
     try {
       const minimalData = {
         access_token: accessToken,
@@ -81,44 +100,101 @@ export async function extractAccessToken(): Promise<boolean> {
         return true;
       }
       
-      log.warn("Second attempt with minimal session data failed", { error });
+      log.warn("Session approach with minimal data failed", { error });
     } catch (err) {
-      log.error("Error in second approach:", { error: err });
+      log.error("Error in minimal data approach:", { error: err });
+    }
+
+    // Fourth approach: Try OAuth signInWithOAuth flow
+    try {
+      log.info("Attempting OAuth signin flow with token");
+      
+      // Create a new OAuth provider session
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: accessToken,
+        access_token: providerToken || undefined,
+      });
+      
+      if (!error && data.session) {
+        log.info("Successfully established session via signInWithIdToken", {
+          userId: data.session.user.id,
+        });
+        clearUrlHash();
+        return true;
+      }
+      
+      log.warn("OAuth signin flow failed", { error });
+    } catch (err) {
+      log.error("Error in OAuth signin flow approach:", { error: err });
     }
     
-    // Third approach: Try setting auth token directly
+    // Fifth approach: Try setting auth token directly
     try {
       // Wait a moment before the third attempt (sometimes helps with timing issues)
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Access local storage directly as a last resort
-      const storageKey = localStorage.getItem('supabase.auth.token');
-      if (storageKey) {
+      // Force the token to be updated in local storage
+      const localStorageKey = getSupabaseStorageKey();
+      if (localStorageKey && accessToken) {
         try {
-          // Try to parse existing token
-          const existingData = JSON.parse(storageKey);
-          // Modify it with our new token
-          existingData.access_token = accessToken;
-          if (refreshToken) existingData.refresh_token = refreshToken;
-          // Save it back
-          localStorage.setItem('supabase.auth.token', JSON.stringify(existingData));
-          log.info("Modified existing auth token in storage");
+          // Try to directly update the token in storage
+          const storage = getSupabaseStorage();
+          if (storage) {
+            const rawData = storage.getItem(localStorageKey);
+            if (rawData) {
+              // Try to parse existing token
+              const existingData = JSON.parse(rawData);
+              // Modify it with our new token
+              existingData.access_token = accessToken;
+              if (refreshToken) existingData.refresh_token = refreshToken;
+              // Save it back
+              storage.setItem(localStorageKey, JSON.stringify(existingData));
+              log.info("Modified existing auth token in storage");
+            } else {
+              // Create new data
+              const newData = {
+                access_token: accessToken,
+                refresh_token: refreshToken || null,
+                expires_at: expiresAt ? parseInt(expiresAt) : Math.floor(Date.now() / 1000) + 3600,
+                expires_in: expiresIn ? parseInt(expiresIn) : 3600,
+                token_type: tokenType || 'bearer',
+                provider_token: providerToken || null,
+              };
+              storage.setItem(localStorageKey, JSON.stringify(newData));
+              log.info("Created new auth token in storage");
+            }
+            
+            // Force refresh the session
+            const refreshResult = await supabase.auth.refreshSession();
+            if (!refreshResult.error && refreshResult.data.session) {
+              log.info("Successfully established session via storage modification + refresh", {
+                userId: refreshResult.data.session.user.id,
+              });
+              clearUrlHash();
+              return true;
+            } else {
+              log.warn("Session refresh after storage modification failed", { 
+                error: refreshResult.error 
+              });
+            }
+          }
         } catch (err) {
-          log.error("Error updating existing token:", { error: err });
+          log.error("Error updating token in storage:", { error: err });
         }
       }
       
-      // Force refresh the session
-      const refreshResult = await supabase.auth.refreshSession();
-      if (!refreshResult.error && refreshResult.data.session) {
-        log.info("Successfully established session via refresh", {
-          userId: refreshResult.data.session.user.id,
+      // Last-ditch attempt: Get the current session
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        log.info("Session already exists after all attempts", {
+          userId: sessionData.session.user.id,
         });
         clearUrlHash();
         return true;
       }
     } catch (err) {
-      log.error("Error in third approach:", { error: err });
+      log.error("Error in final approach:", { error: err });
     }
     
     log.error("All approaches to establish session failed");
@@ -135,5 +211,41 @@ export async function extractAccessToken(): Promise<boolean> {
 function clearUrlHash() {
   if (window.history.replaceState) {
     window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+  }
+}
+
+/**
+ * Attempt to get the Supabase storage key
+ */
+function getSupabaseStorageKey(): string | null {
+  try {
+    // Try to find it in localStorage keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('supabase.auth.token') || 
+        key.includes('kidushishi-auth-token')
+      )) {
+        return key;
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Get the storage method used by Supabase
+ */
+function getSupabaseStorage(): Storage | null {
+  try {
+    // Try localStorage first
+    if (typeof localStorage !== 'undefined') {
+      return localStorage;
+    }
+    return null;
+  } catch (e) {
+    return null;
   }
 }

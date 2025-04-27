@@ -19,10 +19,10 @@ export const GoogleAuthButton = () => {
    * Clear all auth data from localStorage to avoid stale state
    */
   const clearAuthData = () => {
-    log.info('Clearing auth data from localStorage');
+    log.info('Clearing auth data from storage');
     
     try {
-      // Remove all auth-related items
+      // Remove all auth-related items from localStorage
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -99,18 +99,14 @@ export const GoogleAuthButton = () => {
       }
       
       // Short delay before starting new process
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Initiate Google auth
+      // Initiate Google auth with minimal options (more reliable)
+      // Important: removed skipBrowserRedirect and other options that could cause issues
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
-          skipBrowserRedirect: false,
-          queryParams: {
-            prompt: 'select_account', // Always show account selector
-            access_type: 'offline',   // Get refresh token
-          }
         },
       });
       
@@ -125,26 +121,23 @@ export const GoogleAuthButton = () => {
       }
       
       log.info('Google auth initiated successfully', { 
-        provider: data.provider
+        provider: data.provider,
+        url: data.url.substring(0, 50) + '...'
       });
       
       toast({
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Store auth state in sessionStorage (more reliable across redirects)
+      // Store auth state in both localStorage and sessionStorage for reliability
       try {
         sessionStorage.setItem('auth_redirect_initiated', 'true');
         sessionStorage.setItem('auth_redirect_time', new Date().toISOString());
+        
+        localStorage.setItem('auth_redirect_initiated', 'true');
+        localStorage.setItem('auth_redirect_time', new Date().toISOString());
       } catch (e) {
-        log.warn('Could not save auth state to sessionStorage', { error: e });
-        // Try localStorage as fallback
-        try {
-          localStorage.setItem('auth_redirect_initiated', 'true');
-          localStorage.setItem('auth_redirect_time', new Date().toISOString());
-        } catch (e2) {
-          log.error('Could not save auth state to localStorage either', { error: e2 });
-        }
+        log.error('Could not save auth state to storage', { error: e });
       }
       
       // Navigate to auth URL
@@ -177,6 +170,7 @@ export const GoogleAuthButton = () => {
       onClick={signInWithGoogle}
       disabled={isLoading}
       className="w-full h-10 border border-gray-200 hover:bg-secondary/50 transition-all duration-200 flex items-center justify-center gap-2"
+      data-testid="google-auth-button"
     >
       <img
         src="https://www.google.com/favicon.ico"

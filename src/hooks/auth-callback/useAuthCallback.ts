@@ -9,6 +9,7 @@ import { handleImplicitAuth } from "./handleImplicitAuth";
 import { handleUrlCode } from "./handleUrlCode";
 import { handlePkceError } from "./handlePkceError";
 import { extractAccessToken } from "./extractAccessToken";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook to handle the authentication callback process
@@ -36,10 +37,39 @@ export function useAuthCallback() {
         const fullUrl = location.state?.fullUrl || window.location.href;
         log.info("Processing callback URL", { url: fullUrl });
         
+        // NEW: Priority zero - direct hash handling using parseFragmentHash
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          log.info("Found access_token in hash, processing with parseFragmentHash first");
+          try {
+            const { data, error } = await supabase.auth.parseFragmentHash(window.location.hash);
+            if (!error && data?.session) {
+              log.info("Successfully authenticated via parseFragmentHash", {
+                userId: data.session.user.id
+              });
+              
+              toast.toast({
+                description: "התחברת בהצלחה",
+              });
+              
+              setTimeout(() => {
+                if (isMounted) {
+                  navigate("/", { replace: true });
+                }
+              }, 300);
+              
+              return;
+            } else {
+              log.warn("parseFragmentHash returned error or no session", { error });
+            }
+          } catch (parseError) {
+            log.error("Error using parseFragmentHash:", { error: parseError });
+          }
+        }
+        
         // First priority: Extract and process access_token from hash fragment
         // This is critical for Google OAuth which can use implicit flow
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Found access_token in URL hash, processing first");
+          log.info("Falling back to manual access_token processing");
           const tokenSuccess = await extractAccessToken();
           
           if (tokenSuccess) {

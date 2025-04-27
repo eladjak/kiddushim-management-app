@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { getNormalizedDomain } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook to handle OAuth redirects when an auth code or hash is present in the URL
@@ -18,20 +19,46 @@ export const useAuthRedirect = () => {
     hashCheckedRef.current = true;
     
     try {
-      // Check if there's an access_token in the hash fragment
+      // IMPORTANT: First priority - If we have a hash with access_token, try to handle it immediately
       if (window.location.hash && window.location.hash.includes('access_token')) {
-        log.info("Detected access_token in URL hash, redirecting to auth callback", { 
-          hashLength: window.location.hash.length
+        log.info("Detected access_token in URL hash, attempting direct parsing");
+        
+        // Try to use parseFragmentHash directly
+        supabase.auth.parseFragmentHash(window.location.hash).then(({ data, error }) => {
+          if (!error && data?.session) {
+            log.info("Successfully authenticated via parseFragmentHash in redirect handler", {
+              userId: data.session.user.id
+            });
+            // Successfully authenticated, refresh the page to normal state
+            window.location.href = window.location.origin;
+            return;
+          } else {
+            log.info("parseFragmentHash failed, redirecting to auth callback", {
+              error
+            });
+            
+            redirectedRef.current = true;
+            navigate("/auth/callback", { 
+              replace: true,
+              state: { 
+                fullUrl: window.location.href,
+                authSource: 'hash_fragment'
+              }
+            });
+          }
+        }).catch(err => {
+          log.error("Error in parseFragmentHash:", { error: err });
+          
+          redirectedRef.current = true;
+          navigate("/auth/callback", { 
+            replace: true,
+            state: { 
+              fullUrl: window.location.href,
+              authSource: 'hash_fragment_error'
+            }
+          });
         });
         
-        redirectedRef.current = true;
-        navigate("/auth/callback", { 
-          replace: true,
-          state: { 
-            fullUrl: window.location.href,
-            authSource: 'hash_fragment'
-          }
-        });
         return;
       }
 
