@@ -22,13 +22,12 @@ const getStorageKey = () => {
 // Create a single supabase client instance for the entire app
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    persistSession: true, // Enable session persistence
-    autoRefreshToken: true, // Automatically refresh tokens
-    detectSessionInUrl: true, // IMPORTANT! Auto-detect access_token in URL
-    storageKey: getStorageKey(),
-    storage: localStorage, // Use localStorage for persistence
-    debug: import.meta.env.DEV // Enable debug mode in development
-    // Removed flowType and cookieOptions as they're not supported in this version
+    persistSession: true,          // Enable session persistence
+    autoRefreshToken: true,        // Automatically refresh tokens
+    detectSessionInUrl: true,      // Auto-detect access_token in URL
+    storageKey: getStorageKey(),   // Use a consistent storage key
+    storage: localStorage,         // Use localStorage for persistence
+    debug: import.meta.env.DEV     // Enable debug mode in development
   },
   global: {
     headers: {

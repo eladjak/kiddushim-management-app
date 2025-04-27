@@ -112,7 +112,6 @@ export const GoogleAuthButton = () => {
             // Request email scope
             scope: 'email profile',
           }
-          // Removed flowType as it's not supported in the options type
         },
       });
       
@@ -135,11 +134,13 @@ export const GoogleAuthButton = () => {
       
       // Store auth state in both localStorage and sessionStorage for reliability
       try {
+        const timestamp = new Date().toISOString();
         sessionStorage.setItem('auth_redirect_initiated', 'true');
-        sessionStorage.setItem('auth_redirect_time', new Date().toISOString());
+        sessionStorage.setItem('auth_redirect_time', timestamp);
         
         localStorage.setItem('auth_redirect_initiated', 'true');
-        localStorage.setItem('auth_redirect_time', new Date().toISOString());
+        localStorage.setItem('auth_redirect_time', timestamp);
+        localStorage.setItem('auth_provider', 'google');
       } catch (e) {
         log.error('Could not save auth state to storage', { error: e });
       }

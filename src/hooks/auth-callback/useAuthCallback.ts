@@ -17,37 +17,42 @@ import { supabase } from "@/integrations/supabase/client";
 export function useAuthCallback() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [processAttempts, setProcessAttempts] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const log = logger.createLogger({ component: 'useAuthCallback' });
-  const toast = useToast(); // Get the full toast object
-
+  const { toast } = useToast(); // Get the toast object
+  
   useEffect(() => {
     let isMounted = true;
     let wasProcessed = false;
     
     async function processAuthCallback() {
       try {
-        log.info("Handling auth callback");
-        
         if (!isMounted || wasProcessed) return;
         wasProcessed = true;
+
+        log.info("Handling auth callback", { attemptNumber: processAttempts + 1 });
+        setProcessAttempts(prev => prev + 1);
 
         // Check if we have access_token in hash
         const hasAccessTokenInHash = window.location.hash && window.location.hash.includes('access_token');
         
-        // First priority: Process access_token from hash fragment
+        // First priority: Process access_token from hash fragment - MOST IMPORTANT FOR GOOGLE OAUTH
         if (hasAccessTokenInHash) {
-          log.info("Found access_token in hash, processing directly");
+          log.info("Found access_token in hash, processing directly", {
+            hashLength: window.location.hash.length
+          });
           
           // Force a short delay to ensure DOM is fully loaded
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise(resolve => setTimeout(resolve, 150));
           
           const tokenSuccess = await extractAccessToken();
           
           if (tokenSuccess) {
             log.info("Successfully processed access token from hash");
-            toast.toast({
+            
+            toast({
               description: "התחברת בהצלחה",
             });
             
@@ -109,7 +114,8 @@ export function useAuthCallback() {
           
           if (secondTokenSuccess) {
             log.info("Successfully extracted token on second attempt");
-            toast.toast({
+            
+            toast({
               description: "התחברת בהצלחה",
             });
             
@@ -122,7 +128,10 @@ export function useAuthCallback() {
         
         // If we get here, authentication failed
         if (isMounted) {
-          log.error("No authentication method succeeded");
+          log.error("No authentication method succeeded", {
+            hasHash: !!window.location.hash,
+            hashIncludesAccessToken: hasAccessTokenInHash
+          });
           
           // Check if we're on a domain without www prefix (could cause SSL issues)
           const hostname = window.location.hostname;
@@ -159,7 +168,7 @@ export function useAuthCallback() {
       isMounted = false;
       log.info("Auth callback page unmounted");
     };
-  }, [navigate, location, toast]);
+  }, [navigate, location, toast, processAttempts]);
 
   return { loading, error };
 }

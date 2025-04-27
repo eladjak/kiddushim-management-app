@@ -18,6 +18,8 @@ export const extractAccessToken = async (): Promise<boolean> => {
       return false;
     }
     
+    log.info("Processing URL hash:", { hashLength: window.location.hash.length });
+    
     // Extract token information from hash
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get("access_token");
@@ -26,6 +28,7 @@ export const extractAccessToken = async (): Promise<boolean> => {
     const expiresAt = hashParams.get("expires_at");
     const tokenType = hashParams.get("token_type") || "bearer";
     const providerToken = hashParams.get("provider_token");
+    const providerRefreshToken = hashParams.get("provider_refresh_token");
     
     // Validate essential parameters
     if (!accessToken) {
@@ -38,6 +41,9 @@ export const extractAccessToken = async (): Promise<boolean> => {
       hasRefreshToken: !!refreshToken,
       hasExpiresIn: !!expiresIn,
       hasExpiresAt: !!expiresAt,
+      hasProviderToken: !!providerToken,
+      hasProviderRefreshToken: !!providerRefreshToken,
+      accessTokenLength: accessToken.length,
     });
     
     // Build session object
@@ -48,22 +54,28 @@ export const extractAccessToken = async (): Promise<boolean> => {
       expires_at: expiresAt ? parseInt(expiresAt, 10) : undefined,
       token_type: tokenType,
       provider_token: providerToken || null,
+      provider_refresh_token: providerRefreshToken || null,
     };
     
-    log.info("Setting session from hash", { sessionProperties: Object.keys(session) });
+    log.info("Setting session from hash", { 
+      sessionProperties: Object.keys(session),
+      accessTokenLength: session.access_token.length,
+      refreshTokenPresent: !!session.refresh_token,
+    });
     
     // Set the session in Supabase auth
     const { data, error } = await supabase.auth.setSession(session);
     
     if (error) {
-      log.error("Error setting session from hash", { error });
+      log.error("Error setting session from hash", { error, errorMessage: error.message });
       return false;
     }
     
     if (data?.session) {
       log.info("Successfully set session from hash", { 
         user: data.session.user.id,
-        expires: new Date(data.session.expires_at * 1000).toISOString()
+        expires: new Date(data.session.expires_at * 1000).toISOString(),
+        sessionAccessTokenLength: data.session.access_token.length
       });
       isSuccess = true;
     } else {

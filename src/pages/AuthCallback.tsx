@@ -23,15 +23,24 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Check if there's an access token in the hash
+        log.info("Processing callback URL", {
+          hasHash: !!window.location.hash,
+          hashLength: window.location.hash ? window.location.hash.length : 0,
+          hashStarts: window.location.hash ? window.location.hash.substring(0, 20) : ""
+        });
+        
+        // Check if there's an access token in the hash - HIGHEST PRIORITY
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Attempting direct access token extraction in callback component");
+          log.info("Found access_token in hash, processing directly");
+          
+          // Wait a moment to ensure the DOM is fully loaded
+          await new Promise(resolve => setTimeout(resolve, 100));
           
           // Process the token directly
           const success = await extractAccessToken();
           
           if (success) {
-            log.info("Successfully processed access token in component");
+            log.info("Successfully processed access token");
             
             toast({
               description: "התחברת בהצלחה",
@@ -40,11 +49,11 @@ const AuthCallback = () => {
             // Navigate home with small delay to ensure state is updated
             setTimeout(() => {
               navigate("/", { replace: true });
-            }, 500);
+            }, 300);
             
             return;
           } else {
-            log.error("Direct token extraction failed in component");
+            log.error("Failed to process access token");
           }
         }
         
@@ -72,10 +81,14 @@ const AuthCallback = () => {
           }
           
           if (session) {
-            log.info("Session already exists, redirecting to home");
+            log.info("Session already exists, redirecting to home", {
+              userId: session.user.id
+            });
+            
             toast({
               description: "התחברת בהצלחה",
             });
+            
             navigate("/", { replace: true });
           }
         } catch (err) {
