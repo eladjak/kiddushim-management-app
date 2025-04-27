@@ -20,12 +20,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import type { Database } from "@/integrations/supabase/types";
+
+// Define Profile type explicitly to fix type errors
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type UserRole = Database["public"]["Enums"]["user_role"];
 
 const Volunteers = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState<"all" | UserRole>("all");
 
   // Fetch volunteers data
   const { data: volunteers, isLoading, refetch } = useQuery({
@@ -34,7 +38,7 @@ const Volunteers = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .in('role', ['youth_volunteer', 'service_girl', 'coordinator'])
+        .in('role', ['youth_volunteer', 'service_girl', 'coordinator'] as UserRole[])
         .order('name');
         
       if (error) {
@@ -42,29 +46,29 @@ const Volunteers = () => {
           variant: "destructive",
           description: `שגיאה בטעינת רשימת המתנדבים: ${error.message}`,
         });
-        return [];
+        return [] as Profile[];
       }
       
-      return data || [];
+      return data as Profile[];
     },
   });
 
   // Filter volunteers based on search term and active tab
   const filteredVolunteers = volunteers?.filter(volunteer => {
-    const matchesSearch = volunteer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (volunteer.email && volunteer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                          (volunteer.phone && volunteer.phone.includes(searchTerm));
+    // Type guard to ensure volunteer has required properties
+    if (!volunteer || typeof volunteer !== 'object') return false;
+    
+    const matchesSearch = 
+      (volunteer.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (volunteer.email && volunteer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (volunteer.phone && volunteer.phone.includes(searchTerm));
     
     if (activeTab === "all") return matchesSearch;
-    if (activeTab === "youth_volunteer") return volunteer.role === "youth_volunteer" && matchesSearch;
-    if (activeTab === "service_girl") return volunteer.role === "service_girl" && matchesSearch;
-    if (activeTab === "coordinator") return volunteer.role === "coordinator" && matchesSearch;
-    
-    return matchesSearch;
+    return volunteer.role === activeTab && matchesSearch;
   });
 
   // Render role in Hebrew
-  const renderRole = (role: string) => {
+  const renderRole = (role: UserRole) => {
     switch (role) {
       case "youth_volunteer": return "מתנדב/ת צעיר/ה";
       case "service_girl": return "בת שירות";
@@ -93,7 +97,7 @@ const Volunteers = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={(value) => setActiveTab(value as "all" | UserRole)} className="w-full">
           <div className="flex justify-end mb-6">
             <TabsList className="grid grid-cols-4 w-full max-w-md">
               <TabsTrigger value="all">הכל</TabsTrigger>

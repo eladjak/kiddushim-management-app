@@ -97,9 +97,8 @@ export const GoogleAuthButton = () => {
           queryParams: {
             prompt: 'select_account', // Always show account selector
             access_type: 'offline',   // Get refresh token
-          },
-          // Force the implicit flow
-          flowType: 'implicit'
+          }
+          // Removed flowType option as it's not supported
         },
       });
       

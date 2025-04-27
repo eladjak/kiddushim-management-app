@@ -41,14 +41,18 @@ export async function extractAccessToken(): Promise<boolean> {
     const sessionData = {
       access_token: accessToken,
       refresh_token: refreshToken || '',
-      expires_at: expiresAt ? parseInt(expiresAt) : 0,
       expires_in: expiresIn ? parseInt(expiresIn) : 3600,
       provider_token: providerToken || '',
       token_type: tokenType || 'bearer'
     };
     
+    // Add expires_at if available 
+    const sessionWithExpiry = expiresAt
+      ? { ...sessionData, expires_at: parseInt(expiresAt) }
+      : sessionData;
+
     // First try to set session using setSession method
-    const { data, error } = await supabase.auth.setSession(sessionData);
+    const { data, error } = await supabase.auth.setSession(sessionWithExpiry);
     
     if (error) {
       log.error("Error setting session with access token (first attempt):", { error });

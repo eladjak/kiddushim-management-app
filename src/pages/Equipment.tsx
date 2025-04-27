@@ -11,6 +11,11 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Footer } from "@/components/layout/Footer";
+import type { Database } from "@/integrations/supabase/types";
+
+// Define types explicitly to fix type errors
+type EquipmentType = Database["public"]["Tables"]["equipment"]["Row"];
+type EquipmentChangeStatus = Database["public"]["Enums"]["change_status"];
 
 const Equipment = () => {
   const { profile } = useAuth();
@@ -36,7 +41,7 @@ const Equipment = () => {
         throw error;
       }
       
-      return data;
+      return data as EquipmentType[];
     },
   });
 
@@ -48,7 +53,7 @@ const Equipment = () => {
       const { count, error } = await supabase
         .from("equipment_changes")
         .select("*", { count: 'exact', head: true })
-        .eq("status", "pending");
+        .eq("status", "pending" as EquipmentChangeStatus);
       
       if (error) {
         console.error("Error fetching pending changes count:", error);
@@ -61,7 +66,7 @@ const Equipment = () => {
   });
 
   const addEquipmentMutation = useMutation({
-    mutationFn: async (newEquipment: any) => {
+    mutationFn: async (newEquipment: Partial<EquipmentType>) => {
       const { data, error } = await supabase
         .from("equipment")
         .insert(newEquipment)
