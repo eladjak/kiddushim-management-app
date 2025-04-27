@@ -15,6 +15,7 @@ import { RequestEquipmentChangeDialog } from "./RequestEquipmentChangeDialog";
 import { useAuth } from "@/context/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
+// Define Equipment type explicitly to fix type errors
 type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
 
 interface EquipmentListProps {

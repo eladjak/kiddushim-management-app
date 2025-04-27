@@ -35,10 +35,13 @@ const Volunteers = () => {
   const { data: volunteers, isLoading, refetch } = useQuery({
     queryKey: ['volunteers'],
     queryFn: async () => {
+      // Define the roles we want to include
+      const volunteerRoles: UserRole[] = ['youth_volunteer', 'service_girl', 'coordinator'];
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .in('role', ['youth_volunteer', 'service_girl', 'coordinator'] as UserRole[])
+        .in('role', volunteerRoles as any) // Use type assertion to fix type error
         .order('name');
         
       if (error) {

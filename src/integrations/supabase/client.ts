@@ -27,12 +27,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     detectSessionInUrl: true, // IMPORTANT! Auto-detect access_token in URL
     storageKey: getStorageKey(),
     storage: localStorage, // Use localStorage for persistence
-    debug: import.meta.env.DEV, // Enable debug mode in development
-    flowType: 'implicit', // Use implicit flow for Google OAuth
-    cookieOptions: {
-      secure: true,
-      sameSite: 'lax'
-    }
+    debug: import.meta.env.DEV // Enable debug mode in development
+    // Removed flowType and cookieOptions as they're not supported in this version
   },
   global: {
     headers: {

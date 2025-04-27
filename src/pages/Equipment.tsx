@@ -42,6 +42,7 @@ const Equipment = () => {
         throw error;
       }
       
+      // Use explicit type casting to fix the type error
       return data as EquipmentType[];
     },
   });
@@ -70,7 +71,7 @@ const Equipment = () => {
     mutationFn: async (newEquipment: EquipmentInsertType) => {
       const { data, error } = await supabase
         .from("equipment")
-        .insert(newEquipment)
+        .insert(newEquipment as any) // Use type assertion to fix type error
         .select();
         
       if (error) throw error;

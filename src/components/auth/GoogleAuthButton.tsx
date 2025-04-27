@@ -111,9 +111,8 @@ export const GoogleAuthButton = () => {
             prompt: 'consent',
             // Request email scope
             scope: 'email profile',
-          },
-          // Always use implicit flow for Google
-          flowType: 'implicit',
+          }
+          // Removed flowType as it's not supported in the options type
         },
       });
       

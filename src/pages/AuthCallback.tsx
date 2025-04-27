@@ -37,10 +37,10 @@ const AuthCallback = () => {
               description: "התחברת בהצלחה",
             });
             
-            // Navigate home
+            // Navigate home with small delay to ensure state is updated
             setTimeout(() => {
               navigate("/", { replace: true });
-            }, 300);
+            }, 500);
             
             return;
           } else {
