@@ -78,7 +78,7 @@ export const GoogleAuthButton = () => {
       
       // Explicit sign out before starting new sign in flow
       try {
-        await supabase.auth.signOut({ scope: 'local' });
+        await supabase.auth.signOut({ scope: 'global' });
         log.info('Successfully signed out before new sign in');
       } catch (signOutError) {
         log.warn('Error during sign out before sign in:', { error: signOutError });
@@ -98,6 +98,8 @@ export const GoogleAuthButton = () => {
             prompt: 'select_account', // Always show account selector
             access_type: 'offline',   // Get refresh token
           },
+          // Force the implicit flow
+          flowType: 'implicit'
         },
       });
       

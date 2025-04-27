@@ -29,6 +29,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage, // Use localStorage for persistence
     debug: import.meta.env.DEV, // Enable debug mode in development
     flowType: 'implicit', // Use implicit flow for better Google Auth support
+    
+    // Set up OAuth cookie options for improved security and persistence
+    cookieOptions: {
+      name: 'kidushishi-auth-session',
+      lifetime: 60 * 60 * 24 * 7, // 7 days
+      domain: window.location.hostname,
+      sameSite: 'lax',
+      path: '/'
+    }
   },
   global: {
     headers: {

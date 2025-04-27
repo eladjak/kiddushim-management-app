@@ -5,8 +5,9 @@ import { AuthCallbackLoading } from "@/components/auth/AuthCallbackLoading";
 import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { extractAccessToken } from "@/hooks/auth-callback/extractAccessToken";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * This page handles OAuth callback and session establishment
@@ -16,6 +17,8 @@ const AuthCallback = () => {
   const { loading, error } = useAuthCallback();
   const log = logger.createLogger({ component: 'AuthCallback' });
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   useEffect(() => {
     const logInfo = async () => {
@@ -24,8 +27,22 @@ const AuthCallback = () => {
         if (window.location.hash && window.location.hash.includes('access_token')) {
           log.info("AuthCallback page attempting direct access token extraction");
           const success = await extractAccessToken();
+          
           if (success) {
             log.info("Successfully extracted and used access token directly in callback page");
+            
+            toast({
+              description: "התחברת בהצלחה",
+            });
+            
+            // Navigate to home page after successful login
+            setTimeout(() => {
+              navigate("/", { replace: true });
+            }, 500);
+            
+            return;
+          } else {
+            log.error("Direct access token extraction failed in callback page");
           }
         }
         
@@ -92,6 +109,16 @@ const AuthCallback = () => {
           hostname: window.location.hostname,
           fullUrl: fullUrl.substring(0, 100) + (fullUrl.length > 100 ? '...' : '')
         });
+        
+        // If we already have a session at this point, go to home
+        if (session) {
+          log.info("Session already exists, redirecting to home");
+          toast({
+            description: "התחברת בהצלחה",
+          });
+          navigate("/", { replace: true });
+        }
+        
       } catch (err) {
         log.error("Error logging auth callback info:", { error: err });
       }
@@ -102,12 +129,14 @@ const AuthCallback = () => {
     return () => {
       log.info("Auth callback page unmounted");
     };
-  }, [loading, error, location]);
+  }, [loading, error, location, navigate, toast]);
 
+  // If we are still loading and haven't redirected yet
   if (loading) {
     return <AuthCallbackLoading />;
   }
 
+  // If we have an error
   if (error) {
     return <AuthCallbackError error={error} />;
   }
