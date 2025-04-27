@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ const Equipment = () => {
       }
       
       // Use explicit type casting to fix the type error
-      return data as EquipmentType[];
+      return (data || []) as EquipmentType[];
     },
   });
 
@@ -71,7 +71,7 @@ const Equipment = () => {
     mutationFn: async (newEquipment: EquipmentInsertType) => {
       const { data, error } = await supabase
         .from("equipment")
-        .insert(newEquipment as any) // Use type assertion to fix type error
+        .insert(newEquipment)
         .select();
         
       if (error) throw error;

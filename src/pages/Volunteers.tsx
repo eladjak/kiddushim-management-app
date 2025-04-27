@@ -41,8 +41,7 @@ const Volunteers = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .in('role', volunteerRoles as any) // Use type assertion to fix type error
-        .order('name');
+        .in('role', volunteerRoles);
         
       if (error) {
         toast({
@@ -52,7 +51,7 @@ const Volunteers = () => {
         return [] as Profile[];
       }
       
-      return data as Profile[];
+      return (data || []) as Profile[];
     },
   });
 

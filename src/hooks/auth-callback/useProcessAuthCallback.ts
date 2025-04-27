@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { NavigateFunction } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { handleExistingSession } from "./handleExistingSession";
@@ -70,7 +70,8 @@ export function useProcessAuthCallback({
           return;
         }
         
-        setProcessAttempts(prev => prev + 1);
+        // שינוי כאן - הפיכת הקריאה לקריאה ישירה עם מספר במקום פונקציה
+        setProcessAttempts(processAttempts + 1);
 
         // Try each auth method in sequence
         const sessionExists = await handleExistingSession(navigate, toastHelper);

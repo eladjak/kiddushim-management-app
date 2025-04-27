@@ -57,13 +57,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: getStorageProvider(),  // השתמש בלוקל סטורג' או במנגנון גיבוי
     debug: import.meta.env.DEV,    // הפעל מצב דיבאג בסביבת פיתוח
     flowType: 'pkce',              // השתמש ב-PKCE עבור אימות OAuth
-    cookieOptions: {
-      name: `sb-${storageKey}`,    // שם העוגיה שתואם את מפתח האחסון
-      domain: window.location.hostname, // תקף רק עבור הדומיין הנוכחי
-      sameSite: "lax",            // מדיניות SameSite מתאימה לרוב המקרים
-      secure: window.location.protocol === "https:", // אבטחה לפי הפרוטוקול
-      path: "/",                  // תקף עבור כל הנתיבים באתר
-    },
   },
   global: {
     headers: {
