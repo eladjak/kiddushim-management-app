@@ -170,9 +170,13 @@ export async function extractAccessToken(): Promise<boolean> {
       // Fifth approach: Try direct exchange with getUser
       try {
         log.info("Attempting direct user verification with token");
+        
+        // Use the ANON key from environment instead of accessing protected property
+        const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+        
         const authHeaders = {
           Authorization: `Bearer ${accessToken}`,
-          apikey: supabase.supabaseKey
+          apikey: apiKey
         };
         
         const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
