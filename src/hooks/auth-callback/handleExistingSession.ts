@@ -6,34 +6,45 @@ import { ToastType } from "./types";
 import { showToast } from "./toastHelpers";
 
 /**
- * Check for existing session and handle if found
+ * Check if we already have a valid session
  */
 export async function handleExistingSession(
   navigate: NavigateFunction,
   toast: ToastType
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleExistingSession' });
-  
-  const existingSession = await supabase.auth.getSession();
-  if (existingSession?.data?.session) {
-    log.info("Found existing session, skipping code exchange");
+
+  try {
+    log.info("Checking for existing session");
     
-    // Clear URL parameters
-    if (window.history.replaceState) {
-      window.history.replaceState(null, document.title, window.location.pathname);
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      log.error("Error checking for existing session:", { error });
+      return false;
     }
     
-    // Show success message
-    showToast(toast, "התחברת בהצלחה");
+    if (data.session) {
+      log.info("Session already exists", { 
+        userId: data.session.user.id 
+      });
+      
+      // Show success message
+      showToast(toast, "התחברת בהצלחה");
+      
+      // Navigate home
+      setTimeout(() => {
+        log.info("Redirecting to home with existing session");
+        navigate("/", { replace: true });
+      }, 300);
+      
+      return true;
+    }
     
-    // Navigate home
-    setTimeout(() => {
-      log.info("Redirecting to home with existing session");
-      navigate("/", { replace: true });
-    }, 300);
-    
-    return true;
+    log.info("No existing session found");
+    return false;
+  } catch (err) {
+    log.error("Error in handleExistingSession:", { error: err });
+    return false;
   }
-  
-  return false;
 }
