@@ -23,37 +23,9 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // First attempt: Use parseFragmentHash directly if hash is present
+        // First attempt: Try to directly process access token
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Attempting direct hash parsing in AuthCallback component");
-          try {
-            const { data, error } = await supabase.auth.parseFragmentHash(window.location.hash);
-            if (!error && data?.session) {
-              log.info("Successfully authenticated via parseFragmentHash in component", {
-                userId: data.session.user.id
-              });
-              
-              toast({
-                description: "התחברת בהצלחה",
-              });
-              
-              // Navigate to home page after successful login
-              setTimeout(() => {
-                navigate("/", { replace: true });
-              }, 300);
-              
-              return;
-            } else {
-              log.warn("parseFragmentHash in component returned error or no session", { error });
-            }
-          } catch (parseError) {
-            log.error("Error using parseFragmentHash in component:", { error: parseError });
-          }
-        }
-        
-        // Second attempt: Fall back to manual token extraction
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("AuthCallback component attempting manual access token extraction");
+          log.info("Attempting direct access token extraction in AuthCallback component");
           const success = await extractAccessToken();
           
           if (success) {

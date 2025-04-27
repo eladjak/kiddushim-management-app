@@ -37,28 +37,9 @@ export async function extractAccessToken(): Promise<boolean> {
       tokenType
     });
 
-    // Direct approach: Use the full URL hash directly
+    // Direct approach: Try to directly set the session with the token
     try {
-      log.info("Attempting direct hash processing with parseFragmentHash");
-      const { data: hashData, error: hashError } = await supabase.auth.parseFragmentHash(window.location.hash);
-      
-      if (!hashError && hashData?.session) {
-        log.info("Successfully established session via parseFragmentHash", {
-          userId: hashData.session.user.id,
-        });
-        clearUrlHash();
-        return true;
-      } else if (hashError) {
-        log.warn("parseFragmentHash failed", { error: hashError });
-      } else {
-        log.warn("parseFragmentHash did not return a session");
-      }
-    } catch (err) {
-      log.error("Error in parseFragmentHash approach:", { error: err });
-    }
-
-    // Second approach: Try with full session data
-    try {
+      log.info("Attempting to set session with access token");
       const sessionData = {
         access_token: accessToken,
         refresh_token: refreshToken || null,
@@ -83,7 +64,7 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("Error in session data approach:", { error: err });
     }
     
-    // Third approach: Try with minimal session data
+    // Second approach: Try with minimal session data
     try {
       const minimalData = {
         access_token: accessToken,
@@ -105,31 +86,33 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("Error in minimal data approach:", { error: err });
     }
 
-    // Fourth approach: Try OAuth signInWithOAuth flow
+    // Third approach: Try OAuth signInWithOAuth flow
     try {
       log.info("Attempting OAuth signin flow with token");
       
       // Create a new OAuth provider session
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: accessToken,
-        access_token: providerToken || undefined,
-      });
-      
-      if (!error && data.session) {
-        log.info("Successfully established session via signInWithIdToken", {
-          userId: data.session.user.id,
+      if (providerToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: accessToken,
+          access_token: providerToken,
         });
-        clearUrlHash();
-        return true;
+        
+        if (!error && data.session) {
+          log.info("Successfully established session via signInWithIdToken", {
+            userId: data.session.user.id,
+          });
+          clearUrlHash();
+          return true;
+        }
+        
+        log.warn("OAuth signin flow failed", { error });
       }
-      
-      log.warn("OAuth signin flow failed", { error });
     } catch (err) {
       log.error("Error in OAuth signin flow approach:", { error: err });
     }
     
-    // Fifth approach: Try setting auth token directly
+    // Fourth approach: Try setting auth token directly
     try {
       // Wait a moment before the third attempt (sometimes helps with timing issues)
       await new Promise(resolve => setTimeout(resolve, 100));
