@@ -30,6 +30,9 @@ export async function handlePkceError(
     return;
   }
   
+  // Clear callback specific session storage
+  sessionStorage.removeItem('auth_redirect_attempts');
+  
   // Check if we were redirected from www.domain to domain or vice versa
   const hostname = window.location.hostname;
   const isNonWwwDomain = hostname === 'kidushishi-menegment-app.co.il';
@@ -105,6 +108,7 @@ export async function handlePkceError(
     sessionStorage.removeItem('auth_redirect_count');
     sessionStorage.removeItem('auth_redirect_initiated');
     sessionStorage.removeItem('auth_redirect_time');
+    sessionStorage.removeItem('auth_redirect_attempts');
     
     // Set error message and loading state
     setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");

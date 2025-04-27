@@ -24,16 +24,35 @@ export function useAuthCallback() {
   const toastHelper = useToast(); // Get the toast object
   const processingRef = useRef(false);
   const maxRetriesRef = useRef(2);
+  const hasRunRef = useRef(false);
   
   useEffect(() => {
     let isMounted = true;
     
-    // קבוע הבעיה: אם כבר מעבדים בקשה, אל תתחיל עוד פעם
-    if (processingRef.current) {
-      return;
+    // מניעת ריצה כפולה - וגם מונע לולאה אינסופית
+    if (processingRef.current || hasRunRef.current) {
+      return () => {};
     }
-    
+
+    // סימון שהפונקציה התחילה לרוץ
     processingRef.current = true;
+    hasRunRef.current = true;
+    
+    // טיימר בטיחות כדי להבטיח שמצב הטעינה לא יישאר תקוע
+    const safetyTimer = setTimeout(() => {
+      if (isMounted && loading) {
+        log.warn("Safety timeout triggered in auth callback");
+        setError("תם הזמן המוקצב לתהליך ההתחברות. מועבר לדף הבית...");
+        setLoading(false);
+        
+        // ניקוי וניווט
+        setTimeout(() => {
+          if (isMounted) {
+            navigate("/", { replace: true });
+          }
+        }, 1000);
+      }
+    }, 10000);
 
     async function processAuthCallback() {
       try {
@@ -44,8 +63,15 @@ export function useAuthCallback() {
         // הגבלת מספר נסיונות העיבוד למניעת לופ אינסופי
         if (processAttempts >= maxRetriesRef.current) {
           log.error("Maximum auth processing attempts reached, stopping", { attempts: processAttempts });
-          setError("מספר נסיונות מקסימלי הושג. אנא נסה שוב מאוחר יותר.");
+          setError("מספר נסיונות מקסימלי הושג. מועבר לדף הבית...");
           setLoading(false);
+          
+          setTimeout(() => {
+            if (isMounted) {
+              navigate("/", { replace: true });
+            }
+          }, 1500);
+          
           return;
         }
         
@@ -174,10 +200,16 @@ export function useAuthCallback() {
         if (isMounted) {
           setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");
           setLoading(false);
+          
+          // ניווט לדף הבית במקרה של שגיאה
+          setTimeout(() => {
+            navigate("/", { replace: true });
+          }, 2000);
         }
       } finally {
         // וודא שאנחנו מעדכנים את הסטייט ב-unmounting
         if (isMounted) {
+          processingRef.current = false;
           setLoading(false);
         }
       }
@@ -188,9 +220,11 @@ export function useAuthCallback() {
 
     return () => {
       isMounted = false;
+      // נקה את הטיימר בעת הפירוק
+      clearTimeout(safetyTimer);
       log.info("Auth callback page unmounted");
     };
-  }, [navigate, location, toastHelper, processAttempts]);
+  }, []);  // הסרת תלות בתהליכי עיבוד כדי למנוע ריצה חוזרת
 
   return { loading, error };
 }

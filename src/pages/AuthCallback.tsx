@@ -20,14 +20,15 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const toastHelper = useToast();
   const processedRef = useRef(false);
+  const initProcessRef = useRef(false);
   
   useEffect(() => {
-    // מניעת עיבוד כפול
-    if (processedRef.current) {
+    // מניעת עיבוד כפול או ריצה חוזרת
+    if (processedRef.current || initProcessRef.current) {
       return;
     }
     
-    processedRef.current = true;
+    initProcessRef.current = true;
     
     const handleCallback = async () => {
       try {
@@ -36,6 +37,9 @@ const AuthCallback = () => {
           hashLength: window.location.hash ? window.location.hash.length : 0,
           hashStarts: window.location.hash ? window.location.hash.substring(0, 20) : ""
         });
+        
+        // סימן שהתחלנו לעבד
+        processedRef.current = true;
         
         // Check if there's an access token in the hash - HIGHEST PRIORITY
         if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -79,29 +83,6 @@ const AuthCallback = () => {
           hasHash: !!window.location.hash,
           error: errorParam
         });
-        
-        // Final attempt: check for existing session
-        try {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            log.error("Error checking session:", { error: sessionError });
-          }
-          
-          if (session) {
-            log.info("Session already exists, redirecting to home", {
-              userId: session.user.id
-            });
-            
-            toastHelper.toast({
-              description: "התחברת בהצלחה",
-            });
-            
-            navigate("/", { replace: true });
-          }
-        } catch (err) {
-          log.error("Error in final session check:", { error: err });
-        }
       } catch (err) {
         log.error("Unexpected error in callback handler:", { error: err });
       }
@@ -122,7 +103,7 @@ const AuthCallback = () => {
       clearTimeout(safetyTimer);
     };
     
-  }, [loading, error, location, navigate, toastHelper]);
+  }, []);  // הסרת dependency כדי למנוע ריצה חוזרת
 
   // Display loading or error UI
   if (loading) {

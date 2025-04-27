@@ -19,15 +19,19 @@ const getStorageKey = () => {
   }
 };
 
+// Get the storage key
+const storageKey = getStorageKey();
+
 // Create a single supabase client instance for the entire app
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     persistSession: true,          // Enable session persistence
     autoRefreshToken: true,        // Automatically refresh tokens
     detectSessionInUrl: true,      // Auto-detect access_token in URL
-    storageKey: getStorageKey(),   // Use a consistent storage key
+    storageKey: storageKey,        // Use a consistent storage key
     storage: localStorage,         // Use localStorage for persistence
-    debug: import.meta.env.DEV     // Enable debug mode in development
+    debug: import.meta.env.DEV,    // Enable debug mode in development
+    flowType: 'pkce',              // Use PKCE for OAuth flow
   },
   global: {
     headers: {
@@ -59,5 +63,31 @@ export const getNormalizedDomain = () => {
     return hostname;
   } catch (e) {
     return '';
+  }
+};
+
+// הוספת פונקציות עזר לניקוי אחסון ומידע של אימות
+export const clearAuthStorage = () => {
+  try {
+    // Clear localStorage items related to auth
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('supabase.auth.') || key.includes(storageKey))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear sessionStorage items related to auth
+    sessionStorage.removeItem('auth_redirect_count');
+    sessionStorage.removeItem('auth_redirect_initiated');
+    sessionStorage.removeItem('auth_redirect_time');
+    sessionStorage.removeItem('auth_redirect_attempts');
+    
+    return true;
+  } catch (error) {
+    console.error("Error clearing auth storage:", error);
+    return false;
   }
 };
