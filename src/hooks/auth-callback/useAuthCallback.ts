@@ -8,6 +8,7 @@ import { handleAuthCode } from "./handleAuthCode";
 import { handleImplicitAuth } from "./handleImplicitAuth";
 import { handleUrlCode } from "./handleUrlCode";
 import { handlePkceError } from "./handlePkceError";
+import { extractAccessToken } from "./extractAccessToken";
 
 /**
  * Hook to handle the authentication callback process
@@ -35,11 +36,28 @@ export function useAuthCallback() {
         const fullUrl = location.state?.fullUrl || window.location.href;
         log.info("Processing callback URL", { url: fullUrl });
         
-        // First check if we have already processed this auth
+        // First try to extract and use access token from hash fragment (highest priority for Google Auth)
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          const tokenSuccess = await extractAccessToken();
+          if (tokenSuccess) {
+            toast({
+              description: "התחברת בהצלחה",
+            });
+            
+            setTimeout(() => {
+              if (isMounted) {
+                navigate("/", { replace: true });
+              }
+            }, 300);
+            return;
+          }
+        }
+        
+        // Check if we have already processed this auth
         const sessionExists = await handleExistingSession(navigate, toast);
         if (sessionExists) return;
         
-        // First try to extract code from state (preferred method as it's most reliable)
+        // Try to extract code from state (preferred method as it's most reliable)
         const stateCode = location.state?.code;
         const authSource = location.state?.authSource;
         

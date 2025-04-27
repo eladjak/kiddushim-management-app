@@ -6,6 +6,7 @@ import { AuthCallbackError } from "@/components/auth/AuthCallbackError";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "react-router-dom";
+import { extractAccessToken } from "@/hooks/auth-callback/extractAccessToken";
 
 /**
  * This page handles OAuth callback and session establishment
@@ -19,6 +20,14 @@ const AuthCallback = () => {
   useEffect(() => {
     const logInfo = async () => {
       try {
+        // First, directly try to use the access token if it's available
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          const success = await extractAccessToken();
+          if (success) {
+            log.info("Successfully extracted and used access token directly in callback page");
+          }
+        }
+        
         // Check if we were redirected from auth
         const wasRedirected = localStorage.getItem('auth_redirect_initiated') === 'true' || 
                              sessionStorage.getItem('auth_redirect_initiated') === 'true';
@@ -72,6 +81,7 @@ const AuthCallback = () => {
           hasHashCode: !!hashCode,
           hashCodeLength: hashCode?.length,
           hasHashAccessToken: !!hashAccessToken,
+          hashAccessTokenLength: hashAccessToken?.length,
           pathCode: !!pathCode,
           errorParam,
           errorDescription,

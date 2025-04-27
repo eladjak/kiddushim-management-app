@@ -26,6 +26,7 @@ export async function handleImplicitAuth(
         // Extract access token directly from the hash
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
         
         if (!accessToken) {
           log.error("No access token found in hash");
@@ -39,7 +40,7 @@ export async function handleImplicitAuth(
         // Try to set session with the token
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
-          refresh_token: hashParams.get('refresh_token') || '',
+          refresh_token: refreshToken || '',
         });
         
         if (error) {
