@@ -1,4 +1,5 @@
 
-import { UseToastReturnType } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
-export type ToastType = UseToastReturnType;
+// Define the ToastType to be the return type of the useToast hook
+export type ToastType = ReturnType<typeof useToast>;
