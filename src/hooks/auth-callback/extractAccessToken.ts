@@ -4,6 +4,7 @@ import { logger } from "@/utils/logger";
 
 /**
  * פונקציה לחילוץ אקסס-טוקן מהכתובת (hash fragment)
+ * עם טיפול מיוחד בתווים מיוחדים/עבריים
  */
 export async function extractAccessToken(): Promise<boolean> {
   const log = logger.createLogger({ component: 'extractAccessToken' });
@@ -43,36 +44,62 @@ export async function extractAccessToken(): Promise<boolean> {
     
     log.info("Setting up session with extracted access token");
     
-    // הגדרת סשן עם הטוקן שמצאנו
-    const { data, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken || '',
-    });
-    
-    if (error || !data.session) {
-      log.error("Error setting session with access token", { error });
+    try {
+      // הגדרת סשן עם הטוקן שמצאנו
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+      });
+      
+      if (error || !data.session) {
+        log.error("Error setting session with access token", { error });
+        return false;
+      }
+      
+      log.info("Successfully set session with access token", {
+        userId: data.session.user.id,
+        email: data.session.user.email,
+      });
+      
+      // ניקוי מידע אימות מכל מקום אפשרי
+      try {
+        // מאחסון מקומי
+        localStorage.removeItem('auth_redirect_initiated');
+        localStorage.removeItem('auth_redirect_time');
+        localStorage.removeItem('auth_redirect_count');
+        localStorage.removeItem('auth_provider');
+        
+        // מאחסון הסשן
+        sessionStorage.removeItem('auth_redirect_initiated');
+        sessionStorage.removeItem('auth_redirect_time');
+        sessionStorage.removeItem('auth_redirect_count');
+        
+        log.info("Cleared auth redirect indicators");
+      } catch (e) {
+        log.warn("Error clearing auth redirect indicators", e);
+      }
+      
+      // ניקוי ה-hash מהכתובת
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+        log.info("Cleared URL hash");
+      }
+      
+      return true;
+    } catch (sessionError) {
+      log.error("Error during setSession operation:", { error: sessionError });
+      
+      // ננסה לבדוק אם מדובר בבעיית קידוד תווים
+      if (sessionError instanceof Error && 
+          (sessionError.message?.includes('encoding') || 
+           sessionError.message?.includes('Latin1') ||
+           sessionError.message?.includes('btoa'))) {
+        
+        log.error("Detected character encoding error - likely due to non-Latin characters in the token");
+      }
+      
       return false;
     }
-    
-    log.info("Successfully set session with access token", {
-      userId: data.session.user.id,
-    });
-    
-    // ניקוי מידע אימות מהסשן סטורג'
-    try {
-      sessionStorage.removeItem('auth_redirect_initiated');
-      sessionStorage.removeItem('auth_redirect_time');
-      sessionStorage.removeItem('auth_redirect_count');
-    } catch (e) {
-      log.warn("Error clearing auth redirect indicators", e);
-    }
-    
-    // ניקוי ה-hash מהכתובת
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
-    }
-    
-    return true;
   } catch (err) {
     log.error("Error extracting access token from hash", { error: err });
     return false;

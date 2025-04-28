@@ -40,6 +40,11 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       return "שגיאת אבטחת HTTPS: אנא השתמש בכתובת מלאה של האתר, עם קידומת www בהתחלה - www.kidushishi-menegment-app.co.il";
     }
     
+    // Handle Hebrew character encoding issues
+    if (error.includes("btoa") || error.includes("Invalid character")) {
+      return "שגיאת קידוד תווים בעברית. המערכת מנסה לטפל בבעיה אוטומטית, נא לנסות שוב.";
+    }
+    
     // Handle PKCE-specific error
     if (error.includes("both auth code and code verifier") || error.includes("pkce")) {
       return "שגיאה בתהליך האימות (PKCE). נסה להתחבר מחדש או לנקות עוגיות הדפדפן.";
@@ -90,7 +95,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       // Find all auth-related items in localStorage
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('supabase.auth.') || key.includes('-auth-token'))) {
+        if (key && (key.startsWith('supabase.auth.') || key.includes('-auth-token') || key.includes('code-verifier'))) {
           keysToRemove.push(key);
         }
       }

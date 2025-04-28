@@ -37,7 +37,7 @@ export function useProcessAuthCallback({
   location
 }: ProcessAuthCallbackProps) {
   const log = logger.createLogger({ component: 'useProcessAuthCallback' });
-  const maxRetriesRef = useRef(2);
+  const maxRetriesRef = useRef(3); // הגדלנו את מספר הניסיונות
 
   useEffect(() => {
     let isMounted = true;
@@ -70,16 +70,26 @@ export function useProcessAuthCallback({
           return;
         }
         
-        // כעת משתמשים בגרסה מתוקנת - מספר במקום פונקציה
         setProcessAttempts(processAttempts + 1);
 
-        // בדיקת כל מקורות האימות האפשריים
+        // שיפרנו את הסדר כדי לבדוק קודם האם יש טוקן בכתובת
         
-        // 1. בדיקה אם כבר קיים סשן פעיל
+        // 1. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          try {
+            log.info("Found access_token in hash, trying implicit flow");
+            const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
+            if (implicitAuthSuccess) return;
+          } catch (err) {
+            log.error("Error in implicit auth flow:", { error: err });
+          }
+        }
+        
+        // 2. בדיקה אם כבר קיים סשן פעיל
         const sessionExists = await handleExistingSession(navigate, toastHelper);
         if (sessionExists) return;
         
-        // 2. אם יש קוד אימות בסטייט (מהנתב)
+        // 3. אם יש קוד אימות בסטייט (מהנתב)
         if (location.state?.code && location.state.code.length > 10) {
           try {
             log.info("Using code from location state");
@@ -92,17 +102,6 @@ export function useProcessAuthCallback({
               await handlePkceError(navigate, setError, setLoading);
               return;
             }
-          }
-        }
-
-        // 3. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          try {
-            log.info("Found access_token in hash, trying implicit flow");
-            const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
-            if (implicitAuthSuccess) return;
-          } catch (err) {
-            log.error("Error in implicit auth flow:", { error: err });
           }
         }
         
@@ -123,7 +122,14 @@ export function useProcessAuthCallback({
         if (isMounted) {
           log.error("No authentication method succeeded");
           clearAuthStorage();
-          await handlePkceError(navigate, setError, setLoading);
+          
+          // בדיקה אם מדובר בבעיית SSL certificate
+          if (window.location.hostname === "kidushishi-menegment-app.co.il" && 
+              !window.location.hostname.startsWith("www.")) {
+            setError("התחברות נכשלה בגלל בעיית תעודה. נסה להיכנס דרך www.kidushishi-menegment-app.co.il במקום kidushishi-menegment-app.co.il");
+          } else {
+            await handlePkceError(navigate, setError, setLoading);
+          }
         }
       } catch (err: any) {
         log.error("Unexpected error in auth callback:", { error: err });

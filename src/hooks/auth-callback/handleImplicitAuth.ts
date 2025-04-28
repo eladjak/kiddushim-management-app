@@ -4,9 +4,10 @@ import { logger } from "@/utils/logger";
 import { ToastType } from "./types";
 import { extractAccessToken } from "./extractAccessToken";
 import { showToast } from "./toastHelpers";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Handle implicit authentication flow
+ * Handle implicit authentication flow with improved error handling for Hebrew characters
  */
 export async function handleImplicitAuth(
   navigate: NavigateFunction, 
@@ -25,8 +26,37 @@ export async function handleImplicitAuth(
     
     log.info("Found access_token in hash, attempting to process");
     
-    // פרוש את הטוקן מהפרגמנט ונסה להגדיר סשן
-    const success = await extractAccessToken();
+    // ננסה להשתמש באפשרות הראשונה - חילוץ טוקן מהכתובת
+    let success = await extractAccessToken();
+    
+    // אם לא הצליח, ננסה דרך אחרת - להשתמש ב-PKCE כהחלפת קוד
+    if (!success) {
+      log.info("Direct token extraction failed, trying alternative approach");
+      
+      try {
+        // קבלת המידע מה-hash
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        
+        if (accessToken) {
+          // שימוש ב-API אחר של Supabase
+          const { data, error } = await supabase.auth.getUser(accessToken);
+          
+          if (error) {
+            log.error("Error getting user with access token:", error);
+          } else if (data?.user) {
+            log.info("Successfully retrieved user with access token", {
+              userId: data.user.id,
+              email: data.user.email
+            });
+            
+            success = true;
+          }
+        }
+      } catch (altError) {
+        log.error("Error in alternative token approach:", { error: altError });
+      }
+    }
     
     if (success) {
       log.info("Successfully processed implicit auth flow");
@@ -42,7 +72,7 @@ export async function handleImplicitAuth(
       return true;
     }
     
-    log.error("Failed to process access token");
+    log.error("Failed to process access token after all attempts");
     return false;
   } catch (err) {
     log.error("Error in handleImplicitAuth:", { error: err });

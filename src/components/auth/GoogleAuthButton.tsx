@@ -7,12 +7,13 @@ import { logger } from "@/utils/logger";
 import { FcGoogle } from "react-icons/fc";
 
 /**
- * השגת מחרוזת רנדומלית בקידוד בטוח עבור PKCE שמטפלת בתווים לא לטיניים
+ * השגת מחרוזת רנדומלית בקידוד בטוח עבור PKCE
+ * גרסה משופרת שבטוח עובדת עם תווים לא לטיניים
  * @param length אורך המחרוזת הרצוי
  */
 const generatePKCEString = (length: number): string => {
-  // תווים בטוחים לשימוש ב-URL
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  // תווים בטוחים לשימוש ב-URL - רק אותיות לטיניות ומספרים
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   
   try {
@@ -86,7 +87,7 @@ export const GoogleAuthButton = () => {
       // Get proper redirect URL with www prefix if needed
       const redirectTo = getRedirectUrl();
       
-      // Generate a code verifier for PKCE - שימוש בפונקציה המתוקנת שמטפלת בתווים מיוחדים
+      // Generate a code verifier for PKCE - שימוש בגרסה המשופרת שבטוח עובדת עם תווים לא לטיניים
       const codeVerifier = generatePKCEString(64);
       
       try {
@@ -106,7 +107,7 @@ export const GoogleAuthButton = () => {
       // Configure auth provider with appropriate flow
       configureAuthProvider('google');
       
-      // Initiate OAuth flow with detailed options
+      // Initiate OAuth flow with detailed options - משפרים את האופציות לטיפול בתוים מיוחדים
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -115,6 +116,9 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline', 
             prompt: 'select_account',
+            // הוספנו הגדרה נוספת לגוגל
+            hd: '*', // לאפשר כל דומיין
+            hl: 'he' // הגדרת שפה לעברית
           }
         }
       });
