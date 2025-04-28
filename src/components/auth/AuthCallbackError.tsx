@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { getAuthStorageKey } from "@/integrations/supabase/client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 interface AuthCallbackErrorProps {
@@ -84,12 +83,14 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       await supabase.auth.signOut({ scope: 'global' });
       
       // Clean all auth data from local storage
-      const storageKey = getAuthStorageKey();
+      clearAuthStorage();
+      
       const keysToRemove = [];
       
+      // Find all auth-related items in localStorage
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('supabase.auth.') || key.includes(storageKey))) {
+        if (key && (key.startsWith('supabase.auth.') || key.includes('-auth-token'))) {
           keysToRemove.push(key);
         }
       }

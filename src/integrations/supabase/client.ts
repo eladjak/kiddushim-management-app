@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -10,6 +11,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   },
 });
+
+/**
+ * מקבל מפתח לאחסון מידע בלוקל סטורג'
+ */
+export function getAuthStorageKey() {
+  return `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`;
+}
 
 /**
  * Clear all authentication related storage
@@ -31,8 +39,10 @@ export function clearAuthStorage() {
     sessionStorage.removeItem('auth_redirect_count');
     sessionStorage.removeItem('auth_provider');
 
-    // Clear Supabase auth storage
-    supabase.auth.clearSession();
+    // Clear Supabase auth storage - fixed to use signOut instead of clearSession
+    supabase.auth.signOut({ scope: 'local' })
+      .then(() => console.log('Supabase auth state cleared'))
+      .catch(err => console.error('Error clearing Supabase auth state:', err));
     
     console.log('All auth storage cleared');
   } catch (err) {

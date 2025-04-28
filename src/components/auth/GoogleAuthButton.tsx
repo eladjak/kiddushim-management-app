@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { supabase, configureAuthProvider, getNormalizedDomain } from "@/integrations/supabase/client";
+import { supabase, configureAuthProvider, getNormalizedDomain, clearAuthStorage } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
@@ -47,7 +47,7 @@ export const GoogleAuthButton = () => {
       
       // Clean up existing auth data and session
       try {
-        await supabase.auth.signOut({ scope: 'global' });
+        clearAuthStorage();
         log.info('Successfully cleared auth state before new sign in');
       } catch (signOutError) {
         log.warn('Error during cleanup before sign in:', { error: signOutError });

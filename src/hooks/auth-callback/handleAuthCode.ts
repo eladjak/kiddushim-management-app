@@ -1,6 +1,6 @@
 
 import { NavigateFunction } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { ToastType } from "./types";
 import { showToast } from "./toastHelpers";
@@ -57,7 +57,7 @@ export async function handleAuthCode(
           
           // Success! Show message and clean up
           showToast(toastHelper, "התחברת בהצלחה");
-          clearAuthStorageItems();
+          clearAuthStorage();
           
           // Navigate home
           setTimeout(() => {
@@ -70,6 +70,8 @@ export async function handleAuthCode(
       } catch (pkceError) {
         log.error("Exception during PKCE code exchange:", { error: pkceError });
       }
+    } else {
+      log.warn("No code verifier found, attempting non-PKCE code exchange");
     }
     
     // If PKCE failed or wasn't available, try non-PKCE exchange
@@ -91,7 +93,7 @@ export async function handleAuthCode(
         
         // Success! Show message and clean up
         showToast(toastHelper, "התחברת בהצלחה");
-        clearAuthStorageItems();
+        clearAuthStorage();
         
         // Navigate home
         setTimeout(() => {
@@ -102,28 +104,14 @@ export async function handleAuthCode(
         return true;
       }
     } catch (nonPkceError) {
-      log.error("Exception in non-PKCE code exchange:", { error: nonPkceError });
+      log.error("Error exchanging code without PKCE:", { error: nonPkceError });
     }
     
     // If we got here, both methods failed
-    log.error("All code exchange methods failed", { source });
+    log.error("Both PKCE and non-PKCE code exchange methods failed", { source });
     return false;
   } catch (err) {
     log.error("Error in handleAuthCode:", { error: err, source });
     throw err;
-  }
-}
-
-// Helper to clean up all auth-related storage items
-function clearAuthStorageItems() {
-  try {
-    localStorage.removeItem('supabase-code-verifier');
-    localStorage.removeItem('code-verifier-timestamp');
-    localStorage.removeItem('auth_redirect_initiated');
-    localStorage.removeItem('auth_redirect_time');
-    localStorage.removeItem('auth_redirect_count');
-    localStorage.removeItem('auth_provider');
-  } catch (e) {
-    console.warn("Error clearing auth storage items:", e);
   }
 }
