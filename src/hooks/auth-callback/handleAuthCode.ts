@@ -22,100 +22,108 @@ export async function handleAuthCode(
       codeLength: code.length 
     });
     
-    // בדיקה אם ה-code כולל תו + שקיים ב-PKCE אך יתכן שבמהלך הניתוב התחלף לרווח
-    // זו בעיה נפוצה כאשר מפעילים PKCE עם גוגל
+    // Fix code if it has spaces instead of + signs
     const fixedCode = code.replace(/ /g, '+');
     
-    // וידוא שיש לנו code_verifier בסשן סטורג'
-    const codeVerifier = sessionStorage.getItem('supabase-code-verifier');
+    // Get code verifier from localStorage instead of sessionStorage
+    const codeVerifier = localStorage.getItem('supabase-code-verifier');
+    
+    // Check when the code verifier was created (to prevent using old ones)
+    const verifierTimestamp = localStorage.getItem('code-verifier-timestamp');
+    const isVerifierRecent = verifierTimestamp && 
+      (Date.now() - parseInt(verifierTimestamp, 10)) < 5 * 60 * 1000; // 5 minutes
+    
     log.info("Code verifier status:", { 
       hasCodeVerifier: !!codeVerifier,
-      verifierLength: codeVerifier?.length 
+      verifierLength: codeVerifier?.length,
+      isVerifierRecent
     });
     
-    // Try to perform code exchange with PKCE
-    if (codeVerifier) {
+    // Try with PKCE if we have a recent verifier
+    if (codeVerifier && isVerifierRecent) {
       log.info("Attempting PKCE code exchange with verifier");
-      const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
-      
-      if (error) {
-        log.error("Error exchanging code for session with PKCE:", { error, source });
-        // המשך עם כישלון
-      } else {
-        if (data.session) {
-          log.info("Successfully exchanged code for session with PKCE", { 
-            userId: data.session.user.id, 
-            source 
-          });
-          
-          // Show success message
-          showToast(toastHelper, "התחברת בהצלחה");
-          
-          // Clear auth redirect indicators after successful auth
-          try {
-            sessionStorage.removeItem('auth_redirect_initiated');
-            sessionStorage.removeItem('auth_redirect_time');
-            sessionStorage.removeItem('auth_redirect_count');
-            // מחיקת מפתח ה-code_verifier אחרי שהיה בשימוש מוצלח
-            sessionStorage.removeItem('supabase-code-verifier');
-          } catch (e) {
-            log.warn("Error clearing auth redirect indicators:", e);
-          }
-          
-          // Navigate home
-          setTimeout(() => {
-            log.info("Redirecting to home after code exchange");
-            navigate("/", { replace: true });
-          }, 300);
-          
-          return true;
-        }
-      }
-    } else {
-      // אם אין לנו verifier, ננסה לבצע חילוף קוד ללא PKCE
-      log.warn("No code verifier found, attempting non-PKCE code exchange");
       
       try {
         const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
         
         if (error) {
-          log.error("Error exchanging code without PKCE:", { error });
+          log.error("Error exchanging code for session with PKCE:", { error, source });
+          // Continue to non-PKCE attempt
         } else if (data.session) {
-          log.info("Successfully exchanged code without PKCE", { 
+          log.info("Successfully exchanged code for session with PKCE", { 
             userId: data.session.user.id, 
             source 
           });
           
-          // Show success message
+          // Success! Show message and clean up
           showToast(toastHelper, "התחברת בהצלחה");
-          
-          // Clear auth redirect indicators
-          try {
-            sessionStorage.removeItem('auth_redirect_initiated');
-            sessionStorage.removeItem('auth_redirect_time');
-            sessionStorage.removeItem('auth_redirect_count');
-          } catch (e) {
-            log.warn("Error clearing auth redirect indicators:", e);
-          }
+          clearAuthStorageItems();
           
           // Navigate home
           setTimeout(() => {
-            log.info("Redirecting to home after non-PKCE code exchange");
+            log.info("Redirecting to home after successful PKCE code exchange");
             navigate("/", { replace: true });
           }, 300);
           
           return true;
         }
-      } catch (exchangeError) {
-        log.error("Error in non-PKCE code exchange attempt:", { error: exchangeError });
+      } catch (pkceError) {
+        log.error("Exception during PKCE code exchange:", { error: pkceError });
       }
     }
     
-    // אם הגענו לכאן, שתי השיטות נכשלו
-    log.error("Both PKCE and non-PKCE code exchange methods failed", { source });
+    // If PKCE failed or wasn't available, try non-PKCE exchange
+    log.info("Attempting non-PKCE code exchange as fallback");
+    
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
+      
+      if (error) {
+        log.error("Error in non-PKCE code exchange:", { error });
+        return false;
+      }
+      
+      if (data.session) {
+        log.info("Successfully exchanged code with non-PKCE method", { 
+          userId: data.session.user.id, 
+          source 
+        });
+        
+        // Success! Show message and clean up
+        showToast(toastHelper, "התחברת בהצלחה");
+        clearAuthStorageItems();
+        
+        // Navigate home
+        setTimeout(() => {
+          log.info("Redirecting to home after successful non-PKCE code exchange");
+          navigate("/", { replace: true });
+        }, 300);
+        
+        return true;
+      }
+    } catch (nonPkceError) {
+      log.error("Exception in non-PKCE code exchange:", { error: nonPkceError });
+    }
+    
+    // If we got here, both methods failed
+    log.error("All code exchange methods failed", { source });
     return false;
   } catch (err) {
     log.error("Error in handleAuthCode:", { error: err, source });
     throw err;
+  }
+}
+
+// Helper to clean up all auth-related storage items
+function clearAuthStorageItems() {
+  try {
+    localStorage.removeItem('supabase-code-verifier');
+    localStorage.removeItem('code-verifier-timestamp');
+    localStorage.removeItem('auth_redirect_initiated');
+    localStorage.removeItem('auth_redirect_time');
+    localStorage.removeItem('auth_redirect_count');
+    localStorage.removeItem('auth_provider');
+  } catch (e) {
+    console.warn("Error clearing auth storage items:", e);
   }
 }

@@ -1,8 +1,7 @@
 
 import { NavigateFunction } from "react-router-dom";
-import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
+import { clearAuthStorage } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
-import { extractAccessToken } from "./extractAccessToken";
 
 /**
  * טיפול בשגיאות PKCE או אי-התאמת דומיין לתעודה
@@ -16,10 +15,10 @@ export async function handlePkceError(
   log.info("Handling potential PKCE error or SSL certificate domain mismatch");
   
   // בדיקה אם אנחנו תקועים בלולאת הפניה
-  const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
+  const redirectCount = parseInt(localStorage.getItem('auth_redirect_count') || '0');
   if (redirectCount > 2) {
     log.error("Detected redirect loop, breaking the cycle");
-    sessionStorage.removeItem('auth_redirect_count');
+    localStorage.removeItem('auth_redirect_count');
     setError("זוהתה לולאת הפניות. הקשר לתמיכה הטכנית אם הבעיה נמשכת.");
     setLoading(false);
     
@@ -31,10 +30,8 @@ export async function handlePkceError(
     return;
   }
   
-  // נקה שדות פקודת אימות ומאמת
-  sessionStorage.removeItem('supabase-code-verifier');
-  sessionStorage.removeItem('supabase-auth-token');
-  sessionStorage.removeItem('auth_redirect_attempts');
+  // נקה נתוני אימות
+  clearAuthStorage();
   
   // בדיקה אם הופנינו מ-www.domain ל-domain או להיפך
   const hostname = window.location.hostname;
@@ -45,8 +42,8 @@ export async function handlePkceError(
     
     setError("ההתחברות נכשלה בגלל בעיית תעודת SSL - התעודה תקפה עבור www.kidushishi-menegment-app.co.il בלבד. מועבר אוטומטית לכתובת הנכונה...");
     
-    // שמירת מספר ההפניות ב-sessionStorage
-    sessionStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
+    // שמירת מספר ההפניות ב-localStorage
+    localStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
     
     // זמן למשתמש לראות את ההודעה לפני הפניה מחדש
     setTimeout(() => {
@@ -60,48 +57,13 @@ export async function handlePkceError(
     
     return;
   }
-  
-  // בדיקה אם יש פרמטרי access_token בפרגמנט
-  if (window.location.hash && window.location.hash.includes('access_token')) {
-    log.info("Found access_token in hash fragment, attempting direct extraction");
-    
-    try {
-      // נסיון לחלץ ולעבד את הטוקן ישירות
-      const extractSuccess = await extractAccessToken();
-      
-      if (extractSuccess) {
-        log.info("Successfully extracted and processed access token from URL hash");
-        
-        // נקה פרמטרים של הפניה
-        try {
-          sessionStorage.removeItem('auth_redirect_initiated');
-          sessionStorage.removeItem('auth_redirect_time');
-          sessionStorage.removeItem('auth_redirect_count');
-        } catch (e) {
-          log.warn("Error clearing auth redirect indicators:", e);
-        }
-        
-        // הצג הודעת הצלחה
-        setError('');
-        setLoading(false);
-        
-        navigate('/', { replace: true });
-        return;
-      }
-    } catch (hashError) {
-      log.error("Error processing URL hash:", { error: hashError });
-    }
-  }
 
   // נסיון אחרון - מחיקת כל נתוני האימות ומעבר לדף הבית
   try {
-    // ניקוי כל מצב האימות ומחיקת נתונים
-    await supabase.auth.signOut({ scope: 'global' });
-    
     // ניקוי מושלם של נתוני אימות
     clearAuthStorage();
     
-    // הגדרת הודעת שגיאה ומצב טעינה
+    // הגדרת הודעת שגיאה
     setError("התחברות נכשלה - נראה שהיתה בעיה בתהליך האימות. אנא נסה להתחבר שוב.");
     setLoading(false);
     
@@ -110,7 +72,7 @@ export async function handlePkceError(
       navigate("/", { replace: true });
     }, 2000);
   } catch (signOutError) {
-    log.error("Error signing out:", { error: signOutError });
+    log.error("Error cleaning up auth state:", { error: signOutError });
     setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
     setLoading(false);
     

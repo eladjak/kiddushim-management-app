@@ -21,6 +21,7 @@ export function useAuthRedirect() {
         // בדיקה אם קיים access_token ב-hash
         const hasAccessToken = window.location.hash && window.location.hash.includes('access_token');
         
+        // אם יש לנו קוד אימות תקף
         if (code && code.length > 10) {
           log.info("Detected auth code in URL, redirecting to callback page");
           navigate("/auth/callback", { 
@@ -33,6 +34,7 @@ export function useAuthRedirect() {
           return true;
         }
         
+        // אם יש לנו access_token בפרגמנט
         if (hasAccessToken) {
           log.info("Detected access_token in URL hash, redirecting to auth callback");
           navigate("/auth/callback", { 

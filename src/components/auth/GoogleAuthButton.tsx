@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { supabase, configureAuthProvider, getNormalizedDomain, clearAuthStorage } from "@/integrations/supabase/client";
+import { supabase, configureAuthProvider, getNormalizedDomain } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
@@ -47,7 +47,6 @@ export const GoogleAuthButton = () => {
       
       // Clean up existing auth data and session
       try {
-        clearAuthStorage();
         await supabase.auth.signOut({ scope: 'global' });
         log.info('Successfully cleared auth state before new sign in');
       } catch (signOutError) {
@@ -60,14 +59,19 @@ export const GoogleAuthButton = () => {
       // Get proper redirect URL with www prefix if needed
       const redirectTo = getRedirectUrl();
       
-      // Generate a code verifier and store it for PKCE
+      // Generate a code verifier for PKCE
       const codeVerifier = generateRandomString(64);
+      
       try {
-        sessionStorage.setItem('supabase-code-verifier', codeVerifier);
-        log.info('Generated and stored code verifier for PKCE', { 
+        // Store in localStorage instead of sessionStorage for better persistence
+        localStorage.setItem('supabase-code-verifier', codeVerifier);
+        log.info('Generated and stored code verifier for PKCE in localStorage', { 
           verifierLength: codeVerifier.length,
           verifierStart: codeVerifier.substring(0, 5) + '...'
         });
+        
+        // Also store the timestamp when it was created
+        localStorage.setItem('code-verifier-timestamp', Date.now().toString());
       } catch (storageError) {
         log.error('Error storing code verifier:', { error: storageError });
       }
@@ -84,9 +88,6 @@ export const GoogleAuthButton = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account',
-            // Pass code verifier through queryParams as some versions might require this
-            code_challenge: codeVerifier,
-            code_challenge_method: 'plain'
           }
         }
       });
@@ -99,7 +100,7 @@ export const GoogleAuthButton = () => {
         throw new Error("לא התקבלה כתובת התחברות מתאימה");
       }
       
-      log.info('Google auth initiated successfully', { 
+      log.info('Google auth initiated successfully, redirecting to:', { 
         provider: data.provider,
         urlLength: data.url.length
       });
@@ -108,12 +109,12 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Store auth state in sessionStorage for reliability
+      // Store auth state info for reliability
       try {
         const timestamp = new Date().toISOString();
-        sessionStorage.setItem('auth_redirect_initiated', 'true');
-        sessionStorage.setItem('auth_redirect_time', timestamp);
-        sessionStorage.setItem('auth_provider', 'google');
+        localStorage.setItem('auth_redirect_initiated', 'true');
+        localStorage.setItem('auth_redirect_time', timestamp);
+        localStorage.setItem('auth_provider', 'google');
       } catch (e) {
         log.error('Could not save auth state to storage', { error: e });
       }

@@ -20,32 +20,27 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const toastHelper = useToast();
   const processedRef = useRef(false);
-  const initProcessRef = useRef(false);
   
   useEffect(() => {
-    // מניעת עיבוד כפול או ריצה חוזרת
-    if (processedRef.current || initProcessRef.current) {
+    // מניעת עיבוד כפול
+    if (processedRef.current) {
       return;
     }
     
-    initProcessRef.current = true;
+    processedRef.current = true;
     
     const handleCallback = async () => {
       try {
         log.info("Processing callback URL", {
           hasHash: !!window.location.hash,
           hashLength: window.location.hash ? window.location.hash.length : 0,
-          hashStarts: window.location.hash ? window.location.hash.substring(0, 20) : "",
-          hasState: !!location.state,
-          stateHasAccessToken: location.state?.hasAccessToken
+          search: window.location.search,
+          hasCode: !!new URLSearchParams(window.location.search).get('code')
         });
         
-        // סימן שהתחלנו לעבד
-        processedRef.current = true;
-
-        // בדיקה אם יש לנו מידע מהסטייט על access_token - מפלואו של implicit flow
-        if (location.state?.hasAccessToken && window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Found access_token in hash from state, processing directly");
+        // בדיקה אם יש לנו access_token בפרגמנט
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          log.info("Found access_token in hash, processing directly");
           
           // עיבוד הטוקן ישירות
           const success = await extractAccessToken();
@@ -57,7 +52,7 @@ const AuthCallback = () => {
               description: "התחברת בהצלחה",
             });
             
-            // מעבר הביתה עם השהיה קצרה כדי להבטיח שהסטייט מתעדכן
+            // מעבר הביתה עם השהיה קצרה
             setTimeout(() => {
               navigate("/", { replace: true });
             }, 300);
@@ -66,7 +61,7 @@ const AuthCallback = () => {
           } else {
             log.error("Failed to process access token");
             
-            // ננסה לנקות את כל נתוני האימות כמוצא אחרון
+            // ננסה לנקות את כל נתוני האימות
             try {
               clearAuthStorage();
             } catch (e) {
@@ -74,21 +69,6 @@ const AuthCallback = () => {
             }
           }
         }
-        
-        // נתוני URL לצורכי דיבאג
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const errorParam = urlParams.get('error');
-        
-        log.info("Auth callback page loaded", { 
-          loading, 
-          hasError: !!error, 
-          errorMessage: error,
-          hasCode: !!code,
-          codeLength: code?.length,
-          hasHash: !!window.location.hash,
-          error: errorParam
-        });
       } catch (err) {
         log.error("Unexpected error in callback handler:", { error: err });
       }
@@ -97,19 +77,18 @@ const AuthCallback = () => {
     // טיפול בקולבק פעם אחת בלבד
     handleCallback();
     
-    // הוספת טיימר בטיחות להפסקת טעינה
+    // טיימר בטיחות
     const safetyTimer = setTimeout(() => {
       if (loading && !error) {
         log.warn("Safety timeout triggered in auth callback");
         navigate("/", { replace: true });
       }
-    }, 10000); // 10 שניות
+    }, 12000); // 12 שניות
     
     return () => {
       clearTimeout(safetyTimer);
     };
-    
-  }, []);  // הסרת dependency כדי למנוע ריצה חוזרת
+  }, []); 
 
   // הצגת טעינה או שגיאה בממשק המשתמש
   if (loading) {
