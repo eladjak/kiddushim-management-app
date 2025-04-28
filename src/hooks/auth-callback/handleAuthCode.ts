@@ -22,16 +22,16 @@ export async function handleAuthCode(
       codeLength: code.length 
     });
     
-    // Fix code if it has spaces instead of + signs
+    // תיקון הקוד אם יש בו רווחים במקום סימני +
     const fixedCode = code.replace(/ /g, '+');
     
-    // Get code verifier from localStorage instead of sessionStorage
+    // קבלת מאמת הקוד מהלוקל סטורג' במקום משמירה בסשן סטורג'
     const codeVerifier = localStorage.getItem('supabase-code-verifier');
     
-    // Check when the code verifier was created (to prevent using old ones)
+    // בדיקה מתי נוצר מאמת הקוד (למנוע שימוש בישנים)
     const verifierTimestamp = localStorage.getItem('code-verifier-timestamp');
     const isVerifierRecent = verifierTimestamp && 
-      (Date.now() - parseInt(verifierTimestamp, 10)) < 5 * 60 * 1000; // 5 minutes
+      (Date.now() - parseInt(verifierTimestamp, 10)) < 5 * 60 * 1000; // 5 דקות
     
     log.info("Code verifier status:", { 
       hasCodeVerifier: !!codeVerifier,
@@ -39,7 +39,7 @@ export async function handleAuthCode(
       isVerifierRecent
     });
     
-    // Try with PKCE if we have a recent verifier
+    // ניסיון עם PKCE אם יש לנו מאמת קוד עדכני
     if (codeVerifier && isVerifierRecent) {
       log.info("Attempting PKCE code exchange with verifier");
       
@@ -48,18 +48,18 @@ export async function handleAuthCode(
         
         if (error) {
           log.error("Error exchanging code for session with PKCE:", { error, source });
-          // Continue to non-PKCE attempt
+          // המשך לניסיון ללא PKCE
         } else if (data.session) {
           log.info("Successfully exchanged code for session with PKCE", { 
             userId: data.session.user.id, 
             source 
           });
           
-          // Success! Show message and clean up
+          // הצלחה! הצגת הודעה וניקוי
           showToast(toastHelper, "התחברת בהצלחה");
           clearAuthStorage();
           
-          // Navigate home
+          // ניווט הביתה
           setTimeout(() => {
             log.info("Redirecting to home after successful PKCE code exchange");
             navigate("/", { replace: true });
@@ -74,7 +74,7 @@ export async function handleAuthCode(
       log.warn("No code verifier found, attempting non-PKCE code exchange");
     }
     
-    // If PKCE failed or wasn't available, try non-PKCE exchange
+    // אם PKCE נכשל או לא היה זמין, ננסה החלפת קוד ללא PKCE
     log.info("Attempting non-PKCE code exchange as fallback");
     
     try {
@@ -91,11 +91,11 @@ export async function handleAuthCode(
           source 
         });
         
-        // Success! Show message and clean up
+        // הצלחה! הצגת הודעה וניקוי
         showToast(toastHelper, "התחברת בהצלחה");
         clearAuthStorage();
         
-        // Navigate home
+        // ניווט הביתה
         setTimeout(() => {
           log.info("Redirecting to home after successful non-PKCE code exchange");
           navigate("/", { replace: true });
@@ -107,7 +107,7 @@ export async function handleAuthCode(
       log.error("Error exchanging code without PKCE:", { error: nonPkceError });
     }
     
-    // If we got here, both methods failed
+    // אם הגענו לכאן, שתי השיטות נכשלו
     log.error("Both PKCE and non-PKCE code exchange methods failed", { source });
     return false;
   } catch (err) {

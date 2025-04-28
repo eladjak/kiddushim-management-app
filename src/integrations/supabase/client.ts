@@ -39,7 +39,7 @@ export function clearAuthStorage() {
     sessionStorage.removeItem('auth_redirect_count');
     sessionStorage.removeItem('auth_provider');
 
-    // Clear Supabase auth storage - fixed to use signOut instead of clearSession
+    // Clear Supabase auth storage - using signOut instead
     supabase.auth.signOut({ scope: 'local' })
       .then(() => console.log('Supabase auth state cleared'))
       .catch(err => console.error('Error clearing Supabase auth state:', err));

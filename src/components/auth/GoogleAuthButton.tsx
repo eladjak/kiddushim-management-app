@@ -7,6 +7,33 @@ import { logger } from "@/utils/logger";
 import { FcGoogle } from "react-icons/fc";
 
 /**
+ * השגת מחרוזת רנדומלית בקידוד בטוח עבור PKCE שמטפלת בתווים לא לטיניים
+ * @param length אורך המחרוזת הרצוי
+ */
+const generatePKCEString = (length: number): string => {
+  // תווים בטוחים לשימוש ב-URL
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  let result = '';
+  
+  try {
+    // שימוש בערכים אקראיים בטוחים
+    const randomValues = new Uint8Array(length);
+    window.crypto.getRandomValues(randomValues);
+    
+    for (let i = 0; i < length; i++) {
+      result += charset[randomValues[i] % charset.length];
+    }
+    return result;
+  } catch (e) {
+    // גיבוי למקרה של שגיאה
+    for (let i = 0; i < length; i++) {
+      result += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return result;
+  }
+};
+
+/**
  * Google authentication button component
  * Handles the Google OAuth sign-in flow
  */
@@ -59,8 +86,8 @@ export const GoogleAuthButton = () => {
       // Get proper redirect URL with www prefix if needed
       const redirectTo = getRedirectUrl();
       
-      // Generate a code verifier for PKCE
-      const codeVerifier = generateRandomString(64);
+      // Generate a code verifier for PKCE - שימוש בפונקציה המתוקנת שמטפלת בתווים מיוחדים
+      const codeVerifier = generatePKCEString(64);
       
       try {
         // Store in localStorage instead of sessionStorage for better persistence
@@ -86,7 +113,7 @@ export const GoogleAuthButton = () => {
           redirectTo,
           skipBrowserRedirect: false,
           queryParams: {
-            access_type: 'offline',
+            access_type: 'offline', 
             prompt: 'select_account',
           }
         }
@@ -139,29 +166,6 @@ export const GoogleAuthButton = () => {
       // Reset state
       setIsLoading(false);
       authInProgressRef.current = false;
-    }
-  };
-
-  // Generate a random string for PKCE verifier
-  const generateRandomString = (length: number) => {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    let result = '';
-    const randomValues = new Uint8Array(length);
-    
-    try {
-      // Use secure random values if available
-      window.crypto.getRandomValues(randomValues);
-      
-      for (let i = 0; i < length; i++) {
-        result += charset[randomValues[i] % charset.length];
-      }
-      return result;
-    } catch (e) {
-      // Fallback to less secure but functional method
-      for (let i = 0; i < length; i++) {
-        result += charset.charAt(Math.floor(Math.random() * charset.length));
-      }
-      return result;
     }
   };
 
