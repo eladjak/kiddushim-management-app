@@ -26,7 +26,17 @@ export async function handleUrlCode(
       });
       
       try {
-        return await handleAuthCode(urlCode, 'url_params', navigate, toastHelper);
+        // ניסיון ראשון עם הקוד כמו שהוא
+        const result = await handleAuthCode(urlCode, 'url_params', navigate, toastHelper);
+        
+        if (result) {
+          return true;
+        }
+        
+        // ניסיון שני עם קידוד URL-safe אם הניסיון הראשון נכשל
+        log.info("First attempt failed, trying with URL-safe encoding");
+        const encodedCode = encodeURIComponent(urlCode);
+        return await handleAuthCode(encodedCode, 'url_params_encoded', navigate, toastHelper);
       } catch (error) {
         log.error("Error handling URL code:", { error });
         // ממשיך לבדוק אפשרויות אחרות אם נכשל

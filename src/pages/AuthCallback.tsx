@@ -7,7 +7,8 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { extractAccessToken } from "@/hooks/auth-callback/extractAccessToken";
 import { useToast } from "@/hooks/use-toast";
-import { clearAuthStorage } from "@/integrations/supabase/client";
+import { clearAuthStorage, supabase } from "@/integrations/supabase/client";
+import { handleAuthCode } from "@/hooks/auth-callback/handleAuthCode";
 
 /**
  * דף זה מטפל בקולבק OAuth ובהקמת סשן
@@ -35,8 +36,27 @@ const AuthCallback = () => {
           hasHash: !!window.location.hash,
           hashLength: window.location.hash ? window.location.hash.length : 0,
           search: window.location.search,
-          hasCode: !!new URLSearchParams(window.location.search).get('code')
+          hasCode: !!new URLSearchParams(window.location.search).get('code'),
+          stateCode: location.state?.code ? true : false
         });
+        
+        // בדיקה אם יש לנו קוד סשן מהסטייט
+        if (location.state?.code && location.state.code.length > 10) {
+          log.info("Found code in location state, processing");
+          const success = await handleAuthCode(
+            location.state.code, 
+            'location_state', 
+            navigate, 
+            toastHelper
+          );
+          
+          if (success) {
+            log.info("Successfully processed code from state");
+            return;
+          } else {
+            log.error("Failed to process code from state");
+          }
+        }
         
         // בדיקה אם יש לנו access_token בפרגמנט
         if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -55,22 +75,60 @@ const AuthCallback = () => {
             // מעבר הביתה עם השהיה קצרה
             setTimeout(() => {
               navigate("/", { replace: true });
-            }, 300);
+            }, 500);
             
             return;
           } else {
             log.error("Failed to process access token");
-            
-            // ננסה לנקות את כל נתוני האימות
-            try {
-              clearAuthStorage();
-            } catch (e) {
-              log.error("Error clearing auth data:", e);
-            }
           }
         }
+        
+        // בדיקה אם יש לנו קוד ב-URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlCode = urlParams.get('code');
+        
+        if (urlCode && urlCode.length > 10) {
+          log.info("Found code in URL params, processing directly");
+          
+          const success = await handleAuthCode(urlCode, 'url_direct', navigate, toastHelper);
+          
+          if (success) {
+            log.info("Successfully processed code from URL");
+            return;
+          } else {
+            log.error("Failed to process code from URL");
+          }
+        }
+        
+        // בדיקה אם יש לנו סשן פעיל
+        try {
+          const { data } = await supabase.auth.getSession();
+          
+          if (data.session) {
+            log.info("Found existing session, redirecting to home");
+            
+            toastHelper.toast({
+              description: "התחברת בהצלחה",
+            });
+            
+            navigate("/", { replace: true });
+            return;
+          }
+        } catch (sessionError) {
+          log.error("Error checking for existing session:", { error: sessionError });
+        }
+        
+        log.warn("No valid authentication method found");
+        
       } catch (err) {
         log.error("Unexpected error in callback handler:", { error: err });
+        
+        // ננסה לנקות את כל נתוני האימות
+        try {
+          clearAuthStorage();
+        } catch (e) {
+          log.error("Error clearing auth data:", e);
+        }
       }
     };
     

@@ -11,7 +11,6 @@ export function useAuthRedirect() {
   const log = logger.createLogger({ component: 'useAuthRedirect' });
 
   useEffect(() => {
-    // בדיקה אם יש לנו אינדיקציה של תהליך אימות פעיל
     const handleAuthRedirect = () => {
       try {
         // בדיקה אם קיים קוד אימות בכתובת ה-URL

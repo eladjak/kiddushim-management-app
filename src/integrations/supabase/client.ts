@@ -9,7 +9,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce' // קביעת סוג הזרימה במפורש
+    flowType: 'pkce', // קביעת סוג הזרימה במפורש
+    storage: localStorage,
   },
 });
 

@@ -25,18 +25,25 @@ export async function handleAuthCode(
     // תיקון הקוד אם יש בו רווחים במקום סימני +
     const fixedCode = code.replace(/ /g, '+');
     
-    // קבלת מאמת הקוד מהלוקל סטורג' במקום משמירה בסשן סטורג'
-    const codeVerifier = localStorage.getItem('supabase-code-verifier');
+    // קבלת מאמת הקוד מהלוקל סטורג' או מסשן סטורג'
+    let codeVerifier = localStorage.getItem('supabase-code-verifier');
+    
+    // אם לא נמצא בלוקל סטורג', ננסה לקבל מסשן סטורג'
+    if (!codeVerifier) {
+      codeVerifier = sessionStorage.getItem('supabase-code-verifier');
+      log.info("Using code verifier from sessionStorage instead of localStorage");
+    }
     
     // בדיקה מתי נוצר מאמת הקוד (למנוע שימוש בישנים)
     const verifierTimestamp = localStorage.getItem('code-verifier-timestamp');
     const isVerifierRecent = verifierTimestamp && 
-      (Date.now() - parseInt(verifierTimestamp, 10)) < 5 * 60 * 1000; // 5 דקות
+      (Date.now() - parseInt(verifierTimestamp, 10)) < 10 * 60 * 1000; // 10 דקות
     
     log.info("Code verifier status:", { 
       hasCodeVerifier: !!codeVerifier,
       verifierLength: codeVerifier?.length,
-      isVerifierRecent
+      isVerifierRecent,
+      verifierFirstChars: codeVerifier ? codeVerifier.substring(0, 5) + '...' : 'none'
     });
     
     // ניסיון עם PKCE אם יש לנו מאמת קוד עדכני
@@ -57,13 +64,22 @@ export async function handleAuthCode(
           
           // הצלחה! הצגת הודעה וניקוי
           showToast(toastHelper, "התחברת בהצלחה");
-          clearAuthStorage();
+          
+          try {
+            // ניקוי מאמתי הקוד שכבר לא דרושים
+            localStorage.removeItem('supabase-code-verifier');
+            localStorage.removeItem('code-verifier-timestamp');
+            sessionStorage.removeItem('supabase-code-verifier');
+            log.info("Cleaned up code verifiers after successful auth");
+          } catch (cleanupError) {
+            log.warn("Error cleaning up code verifiers:", { error: cleanupError });
+          }
           
           // ניווט הביתה
           setTimeout(() => {
             log.info("Redirecting to home after successful PKCE code exchange");
             navigate("/", { replace: true });
-          }, 300);
+          }, 500);
           
           return true;
         }
@@ -71,44 +87,44 @@ export async function handleAuthCode(
         log.error("Exception during PKCE code exchange:", { error: pkceError });
       }
     } else {
-      log.warn("No code verifier found, attempting non-PKCE code exchange");
+      log.warn("No valid code verifier found, attempting non-PKCE code exchange");
     }
     
-    // אם PKCE נכשל או לא היה זמין, ננסה החלפת קוד ללא PKCE
-    log.info("Attempting non-PKCE code exchange as fallback");
+    // אם PKCE נכשל או לא היה זמין, ננסה החלפת קוד ללא תלות ב-PKCE
+    log.info("Attempting alternative code exchange as fallback");
     
     try {
+      // ניסיון עם API אחר ללא דרישת מאמת קוד
       const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
       
       if (error) {
-        log.error("Error in non-PKCE code exchange:", { error });
+        log.error("Error in alternative code exchange:", { error });
         return false;
       }
       
       if (data.session) {
-        log.info("Successfully exchanged code with non-PKCE method", { 
+        log.info("Successfully exchanged code with alternative method", { 
           userId: data.session.user.id, 
           source 
         });
         
         // הצלחה! הצגת הודעה וניקוי
         showToast(toastHelper, "התחברת בהצלחה");
-        clearAuthStorage();
         
         // ניווט הביתה
         setTimeout(() => {
-          log.info("Redirecting to home after successful non-PKCE code exchange");
+          log.info("Redirecting to home after successful alternative code exchange");
           navigate("/", { replace: true });
-        }, 300);
+        }, 500);
         
         return true;
       }
-    } catch (nonPkceError) {
-      log.error("Error exchanging code without PKCE:", { error: nonPkceError });
+    } catch (altError) {
+      log.error("Error in alternative code exchange method:", { error: altError });
     }
     
-    // אם הגענו לכאן, שתי השיטות נכשלו
-    log.error("Both PKCE and non-PKCE code exchange methods failed", { source });
+    // אם הגענו לכאן, כל השיטות נכשלו
+    log.error("All code exchange methods failed", { source });
     return false;
   } catch (err) {
     log.error("Error in handleAuthCode:", { error: err, source });

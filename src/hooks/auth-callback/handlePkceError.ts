@@ -53,7 +53,7 @@ export async function handlePkceError(
       const hash = window.location.hash;
       
       window.location.href = `${protocol}//www.kidushishi-menegment-app.co.il${pathname}${search}${hash}`;
-    }, 1000);
+    }, 1500);
     
     return;
   }
@@ -69,16 +69,16 @@ export async function handlePkceError(
     
     // ניווט הביתה אחרי השהיה
     setTimeout(() => {
-      navigate("/", { replace: true });
+      navigate("/auth", { replace: true });
     }, 2000);
   } catch (signOutError) {
     log.error("Error cleaning up auth state:", { error: signOutError });
     setError("התחברות נכשלה - קרתה בעיה באימות. אנא נסה שוב.");
     setLoading(false);
     
-    // ניווט הביתה גם אם ניקוי נכשל
+    // ניווט לדף ההתחברות גם אם ניקוי נכשל
     setTimeout(() => {
-      navigate("/", { replace: true });
+      navigate("/auth", { replace: true });
     }, 2000);
   }
 }

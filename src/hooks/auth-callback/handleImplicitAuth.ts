@@ -29,7 +29,7 @@ export async function handleImplicitAuth(
     // ננסה להשתמש באפשרות הראשונה - חילוץ טוקן מהכתובת
     let success = await extractAccessToken();
     
-    // אם לא הצליח, ננסה דרך אחרת - להשתמש ב-PKCE כהחלפת קוד
+    // אם לא הצליח, ננסה דרך אחרת - להשתמש ב-getUser API
     if (!success) {
       log.info("Direct token extraction failed, trying alternative approach");
       
@@ -50,7 +50,17 @@ export async function handleImplicitAuth(
               email: data.user.email
             });
             
-            success = true;
+            // ניסיון להגדיר את הסשן באופן ידני
+            try {
+              await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: hashParams.get('refresh_token') || '',
+              });
+              log.info("Successfully set session manually");
+              success = true;
+            } catch (setSessionError) {
+              log.error("Error setting session manually:", { error: setSessionError });
+            }
           }
         }
       } catch (altError) {
@@ -67,7 +77,7 @@ export async function handleImplicitAuth(
       // ניווט לדף הבית
       setTimeout(() => {
         navigate("/", { replace: true });
-      }, 300);
+      }, 500);
       
       return true;
     }

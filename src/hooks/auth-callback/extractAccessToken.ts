@@ -19,7 +19,6 @@ export async function extractAccessToken(): Promise<boolean> {
     }
     
     // חילוץ פרמטרים מהפרגמנט
-    // נשים לב שפרגמנט בסגנון #key=value&key2=value2 מתחיל עם #, לכן אנחנו מורידים את התו הראשון
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     
     // חילוץ פרמטרים רלוונטיים
@@ -53,6 +52,26 @@ export async function extractAccessToken(): Promise<boolean> {
       
       if (error || !data.session) {
         log.error("Error setting session with access token", { error });
+        
+        // ננסה שיטת גיבוי אם השיטה הראשית נכשלה
+        try {
+          log.info("Attempting backup method with getUser API");
+          const userResponse = await supabase.auth.getUser(accessToken);
+          
+          if (userResponse.error) {
+            log.error("Backup method also failed", { error: userResponse.error });
+            return false;
+          }
+          
+          log.info("Backup method succeeded in getting user", {
+            userId: userResponse.data.user.id,
+          });
+          
+          return true;
+        } catch (backupError) {
+          log.error("Error in backup token method", { error: backupError });
+        }
+        
         return false;
       }
       
@@ -88,16 +107,6 @@ export async function extractAccessToken(): Promise<boolean> {
       return true;
     } catch (sessionError) {
       log.error("Error during setSession operation:", { error: sessionError });
-      
-      // ננסה לבדוק אם מדובר בבעיית קידוד תווים
-      if (sessionError instanceof Error && 
-          (sessionError.message?.includes('encoding') || 
-           sessionError.message?.includes('Latin1') ||
-           sessionError.message?.includes('btoa'))) {
-        
-        log.error("Detected character encoding error - likely due to non-Latin characters in the token");
-      }
-      
       return false;
     }
   } catch (err) {

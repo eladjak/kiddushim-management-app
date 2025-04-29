@@ -93,13 +93,15 @@ export const GoogleAuthButton = () => {
       try {
         // Store in localStorage instead of sessionStorage for better persistence
         localStorage.setItem('supabase-code-verifier', codeVerifier);
-        log.info('Generated and stored code verifier for PKCE in localStorage', { 
+        localStorage.setItem('code-verifier-timestamp', Date.now().toString());
+        
+        // Also store in sessionStorage as backup
+        sessionStorage.setItem('supabase-code-verifier', codeVerifier);
+        
+        log.info('Generated and stored code verifier for PKCE', { 
           verifierLength: codeVerifier.length,
           verifierStart: codeVerifier.substring(0, 5) + '...'
         });
-        
-        // Also store the timestamp when it was created
-        localStorage.setItem('code-verifier-timestamp', Date.now().toString());
       } catch (storageError) {
         log.error('Error storing code verifier:', { error: storageError });
       }
@@ -107,16 +109,18 @@ export const GoogleAuthButton = () => {
       // Configure auth provider with appropriate flow
       configureAuthProvider('google');
       
-      // Initiate OAuth flow with detailed options - משפרים את האופציות לטיפול בתוים מיוחדים
+      // Initiate OAuth flow with detailed options
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo,
           skipBrowserRedirect: false,
+          // Explicitly specify PKCE flow
+          flowType: 'pkce',
+          scopes: 'email profile',
           queryParams: {
             access_type: 'offline', 
             prompt: 'select_account',
-            // הוספנו הגדרה נוספת לגוגל
             hd: '*', // לאפשר כל דומיין
             hl: 'he' // הגדרת שפה לעברית
           }
