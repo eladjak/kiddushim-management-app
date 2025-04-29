@@ -1,11 +1,12 @@
 
 import { NavigateFunction } from "react-router-dom";
 import { logger } from "@/utils/logger";
-import { ToastType } from "./types";
 import { handleAuthCode } from "./handleAuthCode";
+import { ToastType } from "./types";
 
 /**
- * Try to extract auth code from URL params
+ * טיפול בקוד אימות מפרמטרי ה-URL
+ * עם יכולות בדיקה ועיבוד משופרות
  */
 export async function handleUrlCode(
   navigate: NavigateFunction,
@@ -14,58 +15,29 @@ export async function handleUrlCode(
   const log = logger.createLogger({ component: 'handleUrlCode' });
   
   try {
-    log.info("Checking for auth code in URL params");
+    log.info("בודק אם יש קוד אימות בפרמטרי ה-URL");
     
-    // Check for code in URL search params
-    const searchParams = new URLSearchParams(window.location.search);
-    const urlCode = searchParams.get('code');
+    // חילוץ מפרמטרי ה-URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
     
-    if (urlCode && urlCode.length > 10) {
-      log.info("Found code in URL params", { 
-        codeLength: urlCode.length 
-      });
-      
-      try {
-        // ניסיון ראשון עם הקוד כמו שהוא
-        const result = await handleAuthCode(urlCode, 'url_params', navigate, toastHelper);
-        
-        if (result) {
-          return true;
-        }
-        
-        // ניסיון שני עם קידוד URL-safe אם הניסיון הראשון נכשל
-        log.info("First attempt failed, trying with URL-safe encoding");
-        const encodedCode = encodeURIComponent(urlCode);
-        return await handleAuthCode(encodedCode, 'url_params_encoded', navigate, toastHelper);
-      } catch (error) {
-        log.error("Error handling URL code:", { error });
-        // ממשיך לבדוק אפשרויות אחרות אם נכשל
-      }
+    if (!code) {
+      log.info("לא נמצא קוד אימות ב-URL");
+      return false;
     }
     
-    // בדיקה האם יש קוד בפרגמנט (שמתחיל ב-#)
-    if (window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const hashCode = hashParams.get('code');
-      
-      if (hashCode && hashCode.length > 10) {
-        log.info("Found code in URL hash", { 
-          codeLength: hashCode.length 
-        });
-        
-        try {
-          return await handleAuthCode(hashCode, 'url_hash', navigate, toastHelper);
-        } catch (error) {
-          log.error("Error handling hash code:", { error });
-        }
-      }
+    log.info("נמצא קוד אימות ב-URL", { codeLength: code.length });
+    
+    // וידוא שהקוד נראה תקף - צריך להיות ארוך מספיק
+    if (code.length < 10) {
+      log.warn("קוד אימות קצר מדי", { codeLength: code.length });
+      return false;
     }
     
-    // No code found in URL
-    log.info("No auth code found in URL");
-    return false;
+    // ניסיון החלפת הקוד לסשן
+    return await handleAuthCode(code, 'url_params', navigate, toastHelper);
   } catch (err) {
-    log.error("Error in handleUrlCode:", { error: err });
-    throw err;
+    log.error("שגיאה בטיפול בקוד מה-URL:", { error: err });
+    return false;
   }
 }

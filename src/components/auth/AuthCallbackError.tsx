@@ -5,7 +5,7 @@ import { logger } from "@/utils/logger";
 import { useEffect } from "react";
 import { supabase, clearAuthStorage } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 interface AuthCallbackErrorProps {
   error: string;
@@ -82,7 +82,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
   
   const handleTryAgain = async () => {
     try {
-      log.info("User clicked try again, cleaning up auth state");
+      log.info("המשתמש לחץ על 'נסה שוב', מנקה מצב אימות");
       
       // Sign out to clear auth state
       await supabase.auth.signOut({ scope: 'global' });
@@ -101,7 +101,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       }
       
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      log.info("Cleaned up auth data from localStorage", { count: keysToRemove.length });
+      log.info("נוקו נתוני אימות מהאחסון המקומי", { count: keysToRemove.length });
       
       // Also clean sessionStorage
       sessionStorage.removeItem('auth_redirect_count');
@@ -111,7 +111,7 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
       // Redirect to auth page
       navigate("/auth", { replace: true });
     } catch (err) {
-      log.error("Error in try again handler:", { error: err });
+      log.error("שגיאה במעבד 'נסה שוב':", { error: err });
       window.location.href = "/auth";
     }
   };
@@ -133,8 +133,9 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
         <div className="space-y-3">
           <Button 
             onClick={handleTryAgain}
-            className="w-full"
+            className="w-full flex items-center justify-center gap-2"
           >
+            <RefreshCw className="h-4 w-4" />
             נסה להתחבר מחדש
           </Button>
           

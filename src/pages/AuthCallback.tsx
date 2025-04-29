@@ -32,7 +32,7 @@ const AuthCallback = () => {
     
     const handleCallback = async () => {
       try {
-        log.info("Processing callback URL", {
+        log.info("מעבד כתובת קולבק", {
           hasHash: !!window.location.hash,
           hashLength: window.location.hash ? window.location.hash.length : 0,
           search: window.location.search,
@@ -43,13 +43,13 @@ const AuthCallback = () => {
         
         // מסלול 1: בדיקה אם יש לנו access_token בפרגמנט
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("Found access_token in hash, processing directly");
+          log.info("נמצא access_token ב-hash, מעבד ישירות");
           
           // עיבוד הטוקן ישירות
           const success = await extractAccessToken();
           
           if (success) {
-            log.info("Successfully processed access token");
+            log.info("עיבוד access token הצליח");
             
             toastHelper.toast({
               description: "התחברת בהצלחה",
@@ -62,13 +62,13 @@ const AuthCallback = () => {
             
             return;
           } else {
-            log.error("Failed to process access token");
+            log.error("עיבוד access token נכשל");
           }
         }
         
         // מסלול 2: בדיקה אם יש לנו קוד סשן מהסטייט
         if (location.state?.code && location.state.code.length > 10) {
-          log.info("Found code in location state, processing");
+          log.info("נמצא קוד ב-location state, מעבד");
           const success = await handleAuthCode(
             location.state.code, 
             'location_state', 
@@ -77,10 +77,10 @@ const AuthCallback = () => {
           );
           
           if (success) {
-            log.info("Successfully processed code from state");
+            log.info("עיבוד קוד מסטייט הצליח");
             return;
           } else {
-            log.error("Failed to process code from state");
+            log.error("עיבוד קוד מסטייט נכשל");
           }
         }
         
@@ -89,15 +89,15 @@ const AuthCallback = () => {
         const urlCode = urlParams.get('code');
         
         if (urlCode && urlCode.length > 10) {
-          log.info("Found code in URL params, processing directly");
+          log.info("נמצא קוד בפרמטרי ה-URL, מעבד ישירות");
           
           const success = await handleAuthCode(urlCode, 'url_direct', navigate, toastHelper);
           
           if (success) {
-            log.info("Successfully processed code from URL");
+            log.info("עיבוד קוד מה-URL הצליח");
             return;
           } else {
-            log.error("Failed to process code from URL");
+            log.error("עיבוד קוד מה-URL נכשל");
           }
         }
         
@@ -106,7 +106,7 @@ const AuthCallback = () => {
           const { data } = await supabase.auth.getSession();
           
           if (data.session) {
-            log.info("Found existing session, redirecting to home");
+            log.info("נמצא סשן קיים, מועבר לדף הבית");
             
             toastHelper.toast({
               description: "התחברת בהצלחה",
@@ -116,32 +116,32 @@ const AuthCallback = () => {
             return;
           }
         } catch (sessionError) {
-          log.error("Error checking for existing session:", { error: sessionError });
+          log.error("שגיאה בבדיקת סשן קיים:", { error: sessionError });
         }
         
         // אם הגענו לכאן, זה אומר שלא הצלחנו לזהות את שיטת האימות הנכונה
-        log.warn("No valid authentication method found");
+        log.warn("לא נמצאה שיטת אימות תקפה");
         
         // ננסה לראות אם המשתמש מחובר ישירות
         try {
           const { data, error } = await supabase.auth.getUser();
           if (!error && data.user) {
-            log.info("User is already authenticated, redirecting to home");
+            log.info("המשתמש כבר מאומת, מועבר לדף הבית");
             navigate("/", { replace: true });
             return;
           }
         } catch (e) {
-          log.error("Error checking user status:", e);
+          log.error("שגיאה בבדיקת סטטוס משתמש:", e);
         }
         
       } catch (err) {
-        log.error("Unexpected error in callback handler:", { error: err });
+        log.error("שגיאה בלתי צפויה במעבד הקולבק:", { error: err });
         
         // ננסה לנקות את כל נתוני האימות
         try {
           clearAuthStorage();
         } catch (e) {
-          log.error("Error clearing auth data:", e);
+          log.error("שגיאה בניקוי נתוני אימות:", e);
         }
       }
     };
@@ -152,7 +152,7 @@ const AuthCallback = () => {
     // טיימר בטיחות
     const safetyTimer = setTimeout(() => {
       if (loading && !error) {
-        log.warn("Safety timeout triggered in auth callback");
+        log.warn("הופעל טיימר בטיחות בקולבק אימות");
         navigate("/", { replace: true });
       }
     }, 12000); // 12 שניות

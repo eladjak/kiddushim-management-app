@@ -67,7 +67,7 @@ export const GoogleAuthButton = () => {
     // Prevent multiple clicks
     if (authInProgressRef.current || isLoading) return;
     
-    log.info('Initiating Google sign in');
+    log.info('מתחיל תהליך התחברות עם Google');
     
     try {
       setIsLoading(true);
@@ -76,9 +76,9 @@ export const GoogleAuthButton = () => {
       // Clean up existing auth data and session
       try {
         clearAuthStorage();
-        log.info('Successfully cleared auth state before new sign in');
+        log.info('ניקוי מצב אימות קודם הסתיים בהצלחה');
       } catch (signOutError) {
-        log.warn('Error during cleanup before sign in:', { error: signOutError });
+        log.warn('שגיאה בניקוי מצב אימות:', { error: signOutError });
       }
       
       // Small delay before starting new process
@@ -87,7 +87,7 @@ export const GoogleAuthButton = () => {
       // Get proper redirect URL with www prefix if needed
       const redirectTo = getRedirectUrl();
       
-      // Generate a code verifier for PKCE - שימוש בגרסה המשופרת שבטוח עובדת עם תווים לא לטיניים
+      // Generate a code verifier for PKCE
       const codeVerifier = generatePKCEString(64);
       
       try {
@@ -98,12 +98,12 @@ export const GoogleAuthButton = () => {
         // Also store in sessionStorage as backup
         sessionStorage.setItem('supabase-code-verifier', codeVerifier);
         
-        log.info('Generated and stored code verifier for PKCE', { 
+        log.info('נוצר ונשמר code verifier עבור PKCE', { 
           verifierLength: codeVerifier.length,
           verifierStart: codeVerifier.substring(0, 5) + '...'
         });
       } catch (storageError) {
-        log.error('Error storing code verifier:', { error: storageError });
+        log.error('שגיאה בשמירת code verifier:', { error: storageError });
       }
       
       // Configure auth provider with appropriate flow
@@ -133,7 +133,7 @@ export const GoogleAuthButton = () => {
         throw new Error("לא התקבלה כתובת התחברות מתאימה");
       }
       
-      log.info('Google auth initiated successfully, redirecting to:', { 
+      log.info('התחברות Google יצאה לדרך, מעביר אל:', { 
         provider: data.provider,
         urlLength: data.url.length
       });
@@ -149,14 +149,14 @@ export const GoogleAuthButton = () => {
         localStorage.setItem('auth_redirect_time', timestamp);
         localStorage.setItem('auth_provider', 'google');
       } catch (e) {
-        log.error('Could not save auth state to storage', { error: e });
+        log.error('לא ניתן לשמור מצב אימות לאחסון', { error: e });
       }
       
       // Navigate to Google auth URL
       window.location.href = data.url;
       
     } catch (error: any) {
-      log.error("Google auth error:", { error });
+      log.error("שגיאה באימות Google:", { error });
       
       let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
       

@@ -37,7 +37,7 @@ export function useProcessAuthCallback({
   location
 }: ProcessAuthCallbackProps) {
   const log = logger.createLogger({ component: 'useProcessAuthCallback' });
-  const maxRetriesRef = useRef(3); // הגדלנו את מספר הניסיונות
+  const maxRetriesRef = useRef(5); // הגדלנו את מספר הניסיונות
 
   useEffect(() => {
     let isMounted = true;
@@ -53,14 +53,14 @@ export function useProcessAuthCallback({
       try {
         if (!isMounted) return;
 
-        log.info("Handling auth callback", { attemptNumber: processAttempts + 1 });
+        log.info("מטפל בקריאת חזרה של אימות", { attemptNumber: processAttempts + 1 });
         
         // לוג מידע דיאגנוסטי לצורכי איתור בעיות
         const diagnostics = logAuthDiagnostics();
-        log.info("Auth diagnostics:", { diagnostics });
+        log.info("נתוני אבחון אימות:", { diagnostics });
         
         if (processAttempts >= maxRetriesRef.current) {
-          log.error("Maximum auth processing attempts reached", { attempts: processAttempts });
+          log.error("הגענו למספר ניסיונות מקסימלי", { attempts: processAttempts });
           setError("מספר נסיונות מקסימלי הושג. מועבר לדף הבית...");
           setLoading(false);
           
@@ -76,27 +76,28 @@ export function useProcessAuthCallback({
         
         setProcessAttempts(processAttempts + 1);
 
-        // גישה מדורגת - מנסים מספר שיטות בזו אחר זו
+        // קביעת סדר הקדימויות שלנו - מנסים מספר שיטות בזו אחר זו
         
-        // 1. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          try {
-            log.info("Found access_token in hash, trying implicit flow");
-            const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
-            if (implicitAuthSuccess) return;
-          } catch (err) {
-            log.error("Error in implicit auth flow:", { error: err });
-          }
-        }
-        
-        // 2. בדיקה אם כבר קיים סשן פעיל
+        // 1. בדיקה אם כבר קיים סשן פעיל
         const sessionExists = await handleExistingSession(navigate, toastHelper);
         if (sessionExists) return;
+        
+        // 2. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          try {
+            log.info("נמצא access_token ב-hash, מנסה זרימת Implicit");
+            const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
+            if (implicitAuthSuccess) return;
+            log.warn("זרימת Implicit נכשלה, ממשיך לשיטה הבאה");
+          } catch (err) {
+            log.error("שגיאה בזרימת Implicit:", { error: err });
+          }
+        }
         
         // 3. אם יש קוד אימות בסטייט (מהנתב)
         if (location.state?.code && location.state.code.length > 10) {
           try {
-            log.info("Using code from location state");
+            log.info("משתמש בקוד מ-location state");
             const stateCodeSuccess = await handleAuthCode(
               location.state.code, 
               location.state?.authSource || 'location_state', 
@@ -105,9 +106,9 @@ export function useProcessAuthCallback({
             );
             
             if (stateCodeSuccess) return;
-            log.warn("Failed to process code from location state");
+            log.warn("עיבוד קוד מ-location state נכשל");
           } catch (err) {
-            log.error("Error handling state code:", { error: err });
+            log.error("שגיאה בטיפול בקוד מ-state:", { error: err });
           }
         }
         
@@ -115,20 +116,21 @@ export function useProcessAuthCallback({
         try {
           const urlCodeSuccess = await handleUrlCode(navigate, toastHelper);
           if (urlCodeSuccess) return;
+          log.warn("עיבוד קוד מה-URL נכשל");
         } catch (err) {
-          log.error("Error processing URL code:", { error: err });
+          log.error("שגיאה בעיבוד קוד URL:", { error: err });
         }
 
         // אם אף שיטה לא הצליחה
         if (isMounted) {
-          log.error("No authentication method succeeded");
+          log.error("אף שיטת אימות לא הצליחה");
           
           // בדיקה לבעיית SSL certificate
           const hostHasWWW = window.location.hostname.startsWith("www.");
           const isProduction = window.location.hostname.includes("kidushishi-menegment-app.co.il");
           
           if (isProduction && !hostHasWWW) {
-            log.warn("Possible SSL certificate domain mismatch detected");
+            log.warn("זוהתה אפשרות לאי התאמה בתעודת SSL");
             
             // הפניה ידנית לדומיין עם www
             const redirectUrl = window.location.href.replace(
@@ -136,7 +138,7 @@ export function useProcessAuthCallback({
               "www.kidushishi-menegment-app.co.il"
             );
             
-            log.info("Redirecting to www subdomain", { redirectUrl });
+            log.info("מפנה לדומיין עם www", { redirectUrl });
             setError("מתבצעת הפניה מחדש לדומיין עם www...");
             
             setTimeout(() => {
@@ -150,7 +152,7 @@ export function useProcessAuthCallback({
           await handlePkceError(navigate, setError, setLoading);
         }
       } catch (err: any) {
-        log.error("Unexpected error in auth callback:", { error: err });
+        log.error("שגיאה בלתי צפויה בקריאת חזרה של אימות:", { error: err });
         if (isMounted) {
           setError(err.message || "אירעה שגיאה בלתי צפויה בתהליך ההתחברות");
           setLoading(false);
@@ -172,7 +174,7 @@ export function useProcessAuthCallback({
 
     return () => {
       isMounted = false;
-      log.info("Auth callback page unmounted");
+      log.info("דף קריאת חזרה של אימות נסגר");
     };
   }, []);
 }
