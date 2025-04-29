@@ -19,7 +19,8 @@ export async function handleAuthCode(
   try {
     log.info("Exchanging auth code for session", { 
       codeSource: source, 
-      codeLength: code.length 
+      codeLength: code.length,
+      codeFirstThree: code.substring(0, 3) + '...'
     });
     
     // תיקון הקוד אם יש בו רווחים במקום סימני +
@@ -46,7 +47,10 @@ export async function handleAuthCode(
       verifierFirstChars: codeVerifier ? codeVerifier.substring(0, 5) + '...' : 'none'
     });
     
-    // ניסיון עם PKCE אם יש לנו מאמת קוד עדכני
+    // ניסיון עם או בלי code verifier - ננסה את שתי האפשרויות
+    let success = false;
+    
+    // ניסיון 1: עם PKCE ו-code verifier אם יש לנו אחד תקף
     if (codeVerifier && isVerifierRecent) {
       log.info("Attempting PKCE code exchange with verifier");
       
@@ -55,7 +59,7 @@ export async function handleAuthCode(
         
         if (error) {
           log.error("Error exchanging code for session with PKCE:", { error, source });
-          // המשך לניסיון ללא PKCE
+          // המשך לניסיון הבא
         } else if (data.session) {
           log.info("Successfully exchanged code for session with PKCE", { 
             userId: data.session.user.id, 
@@ -86,41 +90,95 @@ export async function handleAuthCode(
       } catch (pkceError) {
         log.error("Exception during PKCE code exchange:", { error: pkceError });
       }
-    } else {
-      log.warn("No valid code verifier found, attempting non-PKCE code exchange");
     }
     
-    // אם PKCE נכשל או לא היה זמין, ננסה החלפת קוד ללא תלות ב-PKCE
-    log.info("Attempting alternative code exchange as fallback");
-    
-    try {
-      // ניסיון עם API אחר ללא דרישת מאמת קוד
-      const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
+    // ניסיון 2: החלפת קוד ללא תלות ב-PKCE
+    if (!success) {
+      log.info("Attempting code exchange without PKCE as fallback");
       
-      if (error) {
-        log.error("Error in alternative code exchange:", { error });
-        return false;
+      try {
+        // נסיון מיוחד בלי לציין code verifier בכלל
+        const { data, error } = await supabase.auth.exchangeCodeForSession(fixedCode);
+        
+        if (error) {
+          log.error("Error in alternative code exchange:", { error });
+        } else if (data.session) {
+          log.info("Successfully exchanged code with alternative method", { 
+            userId: data.session.user.id, 
+            source 
+          });
+          
+          // הצלחה! הצגת הודעה וניקוי
+          showToast(toastHelper, "התחברת בהצלחה");
+          
+          // ניווט הביתה
+          setTimeout(() => {
+            log.info("Redirecting to home after successful alternative code exchange");
+            navigate("/", { replace: true });
+          }, 500);
+          
+          return true;
+        }
+      } catch (altError) {
+        log.error("Error in alternative code exchange method:", { error: altError });
       }
+    }
+    
+    // ניסיון 3: נסיון באמצעות fetch API ישירות (במקרה של תקלה בספריה)
+    if (!success) {
+      log.info("Attempting direct fetch API as final fallback");
       
-      if (data.session) {
-        log.info("Successfully exchanged code with alternative method", { 
-          userId: data.session.user.id, 
-          source 
+      try {
+        // הכנת נתוני בקשה
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error("Missing Supabase configuration");
+        }
+        
+        // שליחת בקשת REST ישירה
+        const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=authorization_code&code=${fixedCode}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`
+          },
+          body: JSON.stringify({})
         });
         
-        // הצלחה! הצגת הודעה וניקוי
-        showToast(toastHelper, "התחברת בהצלחה");
+        const data = await response.json();
         
-        // ניווט הביתה
-        setTimeout(() => {
-          log.info("Redirecting to home after successful alternative code exchange");
-          navigate("/", { replace: true });
-        }, 500);
-        
-        return true;
+        if (!response.ok) {
+          log.error("Direct fetch API failed:", { status: response.status, data });
+        } else if (data?.access_token) {
+          log.info("Successfully received token from direct fetch API");
+          
+          // נסיון להגדיר את הסשן באופן ידני
+          try {
+            await supabase.auth.setSession({
+              access_token: data.access_token,
+              refresh_token: data.refresh_token || '',
+            });
+            log.info("Successfully set session manually from direct fetch");
+            
+            // הצגת הודעת הצלחה
+            showToast(toastHelper, "התחברת בהצלחה");
+            
+            // ניווט לדף הבית
+            setTimeout(() => {
+              navigate("/", { replace: true });
+            }, 500);
+            
+            return true;
+          } catch (setSessionError) {
+            log.error("Error setting session from direct fetch:", { error: setSessionError });
+          }
+        }
+      } catch (fetchError) {
+        log.error("Error in direct fetch attempt:", { error: fetchError });
       }
-    } catch (altError) {
-      log.error("Error in alternative code exchange method:", { error: altError });
     }
     
     // אם הגענו לכאן, כל השיטות נכשלו

@@ -115,8 +115,7 @@ export const GoogleAuthButton = () => {
         options: {
           redirectTo,
           skipBrowserRedirect: false,
-          // Explicitly specify PKCE flow
-          flowType: 'pkce',
+          // הסרנו את flowType מכיוון שהוא לא מוכר בטיפוס
           scopes: 'email profile',
           queryParams: {
             access_type: 'offline', 

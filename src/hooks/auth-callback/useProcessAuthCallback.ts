@@ -7,7 +7,7 @@ import { handleAuthCode } from "./handleAuthCode";
 import { handleImplicitAuth } from "./handleImplicitAuth";
 import { handleUrlCode } from "./handleUrlCode";
 import { handlePkceError } from "./handlePkceError";
-import { clearAuthStorage } from "@/integrations/supabase/client";
+import { clearAuthStorage, logAuthDiagnostics } from "@/integrations/supabase/client";
 
 interface ProcessAuthCallbackProps {
   loading: boolean;
@@ -55,6 +55,10 @@ export function useProcessAuthCallback({
 
         log.info("Handling auth callback", { attemptNumber: processAttempts + 1 });
         
+        // לוג מידע דיאגנוסטי לצורכי איתור בעיות
+        const diagnostics = logAuthDiagnostics();
+        log.info("Auth diagnostics:", { diagnostics });
+        
         if (processAttempts >= maxRetriesRef.current) {
           log.error("Maximum auth processing attempts reached", { attempts: processAttempts });
           setError("מספר נסיונות מקסימלי הושג. מועבר לדף הבית...");
@@ -72,7 +76,7 @@ export function useProcessAuthCallback({
         
         setProcessAttempts(processAttempts + 1);
 
-        // שיפרנו את הסדר כדי לבדוק קודם האם יש טוקן בכתובת
+        // גישה מדורגת - מנסים מספר שיטות בזו אחר זו
         
         // 1. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
         if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -93,15 +97,17 @@ export function useProcessAuthCallback({
         if (location.state?.code && location.state.code.length > 10) {
           try {
             log.info("Using code from location state");
-            await handleAuthCode(location.state.code, location.state?.authSource || 'location_state', navigate, toastHelper);
-            return;
+            const stateCodeSuccess = await handleAuthCode(
+              location.state.code, 
+              location.state?.authSource || 'location_state', 
+              navigate, 
+              toastHelper
+            );
+            
+            if (stateCodeSuccess) return;
+            log.warn("Failed to process code from location state");
           } catch (err) {
             log.error("Error handling state code:", { error: err });
-            if (isMounted) {
-              clearAuthStorage();
-              await handlePkceError(navigate, setError, setLoading);
-              return;
-            }
           }
         }
         
@@ -111,25 +117,37 @@ export function useProcessAuthCallback({
           if (urlCodeSuccess) return;
         } catch (err) {
           log.error("Error processing URL code:", { error: err });
-          if (isMounted) {
-            clearAuthStorage();
-            await handlePkceError(navigate, setError, setLoading);
-            return;
-          }
         }
 
         // אם אף שיטה לא הצליחה
         if (isMounted) {
           log.error("No authentication method succeeded");
-          clearAuthStorage();
           
-          // בדיקה אם מדובר בבעיית SSL certificate
-          if (window.location.hostname === "kidushishi-menegment-app.co.il" && 
-              !window.location.hostname.startsWith("www.")) {
-            setError("התחברות נכשלה בגלל בעיית תעודה. נסה להיכנס דרך www.kidushishi-menegment-app.co.il במקום kidushishi-menegment-app.co.il");
-          } else {
-            await handlePkceError(navigate, setError, setLoading);
+          // בדיקה לבעיית SSL certificate
+          const hostHasWWW = window.location.hostname.startsWith("www.");
+          const isProduction = window.location.hostname.includes("kidushishi-menegment-app.co.il");
+          
+          if (isProduction && !hostHasWWW) {
+            log.warn("Possible SSL certificate domain mismatch detected");
+            
+            // הפניה ידנית לדומיין עם www
+            const redirectUrl = window.location.href.replace(
+              "kidushishi-menegment-app.co.il",
+              "www.kidushishi-menegment-app.co.il"
+            );
+            
+            log.info("Redirecting to www subdomain", { redirectUrl });
+            setError("מתבצעת הפניה מחדש לדומיין עם www...");
+            
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 1000);
+            
+            return;
           }
+          
+          clearAuthStorage();
+          await handlePkceError(navigate, setError, setLoading);
         }
       } catch (err: any) {
         log.error("Unexpected error in auth callback:", { error: err });

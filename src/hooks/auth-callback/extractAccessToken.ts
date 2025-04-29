@@ -3,114 +3,94 @@ import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
 /**
- * פונקציה לחילוץ אקסס-טוקן מהכתובת (hash fragment)
- * עם טיפול מיוחד בתווים מיוחדים/עבריים
+ * Extract access token from URL hash for implicit flow
+ * Improved for better compatibility and error handling
  */
 export async function extractAccessToken(): Promise<boolean> {
   const log = logger.createLogger({ component: 'extractAccessToken' });
   
   try {
-    log.info("Extracting access token from URL hash");
+    log.info("Attempting to extract access token from URL hash");
     
-    // בדיקה אם יש פרגמנט בכתובת
-    if (!window.location.hash) {
-      log.error("No hash fragment found in URL");
+    // Verify we have a hash in the URL
+    if (!window.location.hash || !window.location.hash.includes('access_token')) {
+      log.info("No access token found in URL hash");
       return false;
     }
     
-    // חילוץ פרמטרים מהפרגמנט
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    // Try to extract the hash params
+    const hashParams = new URLSearchParams(
+      window.location.hash.substring(1) // Remove the leading '#'
+    );
     
-    // חילוץ פרמטרים רלוונטיים
+    // Get the tokens
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
-    const expiresIn = hashParams.get('expires_in');
-    const tokenType = hashParams.get('token_type') || 'bearer';
-    const providerToken = hashParams.get('provider_token');
-    
-    log.info("Extracted token data from hash", { 
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      expiresIn,
-      tokenType,
-      hasProviderToken: !!providerToken
-    });
     
     if (!accessToken) {
-      log.error("No access token found in URL hash");
+      log.error("Hash exists but no valid access token found");
       return false;
     }
     
-    log.info("Setting up session with extracted access token");
+    log.info("Access token found in hash, attempting to set session");
     
+    // Set the session using the tokens
     try {
-      // הגדרת סשן עם הטוקן שמצאנו
       const { data, error } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken || '',
       });
       
-      if (error || !data.session) {
-        log.error("Error setting session with access token", { error });
-        
-        // ננסה שיטת גיבוי אם השיטה הראשית נכשלה
-        try {
-          log.info("Attempting backup method with getUser API");
-          const userResponse = await supabase.auth.getUser(accessToken);
-          
-          if (userResponse.error) {
-            log.error("Backup method also failed", { error: userResponse.error });
-            return false;
-          }
-          
-          log.info("Backup method succeeded in getting user", {
-            userId: userResponse.data.user.id,
-          });
-          
-          return true;
-        } catch (backupError) {
-          log.error("Error in backup token method", { error: backupError });
-        }
-        
+      if (error) {
+        log.error("Error setting session:", error);
         return false;
       }
       
-      log.info("Successfully set session with access token", {
-        userId: data.session.user.id,
-        email: data.session.user.email,
-      });
+      if (data.session) {
+        log.info("Successfully set session from access token", {
+          userId: data.session.user.id,
+          expiresAt: data.session.expires_at
+        });
+        
+        return true;
+      }
+    } catch (setSessionError) {
+      log.error("Exception setting session:", setSessionError);
       
-      // ניקוי מידע אימות מכל מקום אפשרי
+      // Plan B: Try using the getUser API as an alternative
       try {
-        // מאחסון מקומי
-        localStorage.removeItem('auth_redirect_initiated');
-        localStorage.removeItem('auth_redirect_time');
-        localStorage.removeItem('auth_redirect_count');
-        localStorage.removeItem('auth_provider');
+        const { data, error } = await supabase.auth.getUser(accessToken);
+        if (error) {
+          log.error("Error getting user with access token:", error);
+          return false;
+        }
         
-        // מאחסון הסשן
-        sessionStorage.removeItem('auth_redirect_initiated');
-        sessionStorage.removeItem('auth_redirect_time');
-        sessionStorage.removeItem('auth_redirect_count');
-        
-        log.info("Cleared auth redirect indicators");
-      } catch (e) {
-        log.warn("Error clearing auth redirect indicators", e);
+        if (data.user) {
+          log.info("Successfully fetched user with access token", {
+            userId: data.user.id
+          });
+          
+          // Try to manually re-apply the session approach
+          try {
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+            log.info("Successfully set session on second attempt");
+            return true;
+          } catch (secondError) {
+            log.error("Second attempt to set session failed:", secondError);
+          }
+        }
+      } catch (getUserError) {
+        log.error("Error in getUser fallback:", getUserError);
       }
-      
-      // ניקוי ה-hash מהכתובת
-      if (window.history && window.history.replaceState) {
-        window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
-        log.info("Cleared URL hash");
-      }
-      
-      return true;
-    } catch (sessionError) {
-      log.error("Error during setSession operation:", { error: sessionError });
-      return false;
     }
+    
+    log.error("Failed to process access token after all attempts");
+    return false;
   } catch (err) {
-    log.error("Error extracting access token from hash", { error: err });
+    log.error("Unexpected error extracting access token:", err);
     return false;
   }
 }

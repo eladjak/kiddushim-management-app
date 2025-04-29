@@ -9,8 +9,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce', // קביעת סוג הזרימה במפורש
-    storage: localStorage,
+    storage: localStorage, // שימוש ב-localStorage במקום sessionStorage
   },
 });
 
@@ -78,4 +77,34 @@ export function getNormalizedDomain() {
 export function configureAuthProvider(provider: string) {
   // Set up provider-specific configurations here if needed in the future
   console.log(`Configuring auth provider: ${provider}`);
+}
+
+/**
+ * הוסף מידע חשוב לדיאגנוסטיקה של בעיות אימות
+ */
+export function logAuthDiagnostics() {
+  try {
+    const diagnosticInfo = {
+      hostname: window.location.hostname,
+      href: window.location.href,
+      protocol: window.location.protocol,
+      supabaseUrl: supabaseUrl,
+      localStorage: {
+        hasCodeVerifier: !!localStorage.getItem('supabase-code-verifier'),
+        codeVerifierTimestamp: localStorage.getItem('code-verifier-timestamp'),
+        authRedirectInitiated: localStorage.getItem('auth_redirect_initiated'),
+        authRedirectTime: localStorage.getItem('auth_redirect_time')
+      },
+      sessionStorage: {
+        hasCodeVerifier: !!sessionStorage.getItem('supabase-code-verifier')
+      },
+      redirectUrlWillBe: `${window.location.protocol}//${getNormalizedDomain()}${window.location.port ? `:${window.location.port}` : ''}/auth/callback`
+    };
+    
+    console.log('Auth diagnostics:', diagnosticInfo);
+    return diagnosticInfo;
+  } catch (err) {
+    console.error('Error generating auth diagnostics:', err);
+    return null;
+  }
 }
