@@ -32,9 +32,12 @@ export async function extractAccessToken(): Promise<boolean> {
       return false;
     }
     
-    log.info("Access token found in hash, attempting to set session");
+    log.info("Access token found in hash, attempting to set session", {
+      tokenLength: accessToken.length,
+      hasRefreshToken: !!refreshToken
+    });
     
-    // Set the session using the tokens
+    // Set session directly
     try {
       const { data, error } = await supabase.auth.setSession({
         access_token: accessToken,
@@ -46,7 +49,7 @@ export async function extractAccessToken(): Promise<boolean> {
         return false;
       }
       
-      if (data.session) {
+      if (data?.session) {
         log.info("Successfully set session from access token", {
           userId: data.session.user.id,
           expiresAt: data.session.expires_at
@@ -54,6 +57,9 @@ export async function extractAccessToken(): Promise<boolean> {
         
         return true;
       }
+      
+      log.error("No session returned after setting token");
+      return false;
     } catch (setSessionError) {
       log.error("Exception setting session:", setSessionError);
       
@@ -72,10 +78,16 @@ export async function extractAccessToken(): Promise<boolean> {
           
           // Try to manually re-apply the session approach
           try {
-            await supabase.auth.setSession({
+            const sessionResult = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken || '',
             });
+            
+            if (sessionResult.error) {
+              log.error("Second attempt to set session failed:", sessionResult.error);
+              return false;
+            }
+            
             log.info("Successfully set session on second attempt");
             return true;
           } catch (secondError) {
@@ -87,7 +99,43 @@ export async function extractAccessToken(): Promise<boolean> {
       }
     }
     
-    log.error("Failed to process access token after all attempts");
+    // Final option - try a full exchange if all else fails
+    try {
+      log.info("Attempting final manual session creation");
+      
+      // Access token expiration is typically one hour
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+      
+      // Manually construct a session object
+      const manualSession = {
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+        expires_at: expiresAt,
+        expires_in: 3600,
+        token_type: 'bearer',
+      };
+      
+      // Store in localStorage for potential retrieval
+      try {
+        localStorage.setItem('supabase.auth.token', JSON.stringify({
+          currentSession: manualSession,
+          expiresAt: expiresAt
+        }));
+      } catch (storageError) {
+        log.error("Error storing token in localStorage:", storageError);
+      }
+      
+      // Try to trigger auth state change
+      const authStateChange = await supabase.auth.refreshSession();
+      
+      if (authStateChange.data?.session) {
+        log.info("Successfully refreshed session after manual setup");
+        return true;
+      }
+    } catch (finalError) {
+      log.error("Final manual session attempt failed:", finalError);
+    }
+    
     return false;
   } catch (err) {
     log.error("Unexpected error extracting access token:", err);

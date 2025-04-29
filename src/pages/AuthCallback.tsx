@@ -37,28 +37,11 @@ const AuthCallback = () => {
           hashLength: window.location.hash ? window.location.hash.length : 0,
           search: window.location.search,
           hasCode: !!new URLSearchParams(window.location.search).get('code'),
-          stateCode: location.state?.code ? true : false
+          stateCode: location.state?.code ? true : false,
+          hasAccessToken: window.location.hash && window.location.hash.includes('access_token')
         });
         
-        // בדיקה אם יש לנו קוד סשן מהסטייט
-        if (location.state?.code && location.state.code.length > 10) {
-          log.info("Found code in location state, processing");
-          const success = await handleAuthCode(
-            location.state.code, 
-            'location_state', 
-            navigate, 
-            toastHelper
-          );
-          
-          if (success) {
-            log.info("Successfully processed code from state");
-            return;
-          } else {
-            log.error("Failed to process code from state");
-          }
-        }
-        
-        // בדיקה אם יש לנו access_token בפרגמנט
+        // מסלול 1: בדיקה אם יש לנו access_token בפרגמנט
         if (window.location.hash && window.location.hash.includes('access_token')) {
           log.info("Found access_token in hash, processing directly");
           
@@ -83,7 +66,25 @@ const AuthCallback = () => {
           }
         }
         
-        // בדיקה אם יש לנו קוד ב-URL
+        // מסלול 2: בדיקה אם יש לנו קוד סשן מהסטייט
+        if (location.state?.code && location.state.code.length > 10) {
+          log.info("Found code in location state, processing");
+          const success = await handleAuthCode(
+            location.state.code, 
+            'location_state', 
+            navigate, 
+            toastHelper
+          );
+          
+          if (success) {
+            log.info("Successfully processed code from state");
+            return;
+          } else {
+            log.error("Failed to process code from state");
+          }
+        }
+        
+        // מסלול 3: בדיקה אם יש לנו קוד ב-URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlCode = urlParams.get('code');
         
@@ -100,7 +101,7 @@ const AuthCallback = () => {
           }
         }
         
-        // בדיקה אם יש לנו סשן פעיל
+        // מסלול 4: בדיקה אם יש לנו סשן פעיל
         try {
           const { data } = await supabase.auth.getSession();
           
@@ -118,7 +119,20 @@ const AuthCallback = () => {
           log.error("Error checking for existing session:", { error: sessionError });
         }
         
+        // אם הגענו לכאן, זה אומר שלא הצלחנו לזהות את שיטת האימות הנכונה
         log.warn("No valid authentication method found");
+        
+        // ננסה לראות אם המשתמש מחובר ישירות
+        try {
+          const { data, error } = await supabase.auth.getUser();
+          if (!error && data.user) {
+            log.info("User is already authenticated, redirecting to home");
+            navigate("/", { replace: true });
+            return;
+          }
+        } catch (e) {
+          log.error("Error checking user status:", e);
+        }
         
       } catch (err) {
         log.error("Unexpected error in callback handler:", { error: err });
