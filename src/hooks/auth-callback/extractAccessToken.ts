@@ -111,8 +111,10 @@ export async function extractAccessToken(): Promise<boolean> {
             token_type: 'bearer',
           };
           
-          // שמירה ב-localStorage
-          localStorage.setItem('sb-' + supabase.supabaseUrl.split('//')[1].split('.')[0] + '-auth-token', JSON.stringify({
+          // שמירה ב-localStorage, אבל עם מפתח שנבנה בצורה בטוחה
+          // במקום גישה ישירה ל-supabaseUrl שהוא protected
+          const supabaseUrlParts = import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] || 'unknown';
+          localStorage.setItem(`sb-${supabaseUrlParts}-auth-token`, JSON.stringify({
             currentSession: manualSession,
             expiresAt: calculatedExpiresAt
           }));
@@ -162,11 +164,20 @@ export async function extractAccessToken(): Promise<boolean> {
     try {
       log.info("מנסה קריאת REST API ישירה");
       
-      const response = await fetch(`${supabase.supabaseUrl}/auth/v1/token?grant_type=access_token`, {
+      // השתמש ב-env variables במקום גישה ישירה לתכונות מוגנות
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        log.error("לא ניתן למצוא פרטי חיבור לסופהבייס");
+        return false;
+      }
+      
+      const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=access_token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': supabase.supabaseKey,
+          'apikey': supabaseAnonKey,
         },
         body: JSON.stringify({
           access_token: accessToken,

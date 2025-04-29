@@ -20,7 +20,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
  * מקבל מפתח לאחסון מידע בלוקל סטורג'
  */
 export function getAuthStorageKey() {
-  return `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`;
+  const supabaseUrlPart = supabaseUrl.split('//')[1]?.split('.')[0] || 'unknown';
+  return `sb-${supabaseUrlPart}-auth-token`;
 }
 
 /**

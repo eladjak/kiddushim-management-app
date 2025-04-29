@@ -108,9 +108,14 @@ async function fallbackAuthCodeExchange(
   try {
     log.info("מנסה החלפת קוד ללא PKCE כגיבוי", { codeSource });
     
-    // קריאה ישירה ל-API של Supabase
-    const supabaseUrl = supabase.supabaseUrl;
-    const supabaseKey = supabase.supabaseKey;
+    // השתמש ב-env variables במקום גישה ישירה לתכונות מוגנות
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      log.error("לא ניתן למצוא פרטי חיבור לסופהבייס");
+      return false;
+    }
     
     // בניית ה-URL להחלפת הקוד
     const tokenExchangeUrl = `${supabaseUrl}/auth/v1/token?grant_type=pkce`;
@@ -120,7 +125,7 @@ async function fallbackAuthCodeExchange(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': supabaseKey
+        'apikey': supabaseAnonKey
       },
       body: JSON.stringify({
         code: code,
