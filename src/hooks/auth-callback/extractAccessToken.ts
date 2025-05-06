@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { safeDecode, safeEncode } from "@/utils/encodingUtils";
 
 /**
  * חילוץ טוקן גישה מה-URL hash לצורך זרימת Implicit Flow

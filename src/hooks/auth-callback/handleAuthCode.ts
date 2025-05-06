@@ -4,6 +4,7 @@ import { logger } from "@/utils/logger";
 import { supabase } from "@/integrations/supabase/client";
 import { ToastType } from "./types";
 import { showToast } from "./toastHelpers";
+import { safeEncode, safeDecode } from "@/utils/encodingUtils";
 
 /**
  * החלפת קוד אימות לסשן תקף

@@ -5,34 +5,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
 import { FcGoogle } from "react-icons/fc";
-
-/**
- * השגת מחרוזת רנדומלית בקידוד בטוח עבור PKCE
- * גרסה משופרת שבטוח עובדת עם תווים לא לטיניים
- * @param length אורך המחרוזת הרצוי
- */
-const generatePKCEString = (length: number): string => {
-  // תווים בטוחים לשימוש ב-URL - רק אותיות לטיניות ומספרים
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  
-  try {
-    // שימוש בערכים אקראיים בטוחים
-    const randomValues = new Uint8Array(length);
-    window.crypto.getRandomValues(randomValues);
-    
-    for (let i = 0; i < length; i++) {
-      result += charset[randomValues[i] % charset.length];
-    }
-    return result;
-  } catch (e) {
-    // גיבוי למקרה של שגיאה
-    for (let i = 0; i < length; i++) {
-      result += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return result;
-  }
-};
+import { generateSafePKCEString } from "@/utils/encodingUtils";
 
 /**
  * Google authentication button component
@@ -87,8 +60,8 @@ export const GoogleAuthButton = () => {
       // Get proper redirect URL with www prefix if needed
       const redirectTo = getRedirectUrl();
       
-      // Generate a code verifier for PKCE
-      const codeVerifier = generatePKCEString(64);
+      // Generate a code verifier for PKCE - שימוש בפונקציה הבטוחה שלנו עם תמיכה בעברית
+      const codeVerifier = generateSafePKCEString(64);
       
       try {
         // Store in localStorage instead of sessionStorage for better persistence
