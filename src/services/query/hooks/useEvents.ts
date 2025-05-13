@@ -1,7 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventsService } from '@/services/entity/events';
 import type { Event, EventCreate, EventUpdate } from '@/types/events';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 // קבועים לשימוש כמפתחות query
 export const EVENTS_KEYS = {
