@@ -21,6 +21,43 @@ export function generateSafePKCEString(length: number = 64): string {
 }
 
 /**
+ * קידוד מחרוזת לפורמט שמתאים לשימוש ב-URL
+ * משתמש בקידוד קנוני שעובד עם עברית
+ */
+export function safeEncode(str: string): string {
+  // קודם נמיר את המחרוזת ל-UTF-8 ואז נקודד ב-base64
+  try {
+    return encodeURIComponent(str);
+  } catch (e) {
+    console.error('שגיאה בקידוד מחרוזת:', e);
+    // החזרת גרסה בטוחה אם יש שגיאה
+    return encodeURIComponent(
+      str.replace(/[^\x00-\x7F]/g, char => {
+        try {
+          return encodeURIComponent(char);
+        } catch {
+          return '_';
+        }
+      })
+    );
+  }
+}
+
+/**
+ * פענוח מחרוזת מקודדת חזרה למחרוזת רגילה
+ * משמש לפענוח תווים עבריים שהגיעו ב-URL
+ */
+export function safeDecode(encoded: string): string {
+  try {
+    return decodeURIComponent(encoded);
+  } catch (e) {
+    console.error('שגיאה בפענוח מחרוזת:', e);
+    // ניסיון להחזיר מה שאפשר
+    return encoded;
+  }
+}
+
+/**
  * שמירת מפתח אימות PKCE במספר מקומות שונים להגברת השרידות
  */
 export function storeCodeVerifier(codeVerifier: string): void {
