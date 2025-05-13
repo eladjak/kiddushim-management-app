@@ -110,6 +110,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 /**
+ * הגדרת ספק האימות לתהליך ההתחברות
+ * @param provider שם ספק האימות ('google', 'facebook', etc.)
+ */
+export function configureAuthProvider(provider: string) {
+  // אין צורך בהגדרות נוספות כרגע, אך הפונקציה נדרשת על ידי GoogleAuthButton
+  console.log(`Configuring auth provider: ${provider}`);
+  // בעתיד ניתן להוסיף כאן הגדרות ספציפיות לספקי אימות שונים
+}
+
+/**
  * מקבל מפתח לאחסון מידע בלוקל סטורג'
  */
 export function getAuthStorageKey() {
