@@ -1,8 +1,8 @@
 
-import { supabase } from '../supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Event, EventCreate, EventUpdate, EventWithDetails, 
-  EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB
+  EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB, EventStatus, EventType
 } from '@/types/events';
 
 /**
@@ -15,16 +15,16 @@ function convertDBEventToEvent(dbEvent: EventDB): Event {
     description: dbEvent.title, // Using title as fallback for description
     location: dbEvent.location_name,
     date: dbEvent.date,
+    main_time: dbEvent.main_time,
     time_start: dbEvent.main_time,
     time_end: dbEvent.cleanup_time,
     status: (dbEvent.status as any) || 'draft',
-    type: 'kidush', // Default type
+    type: EventType.KIDUSH, // Default type
     max_participants: dbEvent.required_service_girls || 0,
     created_at: dbEvent.created_at,
     updated_at: dbEvent.updated_at,
     created_by: dbEvent.created_by,
     // Add required properties for the dashboard and events page components
-    main_time: dbEvent.main_time,
     location_name: dbEvent.location_name,
     parasha: dbEvent.parasha
   };
@@ -129,14 +129,14 @@ export const eventsService = {
     const dbEvent: EventCreateDB = {
       title: event.title,
       date: event.date,
-      setup_time: event.time_start, // Approximate mapping
-      main_time: event.time_start,
-      cleanup_time: event.time_end,
-      location_name: event.location,
-      location_address: event.location,
+      setup_time: event.main_time, // Approximate mapping
+      main_time: event.main_time,
+      cleanup_time: event.main_time, // Use main_time if time_end doesn't exist
+      location_name: event.location || '',
+      location_address: event.location || '',
       created_by: event.created_by,
-      status: event.status,
-      required_service_girls: event.max_participants
+      status: 'draft',
+      required_service_girls: 0
     };
     
     const { data, error } = await supabase
@@ -165,17 +165,16 @@ export const eventsService = {
     
     if (event.title) dbEventUpdate.title = event.title;
     if (event.date) dbEventUpdate.date = event.date;
-    if (event.time_start) {
-      dbEventUpdate.setup_time = event.time_start;
-      dbEventUpdate.main_time = event.time_start;
+    if (event.main_time) {
+      dbEventUpdate.setup_time = event.main_time;
+      dbEventUpdate.main_time = event.main_time;
     }
-    if (event.time_end) dbEventUpdate.cleanup_time = event.time_end;
+    if (event.main_time) dbEventUpdate.cleanup_time = event.main_time;
     if (event.location) {
       dbEventUpdate.location_name = event.location;
       dbEventUpdate.location_address = event.location;
     }
     if (event.status) dbEventUpdate.status = event.status;
-    if (event.max_participants) dbEventUpdate.required_service_girls = event.max_participants;
     
     const { data, error } = await supabase
       .from('events')

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
-import { PredefinedEvent } from "@/data/eventCalendar";
+import { PredefinedEvent } from "@/data/types/eventTypes";
 import { createNotification } from "@/utils/notificationUtils";
 
 export interface EventFormData {

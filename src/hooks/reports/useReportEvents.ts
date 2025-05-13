@@ -30,8 +30,7 @@ export const useReportEvents = () => {
         // Process and filter past events
         const filteredEvents = events
           .filter(event => {
-            if (!event.time_start) return true; // Keep events without time_start
-            const eventDate = new Date(event.time_start);
+            const eventDate = new Date(event.main_time);
             return eventDate >= today;
           })
           .map(event => ({
@@ -46,20 +45,16 @@ export const useReportEvents = () => {
           return [{
             id: 'no-events',
             title: 'אין אירועים זמינים',
-            time_start: null,
-            location_name: null,
-            date: null,
+            main_time: '',
+            location_name: '',
+            date: '',
             status: 'draft',
-            parasha: null,
+            parasha: '',
             description: '',
             location: '',
-            time_end: '',
-            type: 'other',
-            max_participants: 0,
             created_at: '',
             updated_at: '',
             created_by: '',
-            main_time: ''
           } as unknown as Event];
         }
         
@@ -70,20 +65,16 @@ export const useReportEvents = () => {
         return [{
           id: 'no-events',
           title: 'אין אירועים זמינים',
-          time_start: null,
-          location_name: null,
-          date: null,
+          main_time: '',
+          location_name: '',
+          date: '',
           status: 'draft',
-          parasha: null,
+          parasha: '',
           description: '',
           location: '',
-          time_end: '',
-          type: 'other',
-          max_participants: 0,
           created_at: '',
           updated_at: '',
           created_by: '',
-          main_time: ''
         } as unknown as Event];
       }
     },

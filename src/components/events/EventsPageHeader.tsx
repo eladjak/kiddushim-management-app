@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Download } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 interface EventsPageHeaderProps {
   canCreateEvents?: boolean;
@@ -9,36 +8,26 @@ interface EventsPageHeaderProps {
   onToggleCreateForm?: () => void;
 }
 
-export function EventsPageHeader({ canCreateEvents, showCreateForm, onToggleCreateForm }: EventsPageHeaderProps) {
-  const navigate = useNavigate();
-
+export const EventsPageHeader = ({ 
+  canCreateEvents = false,
+  showCreateForm = false,
+  onToggleCreateForm
+}: EventsPageHeaderProps) => {
   return (
-    <div className="flex flex-col gap-2">
-      <h1 className="text-3xl font-bold text-right">אירועי קידושישי</h1>
-      <p className="text-gray-500 text-right">צפיה, ניהול וארגון אירועי קידושישי הקרובים</p>
-      
-      <div className="flex justify-between mt-2">
-        {canCreateEvents && (
-          <Button
-            onClick={onToggleCreateForm}
-            variant={showCreateForm ? "outline" : "default"}
-            className="flex items-center gap-2"
-          >
-            {showCreateForm ? "סגור טופס" : "הוסף אירוע חדש"}
-            {showCreateForm ? null : "+"}
-          </Button>
-        )}
-        
-        <Button 
-          onClick={() => navigate('/timeline-pdf')} 
-          variant="outline" 
-          className="flex items-center gap-2 text-sm"
-        >
-          <Calendar className="h-4 w-4" />
-          <span>צפה בלוח השנה להדפסה</span>
-          <Download className="h-4 w-4" />
-        </Button>
+    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-4 border-b">
+      <div className="flex items-center mb-4 md:mb-0">
+        <Calendar className="h-6 w-6 text-primary ml-2" />
+        <h1 className="text-2xl font-bold">אירועים</h1>
       </div>
+      
+      {canCreateEvents && (
+        <Button
+          onClick={onToggleCreateForm}
+          variant={showCreateForm ? "outline" : "default"}
+        >
+          {showCreateForm ? "ביטול" : "הוספת אירוע חדש"}
+        </Button>
+      )}
     </div>
   );
-}
+};

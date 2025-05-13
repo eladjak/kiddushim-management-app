@@ -5,7 +5,7 @@ export interface PredefinedEvent {
   hebrewDate: string;
   parasha: string;
   time: string;
-  shabatEntrance: string;
+  shabatEntrance?: string;
   serviceLadiesAvailable: boolean;
   notes?: string[];
   mainTime?: string;

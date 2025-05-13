@@ -1,3 +1,4 @@
+
 /**
  * טיפוסים עבור ישות אירועים
  */
@@ -73,7 +74,12 @@ export interface Event {
   // Adding properties used by Dashboard and Events components
   main_time: string;
   location_name: string;
-  parasha?: string;
+  // Add missing properties referenced in the code
+  time_start?: string;
+  time_end?: string;
+  status?: string;
+  type?: string;
+  max_participants?: number;
 }
 
 export type EventCreate = Omit<Event, 'id' | 'created_at' | 'updated_at'>;
