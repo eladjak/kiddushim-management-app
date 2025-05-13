@@ -1,294 +1,99 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Get environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://uqumzjmyejlhoyliyesu.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdW16am15ZWpsaG95bGl5ZXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkwODA1MDIsImV4cCI6MjA1NDY1NjUwMn0.btzU9O72DPhxW_gm_G_AKPOaVBuKI8F4KSrnhdNmRO8';
+const log = logger.createLogger({ component: 'SupabaseClient' });
 
-// פונקצית היעוט לבדיקה האם מחרוזת מכילה תווים מחוץ לטווח ה-Latin1
-function containsNonLatin1(str: string): boolean {
-  for (let i = 0; i < str.length; i++) {
-    if (str.charCodeAt(i) > 255) {
-      return true;
-    }
-  }
-  return false;
-}
+// Log configuration
+log.info('Initializing Supabase client with config', { 
+  url: supabaseUrl, 
+  keyLength: supabaseAnonKey ? supabaseAnonKey.length : 0 
+});
 
-// פונקציה לעיבוד בטוח של מחרוזות עם תווים עבריים
-function safeEncodeString(str: string): string {
-  if (!str || typeof str !== 'string') return str;
-  
-  // אם המחרוזת לא מכילה תווים עבריים, נחזיר אותה כמו שהיא
-  if (!containsNonLatin1(str)) return str;
-  
-  // אחרת נשתמש בקידוד בטוח
-  try {
-    return encodeURIComponent(str);
-  } catch (e) {
-    console.error('שגיאה בקידוד מחרוזת:', e);
-    return str;
-  }
-}
-
-// פונקציה לעיבוד בטוח של אובייקטים שעשויים להכיל תווים עבריים
-function sanitizeForApi(data: any): any {
-  if (!data) return data;
-  
-  if (typeof data === 'string') {
-    return safeEncodeString(data);
-  }
-  
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeForApi(item));
-  }
-  
-  if (typeof data === 'object') {
-    const result: Record<string, any> = {};
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        result[key] = sanitizeForApi(data[key]);
-      }
-    }
-    return result;
-  }
-  
-  return data;
-}
-
-/**
- * יצירת פונקצית fetch מותאמת עם תמיכה משופרת בעברית
- * מתמודדת עם שגיאת btoa שנגרמת מתווים עבריים
- */
-function customFetch(url: RequestInfo | URL, options?: RequestInit): Promise<Response> {
-  // העתקת האופציות כדי למנוע שינוי במקור
-  const safeOptions = options ? { ...options } : {};
-  
-  // בדיקה האם יש גוף לבקשה והאם הוא מחרוזת
-  if (safeOptions.body && typeof safeOptions.body === 'string') {
-    try {
-      // ניסיון לפרסר את הגוף כ-JSON
-      const bodyObj = JSON.parse(safeOptions.body);
-      
-      // טיפול בתווים עבריים וקידוד בטוח
-      const sanitizedBody = sanitizeForApi(bodyObj);
-      
-      // החלפת הגוף המקורי בגוף המטופל
-      safeOptions.body = JSON.stringify(sanitizedBody);
-      
-    } catch (e) {
-      console.warn('שגיאה בטיפול בגוף הבקשה:', e);
-      // אם יש בעיה בפרסור, נשאיר את הגוף כפי שהוא
-    }
-  }
-  
-  // התאמת Headers במידת הצורך
-  if (safeOptions.headers) {
-    safeOptions.headers = {
-      ...safeOptions.headers,
-      'Content-Type': 'application/json; charset=utf-8',
-    };
-  }
-
-  // ביצוע הקריאה עם האופציות המותאמות
-  return fetch(url, safeOptions);
-}
-
-// יצירת לקוח סופהבייס עם הגדרות משופרות לתמיכה בעברית ואמינות
+// Create the Supabase client with proper auth configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: localStorage, 
-    storageKey: 'sb-uqumzjmyejlhoyliyesu-auth-token',
-    debug: true, // אפשרות דיבוג מורחבת לאיתור בעיות
+    storage: localStorage
   },
   global: {
-    fetch: customFetch
+    headers: {
+      'apikey': supabaseAnonKey
+    }
   }
 });
 
 /**
- * הגדרת ספק האימות לתהליך ההתחברות
- * @param provider שם ספק האימות ('google', 'facebook', etc.)
+ * Configure the auth provider for login
  */
 export function configureAuthProvider(provider: string) {
-  // אין צורך בהגדרות נוספות כרגע, אך הפונקציה נדרשת על ידי GoogleAuthButton
-  console.log(`Configuring auth provider: ${provider}`);
-  // בעתיד ניתן להוסיף כאן הגדרות ספציפיות לספקי אימות שונים
+  // Provider-specific configuration if needed
+  log.info(`Configuring auth provider: ${provider}`);
 }
 
 /**
- * מקבל מפתח לאחסון מידע בלוקל סטורג'
+ * Get a normalized domain name for redirects
+ * Add www. prefix if needed based on environment
  */
-export function getAuthStorageKey() {
-  // השתמש במפתח קבוע ומוגדר כדי לוודא עקביות
-  return 'sb-uqumzjmyejlhoyliyesu-auth-token';
-}
-
-/**
- * ניקוי כל האחסון הקשור לאימות
- */
-export function clearAuthStorage() {
-  try {
-    // ניקוי כל פריטי localStorage הקשורים לאימות
-    localStorage.removeItem('supabase-code-verifier');
-    localStorage.removeItem('code-verifier-timestamp');
-    localStorage.removeItem('auth_redirect_initiated');
-    localStorage.removeItem('auth_redirect_time');
-    localStorage.removeItem('auth_redirect_count');
-    localStorage.removeItem('auth_provider');
-    localStorage.removeItem('code-verifier-backup');
-    localStorage.removeItem('pkce_code_verifier');
-    localStorage.removeItem('sb_cv');
-    
-    // ניקוי כל פריטי sessionStorage הקשורים לאימות
-    sessionStorage.removeItem('supabase-code-verifier');
-    sessionStorage.removeItem('auth_redirect_initiated');
-    sessionStorage.removeItem('auth_redirect_time');
-    sessionStorage.removeItem('auth_redirect_count');
-    sessionStorage.removeItem('auth_provider');
-    sessionStorage.removeItem('pkce_code_verifier');
-    sessionStorage.removeItem('sb_cv');
-
-    // ניקוי אחסון סופהבייס - שימוש ב-signOut במקום
-    supabase.auth.signOut({ scope: 'local' })
-      .then(() => console.log('Supabase auth state cleared'))
-      .catch(err => console.error('Error clearing Supabase auth state:', err));
-    
-    console.log('All auth storage cleared');
-  } catch (err) {
-    console.error('Error clearing auth storage:', err);
-  }
-}
-
-/**
- * קבלת שם דומיין עם קידומת www אם נדרש
- */
-export function getNormalizedDomain() {
+export function getNormalizedDomain(): string {
   const hostname = window.location.hostname;
   
-  // אם אנחנו ב-localhost או כבר ב-www, השתמש בhostname הנוכחי
-  if (hostname === 'localhost' || hostname.startsWith('www.')) {
-    return hostname;
+  // Add www. prefix for production domains if not present
+  if (hostname.includes('kidushishi-menegment-app.co.il') && !hostname.startsWith('www.')) {
+    return `www.${hostname}`;
   }
   
-  // הוסף קידומת www לדומיין הפרודקשן כדי להתאים לתעודת SSL
-  if (hostname === 'kidushishi-menegment-app.co.il') {
-    return 'www.kidushishi-menegment-app.co.il';
-  }
-  
-  // ברירת מחדל ל-hostname הנוכחי אם לא תואם דפוסים ידועים
   return hostname;
 }
 
 /**
- * הוסף מידע חשוב לדיאגנוסטיקה של בעיות אימות
+ * Clear all auth storage to handle potential auth issues
  */
-export function logAuthDiagnostics() {
+export function clearAuthStorage() {
   try {
-    const diagnosticInfo = {
-      hostname: window.location.hostname,
-      href: window.location.href,
-      protocol: window.location.protocol,
-      supabaseUrl: supabaseUrl,
-      localStorage: {
-        hasCodeVerifier: !!localStorage.getItem('supabase-code-verifier'),
-        codeVerifierTimestamp: localStorage.getItem('code-verifier-timestamp'),
-        authRedirectInitiated: localStorage.getItem('auth_redirect_initiated'),
-        authRedirectTime: localStorage.getItem('auth_redirect_time'),
-        hasCodeVerifierBackup: !!localStorage.getItem('code-verifier-backup'),
-        hasPkceVerifier: !!localStorage.getItem('pkce_code_verifier')
-      },
-      sessionStorage: {
-        hasCodeVerifier: !!sessionStorage.getItem('supabase-code-verifier'),
-        hasPkceVerifier: !!sessionStorage.getItem('pkce_code_verifier')
-      },
-      redirectUrlWillBe: `${window.location.protocol}//${getNormalizedDomain()}${window.location.port ? `:${window.location.port}` : ''}/auth/callback`
-    };
+    // Clear local storage auth data
+    localStorage.removeItem('sb-uqumzjmyejlhoyliyesu-auth-token');
+    sessionStorage.removeItem('sb-uqumzjmyejlhoyliyesu-auth-token');
     
-    console.log('Auth diagnostics:', diagnosticInfo);
-    return diagnosticInfo;
-  } catch (err) {
-    console.error('Error generating auth diagnostics:', err);
-    return null;
+    // Clear other auth-related items
+    localStorage.removeItem('auth_redirect_initiated');
+    localStorage.removeItem('auth_redirect_time');
+    localStorage.removeItem('auth_provider');
+    localStorage.removeItem('pkce_code_verifier');
+    sessionStorage.removeItem('pkce_code_verifier');
+    
+    log.info('Auth storage cleared successfully');
+    return true;
+  } catch (error) {
+    log.error('Error clearing auth storage:', error);
+    return false;
   }
 }
 
 /**
- * בדיקה וטיפול בטריגר ליצירת פרופיל
+ * Log auth diagnostics for debugging
  */
-export async function checkAndHandleProfileCreation(userId: string) {
-  if (!userId) return null;
+export function logAuthDiagnostics() {
+  const diagnostics = {
+    hasLocalAuthToken: !!localStorage.getItem('sb-uqumzjmyejlhoyliyesu-auth-token'),
+    hasSessionAuthToken: !!sessionStorage.getItem('sb-uqumzjmyejlhoyliyesu-auth-token'),
+    hasRedirectInitiated: !!localStorage.getItem('auth_redirect_initiated'),
+    hasRedirectTime: !!localStorage.getItem('auth_redirect_time'),
+    redirectTime: localStorage.getItem('auth_redirect_time'),
+    authProvider: localStorage.getItem('auth_provider'),
+    hasPkceVerifierLocal: !!localStorage.getItem('pkce_code_verifier'),
+    hasPkceVerifierSession: !!sessionStorage.getItem('pkce_code_verifier'),
+    timestamp: new Date().toISOString()
+  };
   
-  try {
-    console.log('Checking if profile exists for user:', userId);
-    
-    // בדיקה אם קיים פרופיל
-    const { data: existingProfile, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-      
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error checking profile:', error);
-      return null;
-    }
-    
-    // אם קיים פרופיל, החזר אותו
-    if (existingProfile) {
-      console.log('Profile exists:', existingProfile.id);
-      return existingProfile;
-    }
-    
-    // אם אין פרופיל, נסה לקבל פרטי משתמש
-    const { data: userData } = await supabase.auth.getUser();
-    
-    if (!userData?.user) {
-      console.error('No user data available for profile creation');
-      return null;
-    }
-    
-    const user = userData.user;
-    
-    // הכנת פרטי הפרופיל
-    const name = user.user_metadata?.name || 
-                user.user_metadata?.full_name || 
-                user.email?.split('@')[0] || 'משתמש';
-    
-    const avatarUrl = user.user_metadata?.avatar_url || 
-                      user.user_metadata?.picture || 
-                      null;
-                      
-    // יצירת פרופיל חדש
-    const { data, error: insertError } = await supabase
-      .from('profiles')
-      .insert({
-        id: userId,
-        name,
-        email: user.email,
-        avatar_url: avatarUrl,
-        role: 'coordinator',
-        language: 'he',
-        settings: {},
-        notification_settings: {},
-        shabbat_mode: false,
-        encoding_support: true
-      })
-      .select()
-      .single();
-      
-    if (insertError) {
-      console.error('Failed to create profile:', insertError);
-      return null;
-    }
-    
-    console.log('Profile created successfully:', data);
-    return data;
-  } catch (err) {
-    console.error('Error in checkAndHandleProfileCreation:', err);
-    return null;
-  }
+  log.info('Auth diagnostics:', diagnostics);
+  return diagnostics;
 }
+
+// Exporting a default for backward compatibility
+export default supabase;

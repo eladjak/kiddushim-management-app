@@ -2,127 +2,82 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
-import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
-import type { RoleType } from "@/types/profile";
 
-/**
- * Hook to handle profile creation
- */
 export function useProfileCreator() {
   const [isCreating, setIsCreating] = useState(false);
-  const { toast } = useToast();
   const log = logger.createLogger({ component: 'useProfileCreator' });
 
-  /**
-   * Create a new profile for a user
-   */
   const createProfile = async (userId: string, user: User) => {
+    setIsCreating(true);
+    log.info("Creating new profile for user:", { userId });
+
     try {
-      setIsCreating(true);
-      log.info("Creating profile for user", { userId });
+      // Extract user data for profile creation
+      const email = user.email;
+      const name = user.user_metadata?.name || user.user_metadata?.full_name || email?.split('@')[0] || 'משתמש חדש';
+      const avatar_url = user.user_metadata?.avatar_url || null;
       
-      // First check if profile already exists
-      const { data: existingProfile, error: checkError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
+      // Default role for new users
+      const role = 'youth_volunteer';
       
-      if (checkError && checkError.code !== 'PGRST116') {
-        log.error("Error checking existing profile:", { error: checkError });
-        toast({
-          variant: "destructive",
-          description: "שגיאה בבדיקת פרופיל קיים. אנא נסה שוב מאוחר יותר.",
-        });
+      const profileData = {
+        id: userId,
+        email,
+        name,
+        avatar_url,
+        role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        settings: {},
+        notification_settings: {},
+        language: 'he',
+        shabbat_mode: false,
+        encoding_support: true
+      };
+
+      // Insert profile with explicit API key in headers to ensure authorization
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select();
+
+      if (error) {
+        log.error("Error creating profile:", { error, userId });
+        
+        // Try to identify specific issues
+        if (error.message.includes('duplicate key')) {
+          log.info("Profile already exists, attempting to fetch it instead");
+          const { data: existingProfile, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+            
+          if (fetchError) {
+            log.error("Error fetching existing profile:", fetchError);
+            setIsCreating(false);
+            return null;
+          }
+          
+          log.info("Successfully fetched existing profile");
+          setIsCreating(false);
+          return existingProfile;
+        }
+        
         setIsCreating(false);
         return null;
       }
-      
-      if (existingProfile) {
-        log.info("Profile already exists:", { profileId: existingProfile.id });
-        return existingProfile;
-      }
 
-      // Get user metadata
-      const name = user.user_metadata?.name || 
-                  user.user_metadata?.full_name || 
-                  user.email?.split('@')[0] || 'משתמש';
-      
-      const avatarUrl = user.user_metadata?.avatar_url || 
-                      user.user_metadata?.picture || 
-                      null;
-      
-      // Try to determine language based on name - if contains Hebrew chars, use he
-      const hasHebrewChars = /[\u0590-\u05FF]/.test(name);
-      
-      // Ensure role is one of the valid enum values
-      const defaultRole: RoleType = 'coordinator';
-
-      // Create the new profile
-      const profileData = {
-        id: userId,
-        name: name,
-        email: user.email,
-        language: hasHebrewChars ? 'he' : 'en',
-        role: defaultRole,
-        shabbat_mode: false,
-        avatar_url: avatarUrl,
-        encoding_support: true,
-        settings: {},
-        notification_settings: {}
-      };
-
-      log.info("Creating profile with data:", { profile: profileData });
-      
-      const { error: insertError, data } = await supabase
-        .from("profiles")
-        .insert(profileData)
-        .select()
-        .single();
-      
-      if (insertError) {
-        // If it's not a duplicate key error
-        if (insertError.code !== '23505') {
-          log.error("Error creating profile:", { error: insertError });
-          toast({
-            variant: "destructive",
-            description: "שגיאה ביצירת פרופיל. אנא נסה להתחבר מחדש.",
-          });
-          setIsCreating(false);
-          return null;
-        }
-        
-        // If duplicate key, profile exists, fetch it
-        log.info("Profile already exists (duplicate key), fetching it");
-        const { data: existingProfile, error: fetchError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
-          
-        if (fetchError) {
-          log.error("Error fetching existing profile:", { error: fetchError });
-          setIsCreating(false);
-          return null;
-        }
-        
-        setIsCreating(false);
-        return existingProfile;
-      }
-      
       log.info("Profile created successfully");
       setIsCreating(false);
-      return data;
+      return data?.[0];
     } catch (error) {
-      log.error("Error in profile creation:", { error });
+      log.error("Unexpected error creating profile:", error);
       setIsCreating(false);
       return null;
     }
   };
 
-  return {
-    createProfile,
-    isCreating
-  };
+  return { createProfile, isCreating };
 }

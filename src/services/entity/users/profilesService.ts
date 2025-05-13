@@ -7,6 +7,7 @@ import type { UserProfile, RoleType } from '@/types/profile';
  */
 export async function getProfile(id: string): Promise<UserProfile> {
   console.log(`Fetching user profile for id: ${id}`);
+  
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -45,7 +46,10 @@ export async function updateProfile(id: string, profileData: Partial<UserProfile
   
   const { data, error } = await supabase
     .from('profiles')
-    .update(profileData)
+    .update({
+      ...profileData,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', id)
     .select()
     .single();
@@ -112,4 +116,23 @@ export async function updateRole(id: string, role: RoleType): Promise<UserProfil
     shabbat_mode: data.shabbat_mode || false,
     encoding_support: data.encoding_support || true
   };
+}
+
+/**
+ * בדיקה האם פרופיל קיים
+ */
+export async function checkProfileExists(id: string): Promise<boolean> {
+  console.log(`Checking if profile exists for user ${id}`);
+  
+  const { data, error, count } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact' })
+    .eq('id', id);
+    
+  if (error) {
+    console.error(`Error checking if profile exists for ${id}:`, error);
+    return false;
+  }
+  
+  return (count || 0) > 0;
 }

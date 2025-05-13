@@ -11,6 +11,7 @@ import { useProfileCreation } from "@/hooks/index/useProfileCreation";
 import { useLoadingState } from "@/hooks/index/useLoadingState";
 import { useDirectSessionCheck } from "@/hooks/index/useDirectSessionCheck";
 import { useDebugMode } from "@/hooks/index/useDebugMode";
+import { useAutoProfileCreation } from "@/hooks/auth/useAutoProfileCreation";
 import { DebugPanel } from "@/components/index/DebugPanel";
 import { DebugModeToggle } from "@/components/index/DebugModeToggle";
 
@@ -20,6 +21,9 @@ const Index = () => {
   
   // Handle redirects for OAuth callback URLs
   useAuthRedirect();
+  
+  // Auto-create profile if user is authenticated but has no profile
+  useAutoProfileCreation();
   
   // Check session directly to help with debugging
   const { directSessionInfo } = useDirectSessionCheck(user);
