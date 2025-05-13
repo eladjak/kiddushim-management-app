@@ -5,11 +5,11 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
 import { FcGoogle } from "react-icons/fc";
-import { generateSafePKCEString } from "@/utils/encodingUtils";
+import { generateSafePKCEString, storeCodeVerifier } from "@/utils/encodingUtils";
 
 /**
  * Google authentication button component
- * Handles the Google OAuth sign-in flow
+ * Handles the Google OAuth sign-in flow with improved Hebrew support
  */
 export const GoogleAuthButton = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,10 +34,10 @@ export const GoogleAuthButton = () => {
   };
 
   /**
-   * Initiates Google Sign In flow
+   * Initiates Google Sign In flow with improved PKCE handling
    */
   const handleGoogleSignIn = async () => {
-    // Prevent multiple clicks
+    // מניעת לחיצות מרובות
     if (authInProgressRef.current || isLoading) return;
     
     log.info('מתחיל תהליך התחברות עם Google');
@@ -46,7 +46,7 @@ export const GoogleAuthButton = () => {
       setIsLoading(true);
       authInProgressRef.current = true;
       
-      // Clean up existing auth data and session
+      // ניקוי נתוני אימות קודמים לפני תחילת תהליך חדש
       try {
         clearAuthStorage();
         log.info('ניקוי מצב אימות קודם הסתיים בהצלחה');
@@ -54,22 +54,19 @@ export const GoogleAuthButton = () => {
         log.warn('שגיאה בניקוי מצב אימות:', { error: signOutError });
       }
       
-      // Small delay before starting new process
+      // השהייה קצרה לפני התחלת תהליך חדש
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Get proper redirect URL with www prefix if needed
+      // קבלת כתובת הפניה מתאימה עם קידומת www אם נדרש
       const redirectTo = getRedirectUrl();
       
-      // Generate a code verifier for PKCE - שימוש בפונקציה הבטוחה שלנו עם תמיכה בעברית
-      const codeVerifier = generateSafePKCEString(64);
+      // יצירת code verifier עבור PKCE - שימוש בפונקציה הבטוחה שתומכת בעברית
+      // הגדלנו מ-64 ל-96 כדי להגדיל אנטרופיה
+      const codeVerifier = generateSafePKCEString(96);
       
       try {
-        // Store in localStorage instead of sessionStorage for better persistence
-        localStorage.setItem('supabase-code-verifier', codeVerifier);
-        localStorage.setItem('code-verifier-timestamp', Date.now().toString());
-        
-        // Also store in sessionStorage as backup
-        sessionStorage.setItem('supabase-code-verifier', codeVerifier);
+        // שמירת מפתח ה-code verifier בכל דרך אפשרית לשרידות
+        storeCodeVerifier(codeVerifier);
         
         log.info('נוצר ונשמר code verifier עבור PKCE', { 
           verifierLength: codeVerifier.length,
@@ -79,10 +76,10 @@ export const GoogleAuthButton = () => {
         log.error('שגיאה בשמירת code verifier:', { error: storageError });
       }
       
-      // Configure auth provider with appropriate flow
+      // קביעת ספק האימות עם הפרמטרים המתאימים
       configureAuthProvider('google');
       
-      // Initiate OAuth flow with detailed options
+      // התחלת תהליך האימות עם אפשרויות מפורטות
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -93,7 +90,9 @@ export const GoogleAuthButton = () => {
             access_type: 'offline', 
             prompt: 'select_account',
             hd: '*', // לאפשר כל דומיין
-            hl: 'he' // הגדרת שפה לעברית
+            hl: 'he', // הגדרת שפה לעברית
+            // הוספת חותמת זמן כדי למנוע קישוי
+            t: Date.now().toString()
           }
         }
       });
@@ -115,17 +114,25 @@ export const GoogleAuthButton = () => {
         description: "מועבר להתחברות עם Google...",
       });
       
-      // Store auth state info for reliability
+      // שמירת מידע על מצב האימות לאמינות
       try {
         const timestamp = new Date().toISOString();
         localStorage.setItem('auth_redirect_initiated', 'true');
         localStorage.setItem('auth_redirect_time', timestamp);
         localStorage.setItem('auth_provider', 'google');
+        
+        // הוספת ספירת ניסיונות לזיהוי לולאות
+        const redirectCount = parseInt(localStorage.getItem('auth_redirect_count') || '0');
+        localStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
+        
+        // העברת ה-code verifier גם לפרמטר בשם אחר למקרה של בעיות
+        localStorage.setItem('pkce_code_verifier', codeVerifier);
+        sessionStorage.setItem('pkce_code_verifier', codeVerifier);
       } catch (e) {
         log.error('לא ניתן לשמור מצב אימות לאחסון', { error: e });
       }
       
-      // Navigate to Google auth URL
+      // מעבר לכתובת האימות של Google
       window.location.href = data.url;
       
     } catch (error: any) {
@@ -142,7 +149,7 @@ export const GoogleAuthButton = () => {
         description: errorMessage,
       });
       
-      // Reset state
+      // איפוס המצב
       setIsLoading(false);
       authInProgressRef.current = false;
     }

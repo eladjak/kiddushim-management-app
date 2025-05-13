@@ -4,7 +4,7 @@ import { logger } from "@/utils/logger";
 import { supabase } from "@/integrations/supabase/client";
 import { ToastType } from "./types";
 import { showToast } from "./toastHelpers";
-import { safeEncode, safeDecode } from "@/utils/encodingUtils";
+import { retrieveCodeVerifier } from "@/utils/encodingUtils";
 
 /**
  * החלפת קוד אימות לסשן תקף
@@ -29,9 +29,8 @@ export async function handleAuthCode(
     
     log.info("מחליף קוד אימות לסשן", { codeSource });
     
-    // בדיקה אם קיים code verifier באחסון
-    let codeVerifier = localStorage.getItem('supabase-code-verifier') || 
-                       sessionStorage.getItem('supabase-code-verifier');
+    // בדיקה אם קיים code verifier באחסון - עם שיטת האחזור המשופרת
+    let codeVerifier = retrieveCodeVerifier();
     
     // לוג מצב ה-code verifier
     log.info("סטטוס code verifier:", {
@@ -97,6 +96,7 @@ export async function handleAuthCode(
 
 /**
  * פונקצית גיבוי לניסיון החלפת קוד אימות לסשן כאשר PKCE נכשל
+ * עם טיפול משופר בשגיאות ונסיונות מרובים
  */
 async function fallbackAuthCodeExchange(
   code: string, 
@@ -109,7 +109,7 @@ async function fallbackAuthCodeExchange(
   try {
     log.info("מנסה החלפת קוד ללא PKCE כגיבוי", { codeSource });
     
-    // השתמש ב-env variables במקום גישה ישירה לתכונות מוגנות
+    // השתמש במשתני סביבה במקום גישה ישירה לתכונות מוגנות
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
@@ -119,9 +119,9 @@ async function fallbackAuthCodeExchange(
     }
     
     // בניית ה-URL להחלפת הקוד
-    const tokenExchangeUrl = `${supabaseUrl}/auth/v1/token?grant_type=pkce`;
+    const tokenExchangeUrl = `${supabaseUrl}/auth/v1/token?grant_type=authorization_code`;
     
-    // בניית הבקשה
+    // בניית הבקשה - ננסה גם עם וגם בלי code_verifier
     const response = await fetch(tokenExchangeUrl, {
       method: 'POST',
       headers: {
@@ -130,7 +130,6 @@ async function fallbackAuthCodeExchange(
       },
       body: JSON.stringify({
         code: code,
-        code_verifier: '', // אופציונלי, ננסה בלעדיו
       })
     });
     
@@ -172,11 +171,22 @@ async function fallbackAuthCodeExchange(
       }
     } else {
       // במקרה של שגיאה, ניסיון קריאה לתוכן התגובה
-      const errorText = await response.text();
+      let errorText = "";
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        errorText = "לא ניתן לקרוא את גוף התגובה";
+      }
+      
       log.error("שגיאה בקריאה ישירה ל-API:", { 
         status: response.status,
         error: errorText
       });
+      
+      // אם קיבלנו 400, ננסה בשיטה חלופית נוספת
+      if (response.status === 400) {
+        return await tryPKCEDirectly(code, navigate, toastHelper);
+      }
     }
     
     // אם הגענו לכאן, כל הניסיונות נכשלו
@@ -184,6 +194,47 @@ async function fallbackAuthCodeExchange(
     return false;
   } catch (err) {
     log.error("שגיאה כללית ב-fallbackAuthCodeExchange:", { error: err });
+    return false;
+  }
+}
+
+/**
+ * ניסיון נוסף להחלפת הקוד עם PKCE ישירות
+ */
+async function tryPKCEDirectly(
+  code: string,
+  navigate: NavigateFunction,
+  toastHelper: ToastType
+): Promise<boolean> {
+  const log = logger.createLogger({ component: 'tryPKCEDirectly' });
+  
+  try {
+    log.info("מנסה שיטה חלופית לאימות");
+    
+    // החלף את הקוד ישירות עם ספריית סופהבייס
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (error) {
+      log.error("נסיון ישיר נוסף נכשל:", error);
+      return false;
+    }
+    
+    if (data.session) {
+      log.info("הצלחה עם נסיון ישיר אחרון");
+      
+      showToast(toastHelper, "התחברת בהצלחה");
+      
+      // ניווט לדף הבית
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 300);
+      
+      return true;
+    }
+    
+    return false;
+  } catch (err) {
+    log.error("שגיאה בניסיון אחרון של החלפת קוד:", err);
     return false;
   }
 }

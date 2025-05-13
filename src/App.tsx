@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -84,6 +83,9 @@ function AppWithAdminCheck() {
       <Route path="/reports" element={<AuthenticatedLayout><Reports /></AuthenticatedLayout>} />
       <Route path="/equipment" element={<AuthenticatedLayout><Equipment /></AuthenticatedLayout>} />
       <Route path="/profile" element={<AuthenticatedLayout><UserProfile /></AuthenticatedLayout>} />
+      
+      {/* הוסף את TimelinePDF לניתובים */}
+      <Route path="/timeline-pdf" element={<TimelinePDF />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
