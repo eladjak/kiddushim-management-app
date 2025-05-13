@@ -34,11 +34,7 @@ export const authService = {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: options ? {
-        // העברת מידע נוסף באופן בטוח בהתאם לממשק של supabase
-        ...(options.data && { data: options.data }),
-        ...(options.emailRedirectTo && { emailRedirectTo: options.emailRedirectTo })
-      } : undefined
+      // הסרת עטיפת options שגרמה לשגיאת טיפוס
     });
 
     if (error) throw error;
