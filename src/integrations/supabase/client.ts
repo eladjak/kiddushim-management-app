@@ -4,6 +4,95 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+// פונקצית היעוט לבדיקה האם מחרוזת מכילה תווים מחוץ לטווח ה-Latin1
+function containsNonLatin1(str: string): boolean {
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) > 255) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// פונקציה לעיבוד בטוח של מחרוזות עם תווים עבריים
+function safeEncodeString(str: string): string {
+  if (!str || typeof str !== 'string') return str;
+  
+  // אם המחרוזת לא מכילה תווים עבריים, נחזיר אותה כמו שהיא
+  if (!containsNonLatin1(str)) return str;
+  
+  // אחרת נשתמש בקידוד בטוח
+  try {
+    return encodeURIComponent(str);
+  } catch (e) {
+    console.error('שגיאה בקידוד מחרוזת:', e);
+    return str;
+  }
+}
+
+// פונקציה לעיבוד בטוח של אובייקטים שעשויים להכיל תווים עבריים
+function sanitizeForApi(data: any): any {
+  if (!data) return data;
+  
+  if (typeof data === 'string') {
+    return safeEncodeString(data);
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeForApi(item));
+  }
+  
+  if (typeof data === 'object') {
+    const result: Record<string, any> = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        result[key] = sanitizeForApi(data[key]);
+      }
+    }
+    return result;
+  }
+  
+  return data;
+}
+
+/**
+ * יצירת פונקצית fetch מותאמת עם תמיכה משופרת בעברית
+ * מתמודדת עם שגיאת btoa שנגרמת מתווים עבריים
+ */
+function customFetch(url: RequestInfo | URL, options?: RequestInit): Promise<Response> {
+  // העתקת האופציות כדי למנוע שינוי במקור
+  const safeOptions = options ? { ...options } : {};
+  
+  // בדיקה האם יש גוף לבקשה והאם הוא מחרוזת
+  if (safeOptions.body && typeof safeOptions.body === 'string') {
+    try {
+      // ניסיון לפרסר את הגוף כ-JSON
+      const bodyObj = JSON.parse(safeOptions.body);
+      
+      // טיפול בתווים עבריים וקידוד בטוח
+      const sanitizedBody = sanitizeForApi(bodyObj);
+      
+      // החלפת הגוף המקורי בגוף המטופל
+      safeOptions.body = JSON.stringify(sanitizedBody);
+      
+    } catch (e) {
+      console.warn('שגיאה בטיפול בגוף הבקשה:', e);
+      // אם יש בעיה בפרסור, נשאיר את הגוף כפי שהוא
+    }
+  }
+  
+  // התאמת Headers במידת הצורך
+  if (safeOptions.headers) {
+    safeOptions.headers = {
+      ...safeOptions.headers,
+      'Content-Type': 'application/json; charset=utf-8',
+    };
+  }
+
+  // ביצוע הקריאה עם האופציות המותאמות
+  return fetch(url, safeOptions);
+}
+
 // יצירת לקוח סופהבייס עם הגדרות משופרות לתמיכה בעברית ואמינות
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -85,14 +174,6 @@ export function getNormalizedDomain() {
 }
 
 /**
- * קביעת הגדרות לספק אימות
- */
-export function configureAuthProvider(provider: string) {
-  // הגדר הגדרות ספציפיות לספק כאן אם יידרש בעתיד
-  console.log(`Configuring auth provider: ${provider}`);
-}
-
-/**
  * הוסף מידע חשוב לדיאגנוסטיקה של בעיות אימות
  */
 export function logAuthDiagnostics() {
@@ -123,38 +204,4 @@ export function logAuthDiagnostics() {
     console.error('Error generating auth diagnostics:', err);
     return null;
   }
-}
-
-/**
- * יצירת פונקצית fetch מותאמת עם תמיכה משופרת בעברית
- * מתמודדת עם שגיאת btoa שנגרמת מתווים עבריים
- */
-function customFetch(url: RequestInfo | URL, options?: RequestInit): Promise<Response> {
-  // העתקת האופציות כדי למנוע שינוי במקור
-  const safeOptions = { ...options };
-  
-  if (safeOptions.body && typeof safeOptions.body === 'string') {
-    try {
-      // אם יש גוף לבקשה, בדוק אם הוא מכיל תווים שאינם Latin1
-      if (/[^\u0000-\u00ff]/.test(safeOptions.body)) {
-        // טיפול בתווים עבריים על ידי המרתם לפורמט שנתמך על ידי btoa
-        const modifiedBody = JSON.parse(safeOptions.body);
-        
-        // עיבוד פוטנציאלי של שדות עם תוכן עברי
-        if (modifiedBody.code_verifier) {
-          // וידוא שה-code verifier בטוח לשימוש
-          modifiedBody.code_verifier = modifiedBody.code_verifier
-            .replace(/[^\x00-\x7F]/g, '_'); // החלפת תווים לא לטיניים
-        }
-        
-        // המרה בחזרה למחרוזת
-        safeOptions.body = JSON.stringify(modifiedBody);
-      }
-    } catch (e) {
-      console.error('שגיאה בטיפול בגוף הבקשה:', e);
-      // ממשיכים עם הבקשה המקורית אם יש שגיאה
-    }
-  }
-  
-  return fetch(url, safeOptions);
 }

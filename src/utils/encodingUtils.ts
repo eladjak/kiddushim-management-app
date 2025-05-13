@@ -59,6 +59,39 @@ export function safeDecode(encoded: string): string {
 }
 
 /**
+ * בדיקה האם מחרוזת מכילה תווים שמחוץ לטווח Latin1
+ */
+export function containsNonLatin1Chars(str: string): boolean {
+  if (!str) return false;
+  
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) > 255) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * טיפול במחרוזות שעלולות להכיל תווים עבריים
+ * הפונקציה מוודאת שמחרוזות עם תווים עבריים מטופלות כראוי
+ */
+export function sanitizeHebrewString(str: string): string {
+  if (!str || !containsNonLatin1Chars(str)) {
+    return str;
+  }
+  
+  // אם יש תווים עבריים, נקודד את המחרוזת
+  try {
+    return safeEncode(str);
+  } catch (e) {
+    console.error('שגיאה בטיפול במחרוזת עברית:', e);
+    return str;
+  }
+}
+
+/**
  * שמירת מפתח אימות PKCE במספר מקומות שונים להגברת השרידות
  */
 export function storeCodeVerifier(codeVerifier: string): void {
@@ -113,4 +146,36 @@ export function retrieveCodeVerifier(): string | null {
     console.error('Error retrieving code verifier:', error);
     return null;
   }
+}
+
+/**
+ * עיבוד אובייקט לקידוד בטוח למקרה שיש בו תווים עבריים 
+ * הפונקציה עוברת על כל השדות באובייקט באופן רקורסיבי
+ */
+export function sanitizeObjectForApi(obj: any): any {
+  if (!obj) return obj;
+  
+  // אם זה מחרוזת, נטפל בה ישירות
+  if (typeof obj === 'string') {
+    return sanitizeHebrewString(obj);
+  }
+  
+  // אם זה מערך, נעבד כל פריט בנפרד
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeObjectForApi(item));
+  }
+  
+  // אם זה אובייקט, נעבד כל שדה בנפרד
+  if (typeof obj === 'object') {
+    const result: Record<string, any> = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = sanitizeObjectForApi(obj[key]);
+      }
+    }
+    return result;
+  }
+  
+  // ערכים אחרים (מספרים, בוליאנים וכו') נחזיר כפי שהם
+  return obj;
 }

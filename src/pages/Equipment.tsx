@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Footer } from "@/components/layout/Footer";
 import type { Database } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 // Define types explicitly to fix type errors
 type EquipmentType = Database["public"]["Tables"]["equipment"]["Row"];
@@ -25,25 +26,38 @@ const Equipment = () => {
   const [isPendingChangesOpen, setIsPendingChangesOpen] = useState(false);
   const queryClient = useQueryClient();
   const isAdmin = profile?.role === 'admin';
+  const log = logger.createLogger({ component: 'Equipment' });
 
   const { data: equipment, isLoading } = useQuery({
     queryKey: ["equipment"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("equipment")
-        .select("*")
-        .order("name");
-      
-      if (error) {
+      log.info("Fetching equipment");
+      try {
+        const { data, error } = await supabase
+          .from("equipment")
+          .select("*")
+          .order("name");
+        
+        if (error) {
+          log.error("Error fetching equipment", { error });
+          toast({
+            variant: "destructive",
+            description: `שגיאה בטעינת הציוד: ${error.message}`,
+          });
+          throw error;
+        }
+        
+        log.info(`Fetched ${data?.length || 0} equipment items`);
+        // Use explicit type casting to fix the type error
+        return (data || []) as EquipmentType[];
+      } catch (err) {
+        log.error("Unexpected error fetching equipment", { err });
         toast({
           variant: "destructive",
-          description: "שגיאה בטעינת הציוד",
+          description: "אירעה שגיאה בטעינת נתוני הציוד",
         });
-        throw error;
+        return [];
       }
-      
-      // Use explicit type casting to fix the type error
-      return (data || []) as EquipmentType[];
     },
   });
 
@@ -52,29 +66,46 @@ const Equipment = () => {
     queryFn: async () => {
       if (!isAdmin) return 0;
       
-      const { count, error } = await supabase
-        .from("equipment_changes")
-        .select("*", { count: 'exact', head: true })
-        .eq("status", "pending" as EquipmentChangeStatus);
-      
-      if (error) {
-        console.error("Error fetching pending changes count:", error);
+      try {
+        const { count, error } = await supabase
+          .from("equipment_changes")
+          .select("*", { count: 'exact', head: true })
+          .eq("status", "pending" as EquipmentChangeStatus);
+        
+        if (error) {
+          log.error("Error fetching pending changes count", { error });
+          return 0;
+        }
+        
+        return count || 0;
+      } catch (err) {
+        log.error("Unexpected error fetching pending changes", { err });
         return 0;
       }
-      
-      return count || 0;
     },
     enabled: isAdmin,
   });
 
   const addEquipmentMutation = useMutation({
     mutationFn: async (newEquipment: EquipmentInsertType) => {
+      log.info("Adding new equipment", { name: newEquipment.name });
+      
+      // Validate the data before sending to the API
+      if (!newEquipment.name) {
+        throw new Error("שם הציוד לא יכול להיות ריק");
+      }
+      
       const { data, error } = await supabase
         .from("equipment")
         .insert(newEquipment)
         .select();
         
-      if (error) throw error;
+      if (error) {
+        log.error("Error adding equipment", { error, newEquipment });
+        throw error;
+      }
+      
+      log.info("Successfully added equipment", { id: data?.[0]?.id });
       return data;
     },
     onSuccess: () => {
@@ -85,9 +116,10 @@ const Equipment = () => {
       setIsAddDialogOpen(false);
     },
     onError: (error: any) => {
+      log.error("Failed to add equipment", { error });
       toast({
         variant: "destructive",
-        description: `שגיאה בהוספת הציוד: ${error.message}`,
+        description: `שגיאה בהוספת הציוד: ${error.message || 'שגיאה לא ידועה'}`,
       });
     }
   });

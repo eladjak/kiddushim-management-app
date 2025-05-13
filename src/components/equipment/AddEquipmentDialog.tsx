@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
 // Define the equipment insert type based on the Database type
@@ -46,6 +47,7 @@ export function AddEquipmentDialog({
   onSubmit, 
   isSubmitting 
 }: AddEquipmentDialogProps) {
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,16 +60,24 @@ export function AddEquipmentDialog({
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // Ensure name is treated as a required field when submitting to match the database requirements
-    const equipmentData: EquipmentInsert = {
-      name: values.name, // This is always required
-      description: values.description || null,
-      quantity: values.quantity,
-      location: values.location || null,
-      status: values.status,
-    };
-    
-    onSubmit(equipmentData);
+    try {
+      // Ensure name is treated as a required field when submitting to match the database requirements
+      const equipmentData: EquipmentInsert = {
+        name: values.name, // This is always required
+        description: values.description || null,
+        quantity: values.quantity,
+        location: values.location || null,
+        status: values.status,
+      };
+      
+      onSubmit(equipmentData);
+    } catch (error) {
+      console.error("Error preparing equipment data:", error);
+      toast({
+        variant: "destructive",
+        description: "אירעה שגיאה בהכנת נתוני הציוד",
+      });
+    }
   };
 
   return (
