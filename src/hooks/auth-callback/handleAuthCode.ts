@@ -32,6 +32,23 @@ export async function handleAuthCode(
     // בדיקה אם קיים code verifier באחסון - עם שיטת האחזור המשופרת
     let codeVerifier = retrieveCodeVerifier();
     
+    // יצירת verifier חדש אם צריך (יכול להיות פתרון חירום)
+    if (!codeVerifier) {
+      try {
+        // מנסים להשתמש בקוד ישירות - זה עובד במקרים מסוימים
+        const directCodeTry = await supabase.auth.exchangeCodeForSession(code);
+        if (directCodeTry.data.session) {
+          log.info("הצלחה בהחלפת קוד ישירה ללא verifier");
+          showToast(toastHelper, "התחברת בהצלחה");
+          navigate("/", { replace: true });
+          return true;
+        }
+      } catch (directError) {
+        log.error("שגיאה בניסיון החלפה ישירה:", { error: directError });
+        // ממשיכים לניסיון הבא
+      }
+    }
+    
     // לוג מצב ה-code verifier
     log.info("סטטוס code verifier:", {
       exists: !!codeVerifier,
@@ -42,6 +59,10 @@ export async function handleAuthCode(
     if (codeVerifier) {
       // החלפה רגילה עם PKCE
       try {
+        // כדי למנוע בעיות אינקודינג עם עברית, נוודא שה-verifier מכיל רק תווים לטיניים
+        codeVerifier = codeVerifier.replace(/[^\x00-\x7F]/g, '_');
+        
+        // העברת הקוד ב-codeVerifier לספהבייס
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         
         if (error) {
@@ -51,14 +72,20 @@ export async function handleAuthCode(
             errorMessage: error.message 
           });
           
-          if (error.message.includes('both auth code and code verifier') || 
-              error.message.includes('pkce')) {
-            // במקרה של שגיאת PKCE, ננסה ללא verifier
-            log.info("שגיאת PKCE התגלתה, מנסה ללא code verifier");
-          } else {
-            // שגיאה אחרת, אולי ננסה עם API ישירות
-            return await fallbackAuthCodeExchange(code, codeSource, navigate, toastHelper);
+          // ניסיון חלופי - מעבר לדף הבית
+          if (error.message.includes('expired') || error.message.includes('used')) {
+            log.info("הקוד פג תוקף או כבר נוצל, מנסה לבדוק אם יש סשן פעיל");
+            const sessionCheck = await supabase.auth.getSession();
+            if (sessionCheck.data.session) {
+              log.info("מצאנו סשן פעיל למרות השגיאה");
+              showToast(toastHelper, "התחברת בהצלחה");
+              navigate("/", { replace: true });
+              return true;
+            }
           }
+          
+          // אם הגענו לכאן, ננסה שיטה חילופית
+          return await fallbackAuthCodeExchange(code, codeSource, navigate, toastHelper);
         } else if (data.session) {
           log.info("הסשן נוצר בהצלחה עם PKCE", { userId: data.session.user.id });
           
@@ -109,6 +136,32 @@ async function fallbackAuthCodeExchange(
   try {
     log.info("מנסה החלפת קוד ללא PKCE כגיבוי", { codeSource });
     
+    // בדיקה אם יש לנו סשן פעיל כבר
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        log.info("נמצא סשן פעיל, מנווט לדף הבית");
+        showToast(toastHelper, "התחברת בהצלחה");
+        navigate("/", { replace: true });
+        return true;
+      }
+    } catch (sessionError) {
+      log.error("שגיאה בבדיקת סשן קיים:", sessionError);
+    }
+    
+    // לפני שננסה עוד דברים, ננסה שוב החלפת קוד ישירה
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error && data.session) {
+        log.info("הצלחה בניסיון נוסף של החלפת קוד");
+        showToast(toastHelper, "התחברת בהצלחה");
+        navigate("/", { replace: true });
+        return true;
+      }
+    } catch (retryError) {
+      log.error("שגיאה בניסיון חוזר של החלפת קוד:", retryError);
+    }
+    
     // השתמש במשתני סביבה במקום גישה ישירה לתכונות מוגנות
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -118,123 +171,71 @@ async function fallbackAuthCodeExchange(
       return false;
     }
     
-    // בניית ה-URL להחלפת הקוד
-    const tokenExchangeUrl = `${supabaseUrl}/auth/v1/token?grant_type=authorization_code`;
-    
-    // בניית הבקשה - ננסה גם עם וגם בלי code_verifier
-    const response = await fetch(tokenExchangeUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseAnonKey
-      },
-      body: JSON.stringify({
-        code: code,
-      })
-    });
-    
-    // עיבוד התגובה
-    if (response.ok) {
-      const tokenData = await response.json();
+    // אם עדיין לא הצלחנו, ננסה דרך צריכת הAPI ישירות
+    try {
+      // ניסיון לצרוך את API הטוקן ישירות - לפעמים עוזר במקרים של PKCE עם בעיות
+      const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=authorization_code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'X-Client-Info': 'supabase-js/2.48.1'
+        },
+        body: JSON.stringify({
+          code: code,
+          code_verifier: '' // השארת verifier ריק עוזר במקרים מסוימים
+        })
+      });
       
-      if (tokenData.access_token) {
-        log.info("קבלת טוקן ישירה הצליחה, מגדיר סשן", {
-          tokenLength: tokenData.access_token.length,
-          hasRefreshToken: !!tokenData.refresh_token
-        });
+      // עיבוד התגובה
+      if (response.ok) {
+        const tokenData = await response.json();
         
-        // הגדרת הסשן עם הטוקן שקיבלנו
-        const { data, error } = await supabase.auth.setSession({
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token || '',
-        });
-        
-        if (error) {
-          log.error("שגיאה בהגדרת הסשן מטוקנים שהתקבלו:", error);
-          return false;
-        }
-        
-        if (data.session) {
-          log.info("סשן הוגדר בהצלחה", { userId: data.session.user.id });
+        if (tokenData.access_token) {
+          log.info("קבלת טוקן ישירה הצליחה, מגדיר סשן", {
+            tokenLength: tokenData.access_token.length,
+            hasRefreshToken: !!tokenData.refresh_token
+          });
+          
+          // הגדרת הסשן עם הטוקן שקיבלנו
+          await supabase.auth.setSession({
+            access_token: tokenData.access_token,
+            refresh_token: tokenData.refresh_token || '',
+          });
           
           showToast(toastHelper, "התחברת בהצלחה");
-          
-          // ניווט לדף הבית
-          setTimeout(() => {
-            navigate("/", { replace: true });
-          }, 300);
-          
+          navigate("/", { replace: true });
           return true;
         }
       } else {
-        log.error("אין access_token בתגובה");
+        log.error("שגיאה בקריאה ישירה ל-API:", { 
+          status: response.status,
+          statusText: response.statusText
+        });
       }
-    } else {
-      // במקרה של שגיאה, ניסיון קריאה לתוכן התגובה
-      let errorText = "";
-      try {
-        errorText = await response.text();
-      } catch (e) {
-        errorText = "לא ניתן לקרוא את גוף התגובה";
+    } catch (err) {
+      log.error("שגיאה בגישה ישירה ל-API:", err);
+    }
+    
+    // בדיקה אחרונה אם בכל זאת יש לנו סשן
+    try {
+      const { data: finalCheck } = await supabase.auth.getSession();
+      if (finalCheck.session) {
+        log.info("נמצא סשן לאחר כל הניסיונות");
+        showToast(toastHelper, "התחברת בהצלחה");
+        navigate("/", { replace: true });
+        return true;
       }
-      
-      log.error("שגיאה בקריאה ישירה ל-API:", { 
-        status: response.status,
-        error: errorText
-      });
-      
-      // אם קיבלנו 400, ננסה בשיטה חלופית נוספת
-      if (response.status === 400) {
-        return await tryPKCEDirectly(code, navigate, toastHelper);
-      }
+    } catch (finalError) {
+      log.error("שגיאה בבדיקת סשן סופית:", finalError);
     }
     
     // אם הגענו לכאן, כל הניסיונות נכשלו
     log.error("כל ניסיונות החלפת הקוד נכשלו");
+    navigate("/auth", { replace: true });
     return false;
   } catch (err) {
     log.error("שגיאה כללית ב-fallbackAuthCodeExchange:", { error: err });
-    return false;
-  }
-}
-
-/**
- * ניסיון נוסף להחלפת הקוד עם PKCE ישירות
- */
-async function tryPKCEDirectly(
-  code: string,
-  navigate: NavigateFunction,
-  toastHelper: ToastType
-): Promise<boolean> {
-  const log = logger.createLogger({ component: 'tryPKCEDirectly' });
-  
-  try {
-    log.info("מנסה שיטה חלופית לאימות");
-    
-    // החלף את הקוד ישירות עם ספריית סופהבייס
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (error) {
-      log.error("נסיון ישיר נוסף נכשל:", error);
-      return false;
-    }
-    
-    if (data.session) {
-      log.info("הצלחה עם נסיון ישיר אחרון");
-      
-      showToast(toastHelper, "התחברת בהצלחה");
-      
-      // ניווט לדף הבית
-      setTimeout(() => {
-        navigate("/", { replace: true });
-      }, 300);
-      
-      return true;
-    }
-    
-    return false;
-  } catch (err) {
-    log.error("שגיאה בניסיון אחרון של החלפת קוד:", err);
     return false;
   }
 }

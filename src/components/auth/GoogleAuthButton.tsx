@@ -61,8 +61,8 @@ export const GoogleAuthButton = () => {
       const redirectTo = getRedirectUrl();
       
       // יצירת code verifier עבור PKCE - שימוש בפונקציה הבטוחה שתומכת בעברית
-      // הגדלנו מ-64 ל-96 כדי להגדיל אנטרופיה
-      const codeVerifier = generateSafePKCEString(96);
+      // הגדלנו מ-96 ל-128 לאנטרופיה חזקה יותר
+      const codeVerifier = generateSafePKCEString(128);
       
       try {
         // שמירת מפתח ה-code verifier בכל דרך אפשרית לשרידות
@@ -79,22 +79,23 @@ export const GoogleAuthButton = () => {
       // קביעת ספק האימות עם הפרמטרים המתאימים
       configureAuthProvider('google');
       
+      // סופבייס דורש מאיתנו לקבוע את סוג הזרימה
+      const options = {
+        redirectTo,
+        skipBrowserRedirect: false,
+        scopes: 'email profile',
+        queryParams: {
+          access_type: 'offline', 
+          prompt: 'select_account',
+          hd: '*', // לאפשר כל דומיין
+          hl: 'he', // הגדרת שפה לעברית
+        }
+      };
+      
       // התחלת תהליך האימות עם אפשרויות מפורטות
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo,
-          skipBrowserRedirect: false,
-          scopes: 'email profile',
-          queryParams: {
-            access_type: 'offline', 
-            prompt: 'select_account',
-            hd: '*', // לאפשר כל דומיין
-            hl: 'he', // הגדרת שפה לעברית
-            // הוספת חותמת זמן כדי למנוע קישוי
-            t: Date.now().toString()
-          }
-        }
+        options
       });
       
       if (error) {
@@ -120,10 +121,6 @@ export const GoogleAuthButton = () => {
         localStorage.setItem('auth_redirect_initiated', 'true');
         localStorage.setItem('auth_redirect_time', timestamp);
         localStorage.setItem('auth_provider', 'google');
-        
-        // הוספת ספירת ניסיונות לזיהוי לולאות
-        const redirectCount = parseInt(localStorage.getItem('auth_redirect_count') || '0');
-        localStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
         
         // העברת ה-code verifier גם לפרמטר בשם אחר למקרה של בעיות
         localStorage.setItem('pkce_code_verifier', codeVerifier);

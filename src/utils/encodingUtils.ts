@@ -7,7 +7,8 @@
  * יצירת מחרוזת קוד אימות PKCE בטוחה שתומך בתווים עבריים
  * הפונקציה מייצרת מחרוזת אקראית ללא תווים שעלולים לגרום לבעיות
  */
-export function generateSafePKCEString(length: number = 64): string {
+export function generateSafePKCEString(length: number = 128): string {
+  // ספציפית משתמשים רק בתווים Latin1 כדי למנוע את שגיאת btoa
   const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   const array = new Uint8Array(length);
   window.crypto.getRandomValues(array);
@@ -25,7 +26,7 @@ export function generateSafePKCEString(length: number = 64): string {
  * משתמש בקידוד קנוני שעובד עם עברית
  */
 export function safeEncode(str: string): string {
-  // קודם נמיר את המחרוזת ל-UTF-8 ואז נקודד ב-base64
+  // קודם נמיר את המחרוזת ל-UTF-8 ואז נקודד
   try {
     return encodeURIComponent(str);
   } catch (e) {
@@ -71,6 +72,14 @@ export function storeCodeVerifier(codeVerifier: string): void {
     sessionStorage.setItem('supabase-code-verifier', codeVerifier);
     sessionStorage.setItem('pkce_code_verifier', codeVerifier);
     
+    // שמירת ערכי אימות נוספים שמוסיפים שרידות
+    try {
+      localStorage.setItem('sb_cv', codeVerifier);
+      sessionStorage.setItem('sb_cv', codeVerifier);
+    } catch (e) {
+      console.error('שגיאה בשמירת ערכי אימות נוספים:', e);
+    }
+    
     console.log('Code verifier stored successfully in multiple locations');
   } catch (error) {
     console.error('Error storing code verifier:', error);
@@ -89,13 +98,17 @@ export function retrieveCodeVerifier(): string | null {
     const fromLocalStoragePKCE = localStorage.getItem('pkce_code_verifier');
     const fromSessionStorage = sessionStorage.getItem('supabase-code-verifier');
     const fromSessionStoragePKCE = sessionStorage.getItem('pkce_code_verifier');
+    const fromLocalStorageSB = localStorage.getItem('sb_cv');
+    const fromSessionStorageSB = sessionStorage.getItem('sb_cv');
     
     // החזרת הערך הראשון שלא ריק
     return fromLocalStorage || 
            fromLocalStorageBackup || 
            fromLocalStoragePKCE ||
            fromSessionStorage ||
-           fromSessionStoragePKCE;
+           fromSessionStoragePKCE ||
+           fromLocalStorageSB ||
+           fromSessionStorageSB;
   } catch (error) {
     console.error('Error retrieving code verifier:', error);
     return null;

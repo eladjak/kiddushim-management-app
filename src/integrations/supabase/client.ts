@@ -15,6 +15,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: 'sb-uqumzjmyejlhoyliyesu-auth-token',
     debug: true, // אפשרות דיבוג מורחבת לאיתור בעיות
   },
+  global: {
+    fetch: customFetch
+  }
 });
 
 /**
@@ -39,6 +42,7 @@ export function clearAuthStorage() {
     localStorage.removeItem('auth_provider');
     localStorage.removeItem('code-verifier-backup');
     localStorage.removeItem('pkce_code_verifier');
+    localStorage.removeItem('sb_cv');
     
     // ניקוי כל פריטי sessionStorage הקשורים לאימות
     sessionStorage.removeItem('supabase-code-verifier');
@@ -47,6 +51,7 @@ export function clearAuthStorage() {
     sessionStorage.removeItem('auth_redirect_count');
     sessionStorage.removeItem('auth_provider');
     sessionStorage.removeItem('pkce_code_verifier');
+    sessionStorage.removeItem('sb_cv');
 
     // ניקוי אחסון סופהבייס - שימוש ב-signOut במקום
     supabase.auth.signOut({ scope: 'local' })
@@ -118,4 +123,38 @@ export function logAuthDiagnostics() {
     console.error('Error generating auth diagnostics:', err);
     return null;
   }
+}
+
+/**
+ * יצירת פונקצית fetch מותאמת עם תמיכה משופרת בעברית
+ * מתמודדת עם שגיאת btoa שנגרמת מתווים עבריים
+ */
+function customFetch(url: RequestInfo | URL, options?: RequestInit): Promise<Response> {
+  // העתקת האופציות כדי למנוע שינוי במקור
+  const safeOptions = { ...options };
+  
+  if (safeOptions.body && typeof safeOptions.body === 'string') {
+    try {
+      // אם יש גוף לבקשה, בדוק אם הוא מכיל תווים שאינם Latin1
+      if (/[^\u0000-\u00ff]/.test(safeOptions.body)) {
+        // טיפול בתווים עבריים על ידי המרתם לפורמט שנתמך על ידי btoa
+        const modifiedBody = JSON.parse(safeOptions.body);
+        
+        // עיבוד פוטנציאלי של שדות עם תוכן עברי
+        if (modifiedBody.code_verifier) {
+          // וידוא שה-code verifier בטוח לשימוש
+          modifiedBody.code_verifier = modifiedBody.code_verifier
+            .replace(/[^\x00-\x7F]/g, '_'); // החלפת תווים לא לטיניים
+        }
+        
+        // המרה בחזרה למחרוזת
+        safeOptions.body = JSON.stringify(modifiedBody);
+      }
+    } catch (e) {
+      console.error('שגיאה בטיפול בגוף הבקשה:', e);
+      // ממשיכים עם הבקשה המקורית אם יש שגיאה
+    }
+  }
+  
+  return fetch(url, safeOptions);
 }
