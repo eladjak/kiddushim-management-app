@@ -154,32 +154,34 @@ const TimelinePDF = () => {
       </div>
       
       {/* סגנון להדפסה */}
-      <style jsx global>{`
-        @media print {
-          body {
-            background-color: white;
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-            print-color-adjust: exact !important;
+      <style>
+        {`
+          @media print {
+            body {
+              background-color: white;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            nav, header, footer, .no-print {
+              display: none !important;
+            }
+            .container {
+              width: 100% !important;
+              max-width: 100% !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            button, .button, input[type="button"] {
+              display: none !important;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 1cm;
+            }
           }
-          nav, header, footer, .no-print {
-            display: none !important;
-          }
-          .container {
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          button, .button, input[type="button"] {
-            display: none !important;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 1cm;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

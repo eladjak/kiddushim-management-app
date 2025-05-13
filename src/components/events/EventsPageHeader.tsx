@@ -1,11 +1,15 @@
-import { Button } from "@/components/ui/button";
 
-// Add the import for useNavigate
+import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Download } from "lucide-react";
 
-export function EventsPageHeader() {
-  // Add the navigate function
+interface EventsPageHeaderProps {
+  canCreateEvents?: boolean;
+  showCreateForm?: boolean;
+  onToggleCreateForm?: () => void;
+}
+
+export function EventsPageHeader({ canCreateEvents, showCreateForm, onToggleCreateForm }: EventsPageHeaderProps) {
   const navigate = useNavigate();
 
   return (
@@ -13,8 +17,18 @@ export function EventsPageHeader() {
       <h1 className="text-3xl font-bold text-right">אירועי קידושישי</h1>
       <p className="text-gray-500 text-right">צפיה, ניהול וארגון אירועי קידושישי הקרובים</p>
       
-      {/* הוסף כפתור למעבר לדף הייצוא ל-PDF */}
-      <div className="flex justify-end mt-2">
+      <div className="flex justify-between mt-2">
+        {canCreateEvents && (
+          <Button
+            onClick={onToggleCreateForm}
+            variant={showCreateForm ? "outline" : "default"}
+            className="flex items-center gap-2"
+          >
+            {showCreateForm ? "סגור טופס" : "הוסף אירוע חדש"}
+            {showCreateForm ? null : "+"}
+          </Button>
+        )}
+        
         <Button 
           onClick={() => navigate('/timeline-pdf')} 
           variant="outline" 

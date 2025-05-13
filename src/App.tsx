@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import Equipment from "./pages/Equipment";
 import Documentation from "./pages/Documentation";
 import UserProfile from "./pages/UserProfile";
+import TimelinePDF from "./pages/TimelinePDF";
 import "./App.css";
 import "./styles/rtl.css"; // Import RTL styles
 import { useEffect } from "react";
