@@ -5,8 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
-import { PredefinedEvent } from "@/data/types/eventTypes";
+import { PredefinedEvent } from "@/data/types/predefinedEvents";
 import { createNotification } from "@/utils/notificationUtils";
+import { useCreateEvent } from "@/services/query/hooks/useEvents";
 
 export interface EventFormData {
   title: string;
@@ -28,6 +29,8 @@ export const useEventForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const createEventMutation = useCreateEvent();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [posterUrl, setPosterUrl] = useState("");
   const [formData, setFormData] = useState<EventFormData>({

@@ -4,6 +4,10 @@ import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { useRegisterParticipant } from "@/services/query/hooks/useEvents";
+import { Badge } from "@/components/ui/badge";
 
 interface Event {
   id: string;
@@ -20,6 +24,31 @@ interface UpcomingEventsProps {
 }
 
 export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
+  const { user } = useAuth();
+  const registerMutation = useRegisterParticipant();
+
+  const handleRegister = (eventId: string) => {
+    if (!user?.id) {
+      toast({
+        title: "שגיאה",
+        description: "יש להתחבר למערכת כדי להירשם לאירוע",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    registerMutation.mutate({ 
+      eventId, 
+      userId: user.id 
+    }, {
+      onSuccess: () => {
+        toast({
+          description: "נרשמת בהצלחה לאירוע",
+        });
+      }
+    });
+  };
+  
   if (isLoading) {
     return (
       <section className="mt-12">
@@ -58,7 +87,7 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
               
               {event.status && (
                 <div className="mb-4">
-                  <span className={`text-xs px-2 py-1 rounded-full ${
+                  <Badge className={`px-2 py-1 ${
                     event.status === 'published' ? 'bg-green-100 text-green-800' : 
                     event.status === 'draft' ? 'bg-gray-100 text-gray-800' : 
                     'bg-yellow-100 text-yellow-800'
@@ -66,7 +95,7 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
                     {event.status === 'published' ? 'פורסם' : 
                      event.status === 'draft' ? 'טיוטה' : 
                      'ממתין לאישור'}
-                  </span>
+                  </Badge>
                 </div>
               )}
               
@@ -76,8 +105,14 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
                     פרטים נוספים
                   </Button>
                 </Link>
-                <Button size="sm">
-                  הרשמה לאירוע
+                <Button 
+                  size="sm"
+                  onClick={() => handleRegister(event.id)}
+                  disabled={registerMutation.isPending}
+                >
+                  {registerMutation.isPending && event.id === registerMutation.variables?.eventId 
+                    ? "רושם..." 
+                    : "הרשמה לאירוע"}
                 </Button>
               </div>
             </div>

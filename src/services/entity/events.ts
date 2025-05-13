@@ -1,9 +1,9 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Event, EventCreate, EventUpdate, EventWithDetails, 
   EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB, 
-  convertDBEventToEvent, convertDBEventToEventWithDetails,
-  convertDBEventsToEvents, EventStatus, EventType
+  EventStatus, EventType
 } from '@/types/events';
 
 /**
