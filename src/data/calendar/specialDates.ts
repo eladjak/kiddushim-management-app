@@ -1,6 +1,9 @@
 
 import { SpecialDates } from "../types/eventTypes";
 
+/**
+ * תאריכים מיוחדים, חגים, וצומות לשנה
+ */
 export const specialDates: SpecialDates = {
   holidays: [
     {

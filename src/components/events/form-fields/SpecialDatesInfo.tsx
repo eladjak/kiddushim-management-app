@@ -1,6 +1,5 @@
-
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { specialDates } from "@/data/eventCalendar";
+import { specialDates } from "@/data/calendar/specialDates";
 
 export const SpecialDatesInfo = () => {
   return (

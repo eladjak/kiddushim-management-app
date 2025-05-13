@@ -1,7 +1,7 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { predefinedEvents, isDateInBreakPeriod, getHebrewMonthName } from "@/data/eventCalendar";
-import type { PredefinedEvent } from "@/data/types/eventTypes";
+import { predefinedEvents } from "@/data/eventCalendar";
+import { isDateInBreakPeriod, getHebrewMonthName } from "@/data/calendar/calendarUtils";
+import { PredefinedEvent } from "@/data/types/predefinedEvents";
 
 interface EventSelectProps {
   onEventSelect: (eventId: string) => void;

@@ -1,16 +1,22 @@
 
 import { specialDates } from "./specialDates";
 
-// Helper functions for event management
-export const isDateInBreakPeriod = (date: string) => {
+/**
+ * בודק האם תאריך נמצא בתוך תקופת הפסקה
+ */
+export const isDateInBreakPeriod = (dateStr: string) => {
+  const eventDate = new Date(dateStr);
+  
   return specialDates.breakPeriods.some(period => {
-    const eventDate = new Date(date);
     const startDate = new Date(period.startDate);
     const endDate = new Date(period.endDate);
     return eventDate >= startDate && eventDate <= endDate;
   });
 };
 
+/**
+ * מחזיר את שם החודש העברי לתאריך נתון
+ */
 export const getHebrewMonthName = (dateStr: string) => {
   const date = new Date(dateStr);
   const month = date.getMonth();

@@ -1,8 +1,9 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Event, EventCreate, EventUpdate, EventWithDetails, 
-  EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB, EventStatus, EventType
+  EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB, 
+  convertDBEventToEvent, convertDBEventToEventWithDetails,
+  convertDBEventsToEvents, EventStatus, EventType
 } from '@/types/events';
 
 /**
@@ -129,14 +130,15 @@ export const eventsService = {
     const dbEvent: EventCreateDB = {
       title: event.title,
       date: event.date,
-      setup_time: event.main_time, // Approximate mapping
-      main_time: event.main_time,
-      cleanup_time: event.main_time, // Use main_time if time_end doesn't exist
-      location_name: event.location || '',
+      setup_time: event.main_time || event.setupTime || '', // Use available data
+      main_time: event.main_time || '',
+      cleanup_time: event.main_time || event.time_end || '', // Use available data
+      location_name: event.location_name || event.location || '',
       location_address: event.location || '',
       created_by: event.created_by,
-      status: 'draft',
-      required_service_girls: 0
+      status: event.status || 'draft',
+      parasha: event.parasha,
+      required_service_girls: event.max_participants || 0
     };
     
     const { data, error } = await supabase
@@ -166,15 +168,21 @@ export const eventsService = {
     if (event.title) dbEventUpdate.title = event.title;
     if (event.date) dbEventUpdate.date = event.date;
     if (event.main_time) {
-      dbEventUpdate.setup_time = event.main_time;
+      dbEventUpdate.setup_time = event.setupTime || event.main_time;
       dbEventUpdate.main_time = event.main_time;
     }
-    if (event.main_time) dbEventUpdate.cleanup_time = event.main_time;
+    if (event.time_end || event.main_time) {
+      dbEventUpdate.cleanup_time = event.time_end || event.main_time;
+    }
     if (event.location) {
-      dbEventUpdate.location_name = event.location;
+      dbEventUpdate.location_name = event.location_name || event.location;
       dbEventUpdate.location_address = event.location;
     }
     if (event.status) dbEventUpdate.status = event.status;
+    if (event.parasha) dbEventUpdate.parasha = event.parasha;
+    if (event.max_participants !== undefined) {
+      dbEventUpdate.required_service_girls = event.max_participants;
+    }
     
     const { data, error } = await supabase
       .from('events')
@@ -305,4 +313,4 @@ export const eventsService = {
       throw error;
     }
   }
-}; 
+};

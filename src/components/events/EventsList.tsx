@@ -1,18 +1,9 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { EventCard } from "./EventCard";
-import { isDateInBreakPeriod } from "@/data/eventCalendar";
-
-interface Event {
-  id: string;
-  title: string;
-  main_time: string;
-  location_name: string;
-  parasha?: string;
-  status?: string;
-}
+import { isDateInBreakPeriod } from "@/data/calendar/calendarUtils";
+import { Event } from "@/types/events";
 
 interface EventsListProps {
   events: Event[];

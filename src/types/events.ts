@@ -54,11 +54,11 @@ export interface EventWithDetailsDB extends EventDB {
   event_assignments?: EventAssignment[];
 }
 
-// טיפוסים ישנים לתאימות אחורית
+// טיפוס מותאם לקוד הישן/קיים
 export interface Event {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   date: string; // yyyy-MM-dd
   time?: string;
   location?: string;
@@ -71,10 +71,9 @@ export interface Event {
   created_at: string;
   updated_at: string;
   created_by: string;
-  // Adding properties used by Dashboard and Events components
   main_time: string;
   location_name: string;
-  // Add missing properties referenced in the code
+  setupTime?: string;
   time_start?: string;
   time_end?: string;
   status?: string;
@@ -84,6 +83,7 @@ export interface Event {
 
 export type EventCreate = Omit<Event, 'id' | 'created_at' | 'updated_at'>;
 export type EventUpdate = Partial<EventCreate>;
+
 export interface EventWithDetails extends Event {
   participants?: EventParticipant[];
   equipment?: EventEquipment[];
@@ -142,6 +142,7 @@ export function convertDBEventToEvent(dbEvent: EventDB): Event {
     description: dbEvent.title, // Using title as fallback for description
     location: dbEvent.location_name,
     date: dbEvent.date,
+    main_time: dbEvent.main_time,
     time_start: dbEvent.main_time,
     time_end: dbEvent.cleanup_time,
     status: (dbEvent.status as EventStatus) || EventStatus.PLANNED,
@@ -150,8 +151,6 @@ export function convertDBEventToEvent(dbEvent: EventDB): Event {
     created_at: dbEvent.created_at,
     updated_at: dbEvent.updated_at,
     created_by: dbEvent.created_by,
-    // Make sure to include these required properties
-    main_time: dbEvent.main_time,
     location_name: dbEvent.location_name,
     parasha: dbEvent.parasha
   };

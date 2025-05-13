@@ -1,9 +1,11 @@
 
-import { PredefinedEvent } from './types/eventTypes';
-import { specialDates } from './calendar/specialDates';
+import { PredefinedEvent, convertPredefinedToEvent } from './types/predefinedEvents';
 import { isDateInBreakPeriod, getHebrewMonthName } from './calendar/calendarUtils';
+import { specialDates } from './calendar/specialDates';
 
-// אירועים מוגדרים מראש לשימוש בלוח השנה
+/**
+ * אירועים מוגדרים מראש לשימוש בלוח השנה
+ */
 export const predefinedEvents: PredefinedEvent[] = [
   {
     id: '1',
@@ -211,5 +213,15 @@ export const predefinedEvents: PredefinedEvent[] = [
   }
 ];
 
-// Export everything needed from calendar-related files
+// Convert a predefined event to a regular event
+export function getPredefinedEventById(id: string) {
+  return predefinedEvents.find(event => event.id === id);
+}
+
+// Convert all predefined events to regular events
+export function getPredefinedEventsAsEvents() {
+  return predefinedEvents.map(convertPredefinedToEvent);
+}
+
+// Export utils
 export { isDateInBreakPeriod, getHebrewMonthName, specialDates };
