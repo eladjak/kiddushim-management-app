@@ -186,4 +186,5 @@ const TimelinePDF = () => {
   );
 };
 
+// יש להקפיד על ייצוא כמחדל (default export) של הקומפוננט
 export default TimelinePDF;

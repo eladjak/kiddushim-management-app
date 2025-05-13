@@ -86,7 +86,7 @@ function AppWithAdminCheck() {
       <Route path="/equipment" element={<AuthenticatedLayout><Equipment /></AuthenticatedLayout>} />
       <Route path="/profile" element={<AuthenticatedLayout><UserProfile /></AuthenticatedLayout>} />
       
-      {/* הוסף את TimelinePDF לניתובים */}
+      {/* נוסיף את TimelinePDF כקומפוננט עצמאי (לא בתוך AuthenticatedLayout) */}
       <Route path="/timeline-pdf" element={<TimelinePDF />} />
       
       <Route path="*" element={<NotFound />} />

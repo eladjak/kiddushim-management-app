@@ -1,4 +1,3 @@
-
 /**
  * טיפוסים עבור ישות אירועים
  */
@@ -59,14 +58,15 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  location: string;
-  date: string;
-  time_start: string;
-  time_end: string;
-  status: EventStatus | string;
-  type: EventType | string;
-  max_participants: number;
-  image_url?: string;
+  date: string; // yyyy-MM-dd
+  time?: string;
+  location?: string;
+  hebrewDate?: string;
+  parasha?: string;
+  dayOfWeek?: string;
+  completed?: boolean;
+  serviceLadiesAvailable?: boolean;
+  notes?: string[];
   created_at: string;
   updated_at: string;
   created_by: string;
