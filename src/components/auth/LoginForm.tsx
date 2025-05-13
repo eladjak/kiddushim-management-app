@@ -10,7 +10,7 @@ import { PasswordField } from "./form-fields/PasswordField";
 import { RememberMeField } from "./form-fields/RememberMeField";
 import { AuthButtons } from "./form-actions/AuthButtons";
 import { logger } from "@/utils/logger";
-import { useSignIn } from "@/services/query/hooks/useAuth";
+import { useSignIn } from "@/services/query/hooks/auth/useSignIn";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,9 +45,9 @@ export const LoginForm = ({
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: "",
+      email: localStorage.getItem("rememberedEmail") || "",
       password: "",
-      rememberMe: false,
+      rememberMe: localStorage.getItem("rememberedEmail") ? true : false,
     },
   });
 
@@ -79,9 +79,22 @@ export const LoginForm = ({
     try {
       setIsRedirecting(true);
       
+      // Save email if remember me is checked
+      if (values.rememberMe) {
+        localStorage.setItem("rememberedEmail", values.email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
+      
       const result = await signIn.mutateAsync({
         email: values.email,
         password: values.password,
+        options: {
+          // Use browser localStorage for persistent sessions if remember me is checked
+          data: {
+            persistent_session: values.rememberMe
+          }
+        }
       });
       
       log.info("Login successful, redirecting to home", { userId: result.user?.id });

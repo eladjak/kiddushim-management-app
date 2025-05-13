@@ -1,6 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileCreationScreenProps {
   isCreatingProfile: boolean;
@@ -17,23 +19,39 @@ export const ProfileCreationScreen: React.FC<ProfileCreationScreenProps> = ({
   onRefresh,
   onSignOut
 }) => {
+  const { toast } = useToast();
+
+  const handleCreateProfile = () => {
+    toast({
+      description: "יוצר פרופיל משתמש...",
+    });
+    onCreateProfile();
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-background">
-      <div className="text-primary font-medium mb-4 text-xl">מייצר פרופיל משתמש...</div>
+      <div className="text-primary font-medium mb-4 text-xl">יצירת פרופיל משתמש</div>
+      
       <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-8"></div>
       
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
         <div className="text-sm text-gray-600 mb-6">
-          יצירת הפרופיל עשויה לקחת מספר רגעים. אם ההמתנה נמשכת זמן רב, ניתן ליצור את הפרופיל באופן ידני או לרענן את הדף.
+          מזהה שלך ({creationAttempts === 0 ? "ראשון" : creationAttempts >= 2 ? `${creationAttempts} ניסיונות` : "שני"} ניסיונות)
         </div>
         
         <div className="flex flex-col gap-3">
           <Button 
-            onClick={onCreateProfile}
+            onClick={handleCreateProfile}
             disabled={isCreatingProfile}
             className="w-full bg-primary hover:bg-primary/90"
           >
-            {isCreatingProfile ? "יוצר פרופיל..." : "צור פרופיל באופן ידני"}
+            {isCreatingProfile ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" /> יוצר פרופיל...
+              </>
+            ) : (
+              "צור פרופיל באופן ידני"
+            )}
           </Button>
           
           <Button 

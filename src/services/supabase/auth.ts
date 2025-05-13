@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import type { Session, User, SignUpWithPasswordCredentials, AuthError } from '@supabase/supabase-js';
 
@@ -29,10 +30,13 @@ export const authService = {
   /**
    * התחברות עם אימייל וסיסמה
    */
-  async signIn({ email, password }: AuthCredentials) {
+  async signIn({ email, password, options }: AuthCredentials) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: {
+        data: options?.data,
+      }
     });
 
     if (error) throw error;

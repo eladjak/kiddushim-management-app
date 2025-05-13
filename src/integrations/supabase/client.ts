@@ -215,3 +215,80 @@ export function logAuthDiagnostics() {
     return null;
   }
 }
+
+/**
+ * בדיקה וטיפול בטריגר ליצירת פרופיל
+ */
+export async function checkAndHandleProfileCreation(userId: string) {
+  if (!userId) return null;
+  
+  try {
+    console.log('Checking if profile exists for user:', userId);
+    
+    // בדיקה אם קיים פרופיל
+    const { data: existingProfile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+      
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error checking profile:', error);
+      return null;
+    }
+    
+    // אם קיים פרופיל, החזר אותו
+    if (existingProfile) {
+      console.log('Profile exists:', existingProfile.id);
+      return existingProfile;
+    }
+    
+    // אם אין פרופיל, נסה לקבל פרטי משתמש
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData?.user) {
+      console.error('No user data available for profile creation');
+      return null;
+    }
+    
+    const user = userData.user;
+    
+    // הכנת פרטי הפרופיל
+    const name = user.user_metadata?.name || 
+                user.user_metadata?.full_name || 
+                user.email?.split('@')[0] || 'משתמש';
+    
+    const avatarUrl = user.user_metadata?.avatar_url || 
+                      user.user_metadata?.picture || 
+                      null;
+                      
+    // יצירת פרופיל חדש
+    const { data, error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        name,
+        email: user.email,
+        avatar_url: avatarUrl,
+        role: 'coordinator',
+        language: 'he',
+        settings: {},
+        notification_settings: {},
+        shabbat_mode: false,
+        encoding_support: true
+      })
+      .select()
+      .single();
+      
+    if (insertError) {
+      console.error('Failed to create profile:', insertError);
+      return null;
+    }
+    
+    console.log('Profile created successfully:', data);
+    return data;
+  } catch (err) {
+    console.error('Error in checkAndHandleProfileCreation:', err);
+    return null;
+  }
+}

@@ -23,11 +23,15 @@ export const useProfileCreation = (user: User | null) => {
       setCreationAttempts(prev => prev + 1);
       
       // First check if profile exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: checkError } = await supabase
         .from("profiles")
         .select("id")
-        .eq("id", user.id as any)
+        .eq("id", user.id)
         .maybeSingle();
+        
+      if (checkError) {
+        log.error("Error checking profile:", checkError);
+      }
         
       if (existingProfile) {
         toast({
@@ -39,24 +43,34 @@ export const useProfileCreation = (user: User | null) => {
       
       const defaultRole: RoleType = 'coordinator';
       
-      // Create new profile with explicit role type and type assertion
+      // Get user metadata
+      const name = user.user_metadata?.name || 
+                  user.user_metadata?.full_name || 
+                  user.email?.split('@')[0] || 
+                  'משתמש';
+      
+      const avatarUrl = user.user_metadata?.avatar_url || 
+                        user.user_metadata?.picture || 
+                        null;
+      
+      // Create new profile
       const { error } = await supabase
         .from("profiles")
         .insert({
-          id: user.id as any,
-          name: user.user_metadata?.name || 
-               user.user_metadata?.full_name || 
-               user.email?.split('@')[0] || 'משתמש',
+          id: user.id,
+          name: name,
           email: user.email,
           language: 'he',
-          role: defaultRole as any,
-          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+          role: defaultRole,
+          avatar_url: avatarUrl,
           shabbat_mode: false,
-          encoding_support: true
-        } as any);
+          encoding_support: true,
+          settings: {},
+          notification_settings: {}
+        });
         
       if (error) {
-        if (error.code === '23505') {
+        if (error.code === '23505') { // Duplicate key error
           toast({
             description: "הפרופיל כבר קיים, מרענן את הדף...",
           });
@@ -78,12 +92,10 @@ export const useProfileCreation = (user: User | null) => {
       log.error("Error creating profile manually:", { error });
       toast({
         variant: "destructive",
-        description: `שגיאה ביצירת פרופיל: ${error.message}`,
+        description: `שגיאה ביצירת פרופיל: ${error.message || 'שגיאה לא ידועה'}`,
       });
     } finally {
-      if (isCreatingProfile) {
-        setIsCreatingProfile(false);
-      }
+      setIsCreatingProfile(false);
     }
   };
 
@@ -92,6 +104,7 @@ export const useProfileCreation = (user: User | null) => {
       await supabase.auth.signOut();
       // Clear any local storage items that might be causing issues
       localStorage.clear();
+      sessionStorage.clear();
       // Redirect to auth page
       window.location.href = "/auth";
     } catch (error) {

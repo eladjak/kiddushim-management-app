@@ -22,6 +22,28 @@ export function useProfileCreator() {
       setIsCreating(true);
       log.info("Creating profile for user", { userId });
       
+      // First check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        log.error("Error checking existing profile:", { error: checkError });
+        toast({
+          variant: "destructive",
+          description: "שגיאה בבדיקת פרופיל קיים. אנא נסה שוב מאוחר יותר.",
+        });
+        setIsCreating(false);
+        return null;
+      }
+      
+      if (existingProfile) {
+        log.info("Profile already exists:", { profileId: existingProfile.id });
+        return existingProfile;
+      }
+
       // Get user metadata
       const name = user.user_metadata?.name || 
                   user.user_metadata?.full_name || 
@@ -37,23 +59,25 @@ export function useProfileCreator() {
       // Ensure role is one of the valid enum values
       const defaultRole: RoleType = 'coordinator';
 
-      // Use type assertion to fix type issues with Supabase
-      const newProfile = {
-        id: userId as any,
+      // Create the new profile
+      const profileData = {
+        id: userId,
         name: name,
         email: user.email,
         language: hasHebrewChars ? 'he' : 'en',
-        role: defaultRole as any,
+        role: defaultRole,
         shabbat_mode: false,
         avatar_url: avatarUrl,
-        encoding_support: true
-      } as any;
+        encoding_support: true,
+        settings: {},
+        notification_settings: {}
+      };
 
-      log.info("Creating profile with data:", { profile: newProfile });
+      log.info("Creating profile with data:", { profile: profileData });
       
       const { error: insertError, data } = await supabase
         .from("profiles")
-        .insert(newProfile)
+        .insert(profileData)
         .select()
         .single();
       
@@ -71,12 +95,18 @@ export function useProfileCreator() {
         
         // If duplicate key, profile exists, fetch it
         log.info("Profile already exists (duplicate key), fetching it");
-        const { data: existingProfile } = await supabase
+        const { data: existingProfile, error: fetchError } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", userId as any)
+          .eq("id", userId)
           .single();
           
+        if (fetchError) {
+          log.error("Error fetching existing profile:", { error: fetchError });
+          setIsCreating(false);
+          return null;
+        }
+        
         setIsCreating(false);
         return existingProfile;
       }
