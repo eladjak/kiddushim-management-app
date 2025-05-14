@@ -4,6 +4,7 @@ import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
+import { logger } from "@/utils/logger";
 
 interface EventCardProps {
   event: {
@@ -18,6 +19,23 @@ interface EventCardProps {
 }
 
 export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
+  const log = logger.createLogger({ component: 'EventCard' });
+  
+  // Handle potential date formatting issues
+  const formatEventDate = () => {
+    try {
+      if (!event.main_time) return "תאריך לא זמין";
+      return format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he });
+    } catch (error) {
+      log.error("Error formatting date", { error, date: event.main_time });
+      return "תאריך לא זמין";
+    }
+  };
+  
+  const title = safeDecodeHebrew(event.title);
+  const parasha = event.parasha ? safeDecodeHebrew(event.parasha) : null;
+  const location = safeDecodeHebrew(event.location_name);
+
   return (
     <div 
       className={`p-4 rounded-md border ${
@@ -28,18 +46,18 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
     >
       <div className="text-right">
         <div className="text-sm text-accent font-medium mb-2">
-          {format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he })}
+          {formatEventDate()}
           {isInBreakPeriod && (
             <span className="text-red-600 mr-2 font-bold">(בתקופת הפסקה)</span>
           )}
         </div>
-        <h3 className="text-lg font-semibold mb-2">{safeDecodeHebrew(event.title)}</h3>
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
         
-        {event.parasha && (
-          <div className="text-sm text-gray-700 mb-1">פרשת {safeDecodeHebrew(event.parasha)}</div>
+        {parasha && (
+          <div className="text-sm text-gray-700 mb-1">פרשת {parasha}</div>
         )}
         
-        <p className="text-sm text-gray-600 mb-4">{safeDecodeHebrew(event.location_name)}</p>
+        <p className="text-sm text-gray-600 mb-4">{location}</p>
         
         <div className="flex flex-wrap gap-2 mb-4">
           {event.status && (

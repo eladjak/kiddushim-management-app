@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useRegisterParticipant } from "@/services/query/hooks/useEvents";
 import { Badge } from "@/components/ui/badge";
+import { logger } from "@/utils/logger";
 
 interface Event {
   id: string;
@@ -26,6 +27,7 @@ interface UpcomingEventsProps {
 export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
   const { user } = useAuth();
   const registerMutation = useRegisterParticipant();
+  const log = logger.createLogger({ component: 'UpcomingEvents' });
 
   const handleRegister = (eventId: string) => {
     if (!user?.id) {
@@ -58,6 +60,12 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
     );
   }
 
+  // Log the events for debugging
+  log.info("Rendering upcoming events", { 
+    count: events?.length || 0,
+    events: events?.map(e => ({ id: e.id, title: e.title, date: e.main_time }))
+  });
+
   return (
     <section className="mt-12">
       <div className="flex items-center justify-between mb-6">
@@ -71,11 +79,11 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {events?.map((event) => (
+        {events && events.length > 0 ? events.map((event) => (
           <div key={event.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow animate-fade-in">
             <div className="text-right">
               <div className="text-sm text-accent font-medium mb-2">
-                {format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he })}
+                {event.main_time ? format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he }) : "תאריך לא זמין"}
               </div>
               <h3 className="text-lg font-semibold mb-2">{event.title}</h3>
               
@@ -83,7 +91,7 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
                 <div className="text-sm text-gray-700 mb-1">פרשת {event.parasha}</div>
               )}
               
-              <p className="text-sm text-gray-600 mb-4">{event.location_name}</p>
+              <p className="text-sm text-gray-600 mb-4">{event.location_name || "מיקום לא צוין"}</p>
               
               {event.status && (
                 <div className="mb-4">
@@ -117,8 +125,7 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
               </div>
             </div>
           </div>
-        ))}
-        {events?.length === 0 && (
+        )) : (
           <div className="col-span-2 text-center py-8 text-gray-500">
             לא נמצאו אירועים קרובים
           </div>

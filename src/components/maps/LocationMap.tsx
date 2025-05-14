@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { logger } from '@/utils/logger';
 import MapSearchInput from './map-components/MapSearchInput';
 import MapDisplay from './map-components/MapDisplay';
 import useMarkerManagement from './hooks/useMarkerManagement';
+import 'mapbox-gl/dist/mapbox-gl.css'; // Add CSS import
 
 interface LocationMapProps {
   address?: string;
