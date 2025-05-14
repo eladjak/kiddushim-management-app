@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { eventsService } from "@/services/entity/events";
 import { Event } from "@/types/events";
 import { logger } from "@/utils/logger";
+import { EVENTS_KEYS } from "@/services/query/hooks/events/eventQueryKeys";
 
 export const useEvents = (userId?: string) => {
   const log = logger.createLogger({ component: 'dashboardUseEvents' });

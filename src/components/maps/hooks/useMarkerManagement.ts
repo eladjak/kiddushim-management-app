@@ -85,7 +85,7 @@ const useMarkerManagement = ({
 
       // Handle errors
       mapInstance.on('error', (e) => {
-        log.error("Mapbox error:", e);
+        log.error("Mapbox error:", { error: e });
         setError('מפה לא זמינה. נא לנסות שוב מאוחר יותר.');
         setLoading(false);
       });
@@ -93,7 +93,7 @@ const useMarkerManagement = ({
       // Set map
       setMap(mapInstance);
     } catch (error) {
-      log.error("Error initializing map:", error);
+      log.error("Error initializing map:", { error });
       setError('אירעה שגיאה בהצגת המפה. נא לנסות שוב מאוחר יותר.');
       setLoading(false);
     }
@@ -131,7 +131,7 @@ const useMarkerManagement = ({
     setError(null);
     
     try {
-      log.info("Searching for address:", address);
+      log.info("Searching for address:", { address });
       
       // Geocode using Mapbox API
       const response = await fetch(
@@ -170,10 +170,10 @@ const useMarkerManagement = ({
         });
       } else {
         setError('לא נמצאה כתובת. נא לנסות שוב או לבחור במפה.');
-        log.warn("No results found for address:", address);
+        log.warn("No results found for address:", { address });
       }
     } catch (error) {
-      log.error("Error searching for address:", error);
+      log.error("Error searching for address:", { error });
       setError('אירעה שגיאה בחיפוש הכתובת. נא לנסות שוב.');
     } finally {
       setLoading(false);
@@ -207,7 +207,7 @@ const useMarkerManagement = ({
         log.info("Reverse geocoded address:", { coords, address });
       }
     } catch (error) {
-      log.error("Error reverse geocoding:", error);
+      log.error("Error reverse geocoding:", { error });
     }
   };
 
