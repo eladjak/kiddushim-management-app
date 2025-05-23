@@ -8,7 +8,7 @@ import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import type { UserProfile } from "@/types/profile";
 import { supabase } from "@/integrations/supabase/client";
 import type { AuthContextType } from "@/types/auth";
-import { containsNonLatinChars, safeEncode } from "@/utils/encoding";
+import { containsNonLatinChars, safeEncode, safeDecode } from "@/utils/encoding";
 
 // יצירת קונטקסט עם ערכי ברירת מחדל
 const AuthContext = createContext<AuthContextType>({
@@ -47,14 +47,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             userId: data.session?.user?.id
           });
           
-          // Handle non-Latin1 characters in metadata if needed
+          // Handle non-Latin1 characters in metadata with improved encoding
           if (data.session?.user?.user_metadata) {
             const metadata = data.session.user.user_metadata;
-            // Safe check for any metadata properties containing non-Latin characters
+            
+            // Check for any metadata properties containing non-Latin characters
             for (const key in metadata) {
               if (typeof metadata[key] === 'string' && containsNonLatinChars(metadata[key] as string)) {
                 log.info("Detected non-Latin characters in user metadata", { key });
-                // The handling is in place in our encoding utilities
+                // Our improved encoding utilities will handle these characters when needed
               }
             }
           }

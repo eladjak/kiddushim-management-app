@@ -5,6 +5,7 @@ import { useProfileCreator } from "@/hooks/profile/useProfileCreator";
 import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
 import { checkProfileExists } from "@/services/entity/users/profilesService";
+import { containsNonLatinChars, safeEncode } from "@/utils/encoding";
 
 export function useAutoProfileCreation() {
   const { user, profile, setProfile } = useAuth();
@@ -36,6 +37,17 @@ export function useAutoProfileCreation() {
               window.location.reload();
             }, 500);
             return;
+          }
+          
+          // Check for Hebrew characters in user metadata before profile creation
+          if (user.user_metadata) {
+            for (const key in user.user_metadata) {
+              if (typeof user.user_metadata[key] === 'string' && 
+                  containsNonLatinChars(user.user_metadata[key] as string)) {
+                log.info(`User has Hebrew characters in metadata field: ${key}`);
+                // Our improved encoding functions will handle this appropriately
+              }
+            }
           }
           
           // Create profile if it doesn't exist

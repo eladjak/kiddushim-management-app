@@ -25,7 +25,6 @@ export async function extractAccessToken(): Promise<boolean> {
     const params = new URLSearchParams(hash.substring(1));
     const accessToken = params.get("access_token");
     const refreshToken = params.get("refresh_token");
-    const expiresIn = params.get("expires_in");
     
     if (!accessToken) {
       log.error("לא נמצא access token בפרמטרים");
@@ -41,6 +40,16 @@ export async function extractAccessToken(): Promise<boolean> {
     if (error) {
       log.error("שגיאה בהגדרת הסשן:", error);
       return false;
+    }
+    
+    // Check for Hebrew characters in metadata that might need encoding protection
+    if (data.user?.user_metadata) {
+      for (const key in data.user.user_metadata) {
+        if (typeof data.user.user_metadata[key] === 'string' && 
+            containsNonLatinChars(data.user.user_metadata[key] as string)) {
+          log.info(`Detected non-Latin characters in user metadata field: ${key}`);
+        }
+      }
     }
     
     log.info("הסשן הוגדר בהצלחה עם access token", { userId: data.user?.id });

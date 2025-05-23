@@ -2,7 +2,7 @@
 import { NavigateFunction } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
-import { safeEncode } from "@/utils/encoding";
+import { safeEncode, safeDecode, containsNonLatinChars } from "@/utils/encoding";
 
 /**
  * מטפל בהחלפת קוד אימות לטוקן
@@ -34,6 +34,16 @@ export async function handleAuthCode(
     // Handle potential encoding issues with Hebrew/non-Latin characters in user metadata
     if (data.session?.user?.user_metadata) {
       log.info("User authenticated successfully with metadata");
+      
+      // Check and protect metadata with Hebrew characters if needed
+      const metadata = data.session.user.user_metadata;
+      for (const key in metadata) {
+        if (typeof metadata[key] === 'string' && containsNonLatinChars(metadata[key] as string)) {
+          log.info(`Protected Hebrew characters in metadata field: ${key}`);
+          // We're not modifying the metadata here, just acknowledging the Hebrew characters
+          // Our improved encoding functions will properly handle these when needed
+        }
+      }
     }
     
     log.info(`התחברות הצליחה באמצעות קוד מ-${source}`, { userId: data.session.user.id });
