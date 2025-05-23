@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/utils/logger";
 import { FcGoogle } from "react-icons/fc";
-import { generateSafePKCEString, storeCodeVerifier } from "@/utils/encodingUtils";
+import { generateSafePKCEString, storeCodeVerifier } from "@/utils/encoding";
 
 /**
  * Google authentication button component
