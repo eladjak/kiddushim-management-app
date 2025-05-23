@@ -1,5 +1,5 @@
 
-import { PredefinedEvent } from "@/data/types/predefinedEvents";
+import { PredefinedEvent } from "@/data/types/eventTypes";
 import { logger } from "@/utils/logger";
 
 /**

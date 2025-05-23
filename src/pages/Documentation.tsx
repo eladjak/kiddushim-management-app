@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/layout/Footer";
-import { ProjectOverview } from "@/components/documentation/ProjectOverview";
-import { TeamStructure } from "@/components/documentation/TeamStructure";
-import { ProjectPlan } from "@/components/documentation/ProjectPlan";
-import { BudgetAndLogistics } from "@/components/documentation/BudgetAndLogistics";
-import { WorkProcesses } from "@/components/documentation/WorkProcesses";
-import { Tab, Tabs } from "@/components/ui/tabs";
+import { ProjectOverview } from "@/components/docs/ProjectOverview";
+import { TeamStructure } from "@/components/docs/TeamStructure";
+import { ProjectPlan } from "@/components/docs/ProjectPlan";
+import { BudgetAndLogistics } from "@/components/docs/BudgetAndLogistics";
+import { WorkProcesses } from "@/components/docs/WorkProcesses";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventTimeline } from "@/components/events/EventTimeline";
 
 const Documentation = () => {
@@ -27,43 +27,43 @@ const Documentation = () => {
             <div className="flex justify-center mb-8">
               <div className="bg-white rounded-lg shadow p-1">
                 <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Tab value="timeline" className="px-4 py-2 rounded hover:bg-gray-100">לוח זמנים</Tab>
-                  <Tab value="overview" className="px-4 py-2 rounded hover:bg-gray-100">סקירה כללית</Tab>
-                  <Tab value="team" className="px-4 py-2 rounded hover:bg-gray-100">מבנה צוות</Tab>
-                  <Tab value="plan" className="px-4 py-2 rounded hover:bg-gray-100">תכנית עבודה</Tab>
-                  <Tab value="budget" className="px-4 py-2 rounded hover:bg-gray-100">תקציב ולוגיסטיקה</Tab>
-                  <Tab value="process" className="px-4 py-2 rounded hover:bg-gray-100">תהליכי עבודה</Tab>
+                  <TabsTrigger value="timeline" className="px-4 py-2 rounded hover:bg-gray-100">לוח זמנים</TabsTrigger>
+                  <TabsTrigger value="overview" className="px-4 py-2 rounded hover:bg-gray-100">סקירה כללית</TabsTrigger>
+                  <TabsTrigger value="team" className="px-4 py-2 rounded hover:bg-gray-100">מבנה צוות</TabsTrigger>
+                  <TabsTrigger value="plan" className="px-4 py-2 rounded hover:bg-gray-100">תכנית עבודה</TabsTrigger>
+                  <TabsTrigger value="budget" className="px-4 py-2 rounded hover:bg-gray-100">תקציב ולוגיסטיקה</TabsTrigger>
+                  <TabsTrigger value="process" className="px-4 py-2 rounded hover:bg-gray-100">תהליכי עבודה</TabsTrigger>
                 </div>
               </div>
             </div>
             
             <div className="bg-white rounded-lg shadow-sm p-6">
-              {/* New timeline tab */}
-              <div data-value="timeline">
+              {/* Timeline tab */}
+              <TabsContent value="timeline">
                 <h2 className="text-2xl font-bold mb-4">לוח זמנים שנתי</h2>
                 <EventTimeline />
-              </div>
+              </TabsContent>
               
-              {/* Keep existing tabs */}
-              <div data-value="overview">
+              {/* Other tabs */}
+              <TabsContent value="overview">
                 <ProjectOverview />
-              </div>
+              </TabsContent>
               
-              <div data-value="team">
+              <TabsContent value="team">
                 <TeamStructure />
-              </div>
+              </TabsContent>
               
-              <div data-value="plan">
+              <TabsContent value="plan">
                 <ProjectPlan />
-              </div>
+              </TabsContent>
               
-              <div data-value="budget">
+              <TabsContent value="budget">
                 <BudgetAndLogistics />
-              </div>
+              </TabsContent>
               
-              <div data-value="process">
+              <TabsContent value="process">
                 <WorkProcesses />
-              </div>
+              </TabsContent>
             </div>
           </Tabs>
         </div>

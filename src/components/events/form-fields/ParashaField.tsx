@@ -1,6 +1,7 @@
+
 import { Label } from "@/components/ui/label";
-import { predefinedEvents } from "@/data/eventCalendar";
-import { PredefinedEvent } from "@/data/types/predefinedEvents";
+import { predefinedEvents } from "@/data/calendar/predefinedEvents";
+import { PredefinedEvent } from "@/data/types/eventTypes";
 import { EventSelect } from "./EventSelect";
 import { SpecialDatesInfo } from "./SpecialDatesInfo";
 

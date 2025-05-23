@@ -1,6 +1,6 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { predefinedEvents } from "@/data/calendar/predefinedEvents";
+import { predefinedEvents, isEventAvailable } from "@/data/calendar/predefinedEvents";
 import { isDateInBreakPeriod, getHebrewMonthName } from "@/data/calendar/calendarUtils";
 import { PredefinedEvent } from "@/data/types/eventTypes";
 import { logger } from "@/utils/logger";

@@ -1,73 +1,37 @@
-
-import React, { useState, useEffect } from 'react';
-import { logger } from '@/utils/logger';
-import MapSearchInput from './map-components/MapSearchInput';
+import React, { useRef, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import MapDisplay from './map-components/MapDisplay';
-import useMarkerManagement from './hooks/useMarkerManagement';
-import 'mapbox-gl/dist/mapbox-gl.css'; // Add CSS import
+import { MapSearchInput } from './map-components/MapSearchInput';
+import { useMarkerManagement } from './hooks/useMarkerManagement';
+import { logger } from '@/utils/logger';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface LocationMapProps {
-  address?: string;
-  value?: { lat: number; lng: number; address: string };
-  onChange?: (value: { lat: number; lng: number; address: string }) => void;
-  readOnly?: boolean;
-  className?: string;
+  initialLocation?: { lat: number; lng: number };
+  onLocationChange?: (location: { lat: number; lng: number }) => void;
 }
 
-/**
- * A location map component that allows location selection and display
- */
-const LocationMap: React.FC<LocationMapProps> = ({ 
-  address, 
-  value, 
-  onChange,
-  readOnly = false,
-  className = ''
-}) => {
+const LocationMap: React.FC<LocationMapProps> = ({ initialLocation, onLocationChange }) => {
   const log = logger.createLogger({ component: 'LocationMap' });
-  const [addressInput, setAddressInput] = useState(address || value?.address || '');
-  
-  const {
-    loading,
-    error,
-    coordinates,
-    setError,
-    setLoading,
-    handleAddressSearch,
-    handleMapInitialized,
-    handleLocationSelected,
-  } = useMarkerManagement({
-    initialAddress: addressInput,
-    initialCoordinates: value ? { lat: value.lat, lng: value.lng } : null,
-    onChange,
-    onAddressChange: setAddressInput,
-    readOnly
-  });
+  const mapRef = useRef(null);
+  const { marker, setMarker, handleLocationSelect, handleSearch } = useMarkerManagement(initialLocation, onLocationChange);
+
+  useEffect(() => {
+    if (initialLocation) {
+      setMarker(initialLocation);
+    }
+  }, [initialLocation, setMarker]);
 
   return (
-    <div className={`w-full h-full flex flex-col ${className}`}>
-      {!readOnly && (
-        <MapSearchInput
-          addressInput={addressInput}
-          setAddressInput={setAddressInput}
-          handleAddressSearch={() => handleAddressSearch(addressInput)}
-          loading={loading}
-        />
-      )}
-      
-      <MapDisplay 
-        loading={loading} 
-        error={error}
-        onRetry={() => {
-          setError(null);
-          setLoading(true);
-        }}
-        mapInitialized={handleMapInitialized}
-      />
-      
-      {!readOnly && (
-        <p className="text-xs text-gray-500 mt-2 text-center">לחץ על המפה כדי לסמן מיקום, או הזן כתובת בשדה החיפוש</p>
-      )}
+    <div className="flex flex-col h-full">
+      <div className="p-4 flex flex-col gap-2">
+        <MapSearchInput onSelect={handleLocationSelect} />
+      </div>
+
+      <div className="flex-grow relative">
+        <MapDisplay marker={marker} setMarker={setMarker} initialLocation={initialLocation} />
+      </div>
     </div>
   );
 };
