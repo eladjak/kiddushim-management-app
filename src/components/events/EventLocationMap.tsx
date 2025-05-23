@@ -67,8 +67,8 @@ export const EventLocationMap = ({ events, onSelectEvent }: EventLocationMapProp
     // Check if we have events with locations
     const eventsWithLocation = events.filter(event => 
       event.location_coordinates && 
-      event.location_coordinates.lat && 
-      event.location_coordinates.lng
+      typeof event.location_coordinates.lat === 'number' && 
+      typeof event.location_coordinates.lng === 'number'
     );
     
     if (eventsWithLocation.length === 0) {
@@ -78,6 +78,7 @@ export const EventLocationMap = ({ events, onSelectEvent }: EventLocationMapProp
     
     // Add new markers for each event
     const markers = eventsWithLocation.map(event => {
+      // We already filtered for events with coordinates above
       const coords = event.location_coordinates!;
       const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
         `<div class="text-right p-2">
@@ -111,6 +112,7 @@ export const EventLocationMap = ({ events, onSelectEvent }: EventLocationMapProp
     if (markers.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       eventsWithLocation.forEach(event => {
+        // We already filtered for events with coordinates above
         const coords = event.location_coordinates!;
         bounds.extend([coords.lng, coords.lat]);
       });

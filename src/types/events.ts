@@ -30,7 +30,7 @@ export interface EventDB {
   cleanup_time: string;
   location_name: string;
   location_address: string;
-  location_coordinates?: any;
+  location_coordinates?: { lat: number; lng: number };
   status?: string;
   parasha?: string;
   equipment?: string[];
@@ -73,6 +73,7 @@ export interface Event {
   created_by: string;
   main_time: string;
   location_name: string;
+  location_coordinates?: { lat: number; lng: number }; // הוספת שדה מיקום גיאוגרפי
   setupTime?: string;
   time_start?: string;
   time_end?: string;

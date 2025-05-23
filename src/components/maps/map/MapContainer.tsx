@@ -9,7 +9,7 @@ interface MapContainerProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
-  onMapInit: (mapContainer: HTMLDivElement, map: mapboxgl.Map | null) => void;
+  onMapInit: (mapContainer: HTMLDivElement) => void;
   className?: string;
 }
 
@@ -34,7 +34,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     
     try {
       log.info("Initializing map container");
-      onMapInit(mapContainer.current, null);
+      onMapInit(mapContainer.current);
     } catch (err) {
       log.error("Error initializing map", { error: err });
     }
