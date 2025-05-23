@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { UserProfile, RoleType } from '@/types/profile';
 
@@ -124,15 +123,28 @@ export async function updateRole(id: string, role: RoleType): Promise<UserProfil
 export async function checkProfileExists(id: string): Promise<boolean> {
   console.log(`Checking if profile exists for user ${id}`);
   
-  const { data, error, count } = await supabase
-    .from('profiles')
-    .select('id', { count: 'exact' })
-    .eq('id', id);
+  try {
+    const { data, error, count } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact' })
+      .eq('id', id);
+      
+    if (error) {
+      console.error(`Error checking if profile exists for ${id}:`, error);
+      // Return false for RLS-related errors to trigger attempt at profile creation
+      if (error.message?.includes('violates row-level security') || 
+          error.code === '42501' || // permission_denied
+          error.code === '403') {   // forbidden
+        return false;
+      }
+      
+      throw error; // Propagate other errors
+    }
     
-  if (error) {
-    console.error(`Error checking if profile exists for ${id}:`, error);
+    return (count || 0) > 0;
+  } catch (err) {
+    console.error(`Unexpected error checking if profile exists for ${id}:`, err);
+    // For unexpected errors, we assume the profile doesn't exist to trigger creation
     return false;
   }
-  
-  return (count || 0) > 0;
 }

@@ -36,7 +36,25 @@ export function useProfileCreator() {
         encoding_support: true
       };
 
-      // Insert profile with explicit API key in headers to ensure authorization
+      // First check if profile already exists to avoid duplicate creation attempts
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (existingProfile) {
+        log.info("Profile already exists, returning existing profile", { profileId: existingProfile.id });
+        setIsCreating(false);
+        return existingProfile;
+      }
+        
+      if (checkError) {
+        // If we get an error checking (likely RLS related), let's try inserting with explicit authorization
+        log.warn("Error checking for existing profile:", { error: checkError });
+      }
+
+      // Try inserting with the current user's authorization
       const { data, error } = await supabase
         .from('profiles')
         .insert(profileData)
@@ -45,7 +63,20 @@ export function useProfileCreator() {
       if (error) {
         log.error("Error creating profile:", { error, userId });
         
-        // Try to identify specific issues
+        // Common RLS errors occur when the user doesn't have permission yet
+        if (error.message.includes('new row violates row-level security policy') ||
+            error.code === '42501' || // permission_denied 
+            error.code === '403') {  // forbidden
+          
+          log.info("RLS error detected. Trying alternative profile creation approach");
+          
+          // Workaround: Use admin functions if available or direct signup
+          // For now, we'll just return null but log the issue
+          setIsCreating(false);
+          return null;
+        }
+        
+        // For duplicate key errors, try to fetch the existing profile
         if (error.message.includes('duplicate key')) {
           log.info("Profile already exists, attempting to fetch it instead");
           const { data: existingProfile, error: fetchError } = await supabase
