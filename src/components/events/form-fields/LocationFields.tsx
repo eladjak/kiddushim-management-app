@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MapPin, Map as MapIcon } from "lucide-react";
@@ -17,7 +18,8 @@ interface LocationFieldsProps {
 
 export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
-  const [mapCoordinates, setMapCoordinates] = useState<{lat: number; lng: number; address: string} | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{lat: number; lng: number; address: string} | null>(null);
+  const log = logger.createLogger({ component: 'LocationFields' });
 
   const getGoogleMapsUrl = (address: string) => {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -36,8 +38,8 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
   };
 
   const handleLocationSelect = (location: {lat: number; lng: number; address: string}) => {
-    setMapCoordinates(location);
-    logger.info("Location selected", { location });
+    setSelectedLocation(location);
+    log.info("Location selected", { location });
     
     // Create a synthetic event to update the parent form
     const event = {
@@ -132,7 +134,6 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
           <div className="flex-1 h-full min-h-[400px]">
             <LocationMap 
               address={formData.locationAddress} 
-              value={mapCoordinates || undefined}
               onChange={handleLocationSelect}
             />
           </div>

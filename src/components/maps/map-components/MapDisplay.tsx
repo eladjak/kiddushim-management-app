@@ -1,9 +1,7 @@
 
-import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
+import React from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { logger } from '@/utils/logger';
 
 interface MapDisplayProps {
   loading: boolean;
@@ -24,20 +22,17 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   mapInitialized,
   className = ''
 }) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const log = logger.createLogger({ component: 'MapDisplay' });
+  const mapContainer = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!mapContainer.current) {
-      log.warn("Map container ref is not available");
       return;
     }
     
     try {
-      log.info("Initializing map display");
       mapInitialized(mapContainer.current);
     } catch (err) {
-      log.error("Error initializing map display", { error: err });
+      console.error("Error initializing map display", err);
     }
     
     // Only needed at component mount

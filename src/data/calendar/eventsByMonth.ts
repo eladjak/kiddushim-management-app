@@ -1,277 +1,43 @@
 
 import { PredefinedEvent } from "../types/eventTypes";
+import { iyarEvents } from "./months/iyar";
+import { sivanEvents } from "./months/sivan";
+import { tammuzEvents } from "./months/tammuz";
+import { avEvents } from "./months/av";
+import { elulEvents } from "./months/elul";
+import { tishreiEvents } from "./months/tishrei";
+import { cheshvanEvents } from "./months/cheshvan";
+import { tevetEvents } from "./months/tevet";
+import { shvatEvents } from "./months/shvat";
 
 /**
  * Events organized by Hebrew month for better management
  */
 export const predefinedEventsByMonth: Record<string, PredefinedEvent[]> = {
   // Iyar (May) 5785 - 2025
-  iyar: [
-    {
-      id: "1",
-      date: "2025-05-02",
-      hebrewDate: "ב׳ אייר תשפ״ה",
-      parasha: "תזריע-מצורע",
-      time: "15:30-16:30",
-      shabatEntrance: "17:17",
-      serviceLadiesAvailable: true,
-      notes: ["במסגרת ספירת העומר", "סמוך ליום העצמאות (1-2.5)"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "2",
-      date: "2025-05-16",
-      hebrewDate: "ט״ז אייר תשפ״ה",
-      parasha: "אמור",
-      time: "15:30-16:30",
-      shabatEntrance: "17:38",
-      serviceLadiesAvailable: true,
-      notes: ["בתוך ספירת העומר", "אחרי ל\"ג בעומר (15.5)"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "3",
-      date: "2025-05-30",
-      hebrewDate: "א׳ סיוון תשפ״ה",
-      parasha: "במדבר",
-      time: "16:00-17:00",
-      shabatEntrance: "19:33",
-      serviceLadiesAvailable: true,
-      notes: ["ערב ראש חודש"],
-      mainTime: "16:00",
-      setupTime: "15:00",
-      dayOfWeek: "יום שישי"
-    }
-  ],
+  iyar: iyarEvents,
   
   // Sivan (June) 5785 - 2025
-  sivan: [
-    {
-      id: "4",
-      date: "2025-06-13",
-      hebrewDate: "ט״ו סיוון תשפ״ה",
-      parasha: "נשא",
-      time: "16:30-17:30",
-      shabatEntrance: "19:55",
-      serviceLadiesAvailable: true,
-      notes: ["אחרי חג השבועות"],
-      mainTime: "16:30",
-      setupTime: "15:30",
-      dayOfWeek: "יום חמישי"
-    },
-    {
-      id: "5",
-      date: "2025-06-20",
-      hebrewDate: "כ״ב סיוון תשפ״ה",
-      parasha: "בהעלותך",
-      time: "16:30-17:30",
-      shabatEntrance: "20:01",
-      serviceLadiesAvailable: false,
-      notes: ["אנשי גבורה וחסד"],
-      mainTime: "16:30",
-      setupTime: "15:30",
-      dayOfWeek: "יום שישי"
-    }
-  ],
+  sivan: sivanEvents,
   
   // Tammuz (July) 5785 - 2025
-  tammuz: [
-    {
-      id: "6",
-      date: "2025-07-04",
-      hebrewDate: "ו׳ תמוז תשפ״ה",
-      parasha: "קרח",
-      time: "16:30-17:30",
-      shabatEntrance: "20:12",
-      serviceLadiesAvailable: false,
-      notes: ["אני ואחותי"],
-      mainTime: "16:30",
-      setupTime: "15:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "7",
-      date: "2025-07-11",
-      hebrewDate: "י״ג תמוז תשפ״ה",
-      parasha: "חקת",
-      time: "16:30-17:30",
-      shabatEntrance: "20:18",
-      serviceLadiesAvailable: true,
-      notes: ["אחדות וכלים"],
-      mainTime: "16:30",
-      setupTime: "15:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "8",
-      date: "2025-07-25",
-      hebrewDate: "כ״ז תמוז תשפ״ה",
-      parasha: "מטות",
-      time: "16:30-17:30",
-      shabatEntrance: "20:27",
-      serviceLadiesAvailable: true,
-      notes: ["התחדשות עם שמחה (ערב ר\"ח אב)"],
-      mainTime: "16:30",
-      setupTime: "15:30",
-      dayOfWeek: "יום שישי"
-    }
-  ],
+  tammuz: tammuzEvents,
   
   // Av (August) 5785 - 2025
-  av: [
-    {
-      id: "9",
-      date: "2025-08-08",
-      hebrewDate: "י״ב אב תשפ״ה",
-      parasha: "ואתחנן",
-      time: "16:30-17:30",
-      shabatEntrance: "20:33",
-      serviceLadiesAvailable: false,
-      notes: ["שבת נחמו (אחרי ט' באב)"],
-      mainTime: "16:30",
-      setupTime: "15:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "10",
-      date: "2025-08-22",
-      hebrewDate: "כ״ו אב תשפ״ה",
-      parasha: "ראה",
-      time: "16:00-17:00",
-      shabatEntrance: "20:34",
-      serviceLadiesAvailable: false,
-      notes: ["אהבת מתנדבים (ערבי באב)"],
-      mainTime: "16:00",
-      setupTime: "15:00",
-      dayOfWeek: "יום שישי"
-    }
-  ],
+  av: avEvents,
   
   // Elul (Sept) 5785 - 2025
-  elul: [
-    {
-      id: "11",
-      date: "2025-09-05",
-      hebrewDate: "י׳ אלול תשפ״ה",
-      parasha: "כי תצא",
-      time: "15:45-16:45",
-      shabatEntrance: "20:32",
-      serviceLadiesAvailable: true,
-      notes: ["סליחות והכלה"],
-      mainTime: "15:45",
-      setupTime: "14:45",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "12",
-      date: "2025-09-19",
-      hebrewDate: "כ״ד אלול תשפ״ה",
-      parasha: "ניצבים",
-      time: "15:30-16:30",
-      shabatEntrance: "20:29",
-      serviceLadiesAvailable: false,
-      notes: ["לפני ראש השנה"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    }
-  ],
+  elul: elulEvents,
   
   // Tishrei (October) 5786 - 2025
-  tishrei: [
-    {
-      id: "13",
-      date: "2025-10-16",
-      hebrewDate: "כ״ב תשרי תשפ״ו",
-      parasha: "בראשית",
-      time: "15:30-16:30",
-      shabatEntrance: "20:24",
-      serviceLadiesAvailable: true,
-      notes: ["שמחת תורה"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום חמישי"
-    }
-  ],
+  tishrei: tishreiEvents,
   
   // Cheshvan (November) 5786 - 2025
-  cheshvan: [
-    {
-      id: "14",
-      date: "2025-11-08",
-      hebrewDate: "ט״ו חשוון תשפ״ו",
-      parasha: "וירא",
-      time: "15:30-16:30",
-      shabatEntrance: "20:04",
-      serviceLadiesAvailable: false,
-      notes: ["הכנסת אורחים (עם אשי שמחה הרב)"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "15",
-      date: "2025-11-29",
-      hebrewDate: "ו׳ כסלו תשפ״ו",
-      parasha: "ויצא",
-      time: "15:30-16:30",
-      shabatEntrance: "19:55",
-      serviceLadiesAvailable: false,
-      notes: ["יהודים ויוונים"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    }
-  ],
+  cheshvan: cheshvanEvents,
   
   // Tevet (December) 5786 - 2025
-  tevet: [
-    {
-      id: "16",
-      date: "2025-12-25",
-      hebrewDate: "ב׳ טבת תשפ״ו",
-      parasha: "חנוכה",
-      time: "17:00-18:00",
-      shabatEntrance: "19:46",
-      serviceLadiesAvailable: true,
-      notes: ["חנוכת המשכן"],
-      mainTime: "17:00",
-      setupTime: "16:00",
-      dayOfWeek: "יום חמישי"
-    }
-  ],
+  tevet: tevetEvents,
   
   // Tevet-Shvat (January) 5786 - 2026
-  shvat: [
-    {
-      id: "17",
-      date: "2026-01-03",
-      hebrewDate: "י״ב טבת תשפ״ו",
-      parasha: "שמות",
-      time: "15:30-16:30",
-      shabatEntrance: "19:37",
-      serviceLadiesAvailable: false,
-      notes: ["אור וניסים"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    },
-    {
-      id: "18",
-      date: "2026-01-31",
-      hebrewDate: "י׳ שבט תשפ״ו",
-      parasha: "בשלח",
-      time: "15:30-16:30",
-      shabatEntrance: "19:27",
-      serviceLadiesAvailable: true,
-      notes: ["טעמי מנהגים"],
-      mainTime: "15:30",
-      setupTime: "14:30",
-      dayOfWeek: "יום שישי"
-    }
-  ]
+  shvat: shvatEvents
 };

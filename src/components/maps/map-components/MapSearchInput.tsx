@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Loader2 } from 'lucide-react';
 
 interface MapSearchInputProps {
   addressInput: string;
@@ -41,6 +42,7 @@ const MapSearchInput: React.FC<MapSearchInputProps> = ({
           onClick={handleAddressSearch} 
           disabled={loading || !addressInput.trim()}
         >
+          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
           חפש
         </Button>
       </div>

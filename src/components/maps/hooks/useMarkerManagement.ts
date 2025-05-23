@@ -1,17 +1,16 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { useMap } from 'react-leaflet';
-import L from 'leaflet';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
 
 interface UseMarkerManagementProps {
   initialPosition?: { lat: number; lng: number };
+  onLocationChange?: (location: { lat: number; lng: number }) => void;
 }
 
-export const useMarkerManagement = ({ initialPosition }: UseMarkerManagementProps = {}) => {
-  const [position, setPosition] = useState(initialPosition);
+export const useMarkerManagement = ({ initialPosition, onLocationChange }: UseMarkerManagementProps = {}) => {
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(initialPosition || null);
   const [address, setAddress] = useState<string | null>(null);
-  const map = useMap();
   const { toast } = useToast();
   const log = logger.createLogger({ component: 'useMarkerManagement' });
 
@@ -22,36 +21,12 @@ export const useMarkerManagement = ({ initialPosition }: UseMarkerManagementProp
     }
   }, [initialPosition, log]);
 
+  // Effect for notifying parent component about location changes
   useEffect(() => {
-    if (position && map) {
-      log.info('Setting marker at position', { position });
-      
-      // Fly to the location
-      map.flyTo([position.lat, position.lng], map.getZoom(), {
-        animate: true,
-      });
-
-      // Add marker if it doesn't exist
-      let marker = map.getLayers().find(layer => (layer as any).options?.isMarker);
-      if (!marker) {
-        marker = L.marker([position.lat, position.lng], {
-          icon: L.icon({
-            iconUrl: '/marker-icon.png',
-            iconRetinaUrl: '/marker-icon-2x.png',
-            shadowUrl: '/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-          }),
-          zIndexOffset: 1000,
-          isMarker: true,
-        }).addTo(map);
-      } else {
-        (marker as L.Marker).setLatLng([position.lat, position.lng]);
-      }
+    if (position && onLocationChange) {
+      onLocationChange(position);
     }
-  }, [position, map, log]);
+  }, [position, onLocationChange]);
 
   useEffect(() => {
     if (position) {
@@ -105,9 +80,21 @@ export const useMarkerManagement = ({ initialPosition }: UseMarkerManagementProp
           description: "Could not search for this address.",
           variant: "destructive",
         });
-        log.error('Error searching address', { address, error });
+        log.error('Error searching address', { error, addressInput: address });
       });
-  }, [map, toast, log]);
+  }, [toast, log]);
 
-  return { position, address, setPosition, handleSearch };
+  const handleLocationSelect = useCallback((location: { lat: number; lng: number; address: string }) => {
+    setPosition({ lat: location.lat, lng: location.lng });
+    setAddress(location.address);
+    log.info('Location manually selected', { location });
+  }, [log]);
+
+  return { 
+    position, 
+    address, 
+    setPosition, 
+    handleSearch,
+    handleLocationSelect
+  };
 };
