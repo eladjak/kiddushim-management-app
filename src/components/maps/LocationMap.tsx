@@ -1,9 +1,10 @@
 
 import React, { useRef, useEffect, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import MapDisplay from './map-components/MapDisplay';
 import MapSearchInput from './map-components/MapSearchInput';
+import MapContainer from './map/MapContainer';
 import { logger } from '@/utils/logger';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -21,10 +22,14 @@ const LocationMap: React.FC<LocationMapProps> = ({
   onChange 
 }) => {
   const log = logger.createLogger({ component: 'LocationMap' });
-  const mapRef = useRef(null);
+  const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addressInput, setAddressInput] = useState(address || '');
+  
+  // Get Mapbox token from environment variables
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
   
   useEffect(() => {
     if (address && address !== addressInput) {
@@ -35,7 +40,72 @@ const LocationMap: React.FC<LocationMapProps> = ({
   // Initialize map
   const handleMapInitialized = (container: HTMLDivElement) => {
     try {
-      // Map initialization logic would go here
+      if (!mapboxToken) {
+        throw new Error('Mapbox token is missing');
+      }
+      
+      // Set the access token
+      mapboxgl.accessToken = mapboxToken;
+      
+      // Create a new map instance
+      const map = new mapboxgl.Map({
+        container,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: initialLocation ? [initialLocation.lng, initialLocation.lat] : [34.9, 32.3],
+        zoom: 13
+      });
+      
+      map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      
+      // Save map instance
+      setMapInstance(map);
+      
+      // Create initial marker if we have a location
+      if (initialLocation) {
+        const marker = new mapboxgl.Marker()
+          .setLngLat([initialLocation.lng, initialLocation.lat])
+          .addTo(map);
+        
+        markerRef.current = marker;
+      }
+      
+      // Add click handler for setting marker
+      map.on('click', (e) => {
+        const { lng, lat } = e.lngLat;
+        
+        // Update or create marker
+        if (markerRef.current) {
+          markerRef.current.setLngLat([lng, lat]);
+        } else {
+          const marker = new mapboxgl.Marker()
+            .setLngLat([lng, lat])
+            .addTo(map);
+          markerRef.current = marker;
+        }
+        
+        // Get address for the selected location
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.display_name) {
+              const location = {
+                lat,
+                lng,
+                address: data.display_name
+              };
+              
+              if (onChange) {
+                onChange(location);
+              }
+              
+              setAddressInput(data.display_name);
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching address:', err);
+          });
+      });
+      
       log.info('Map initialized');
     } catch (error) {
       log.error('Error initializing map', { error });
@@ -60,6 +130,24 @@ const LocationMap: React.FC<LocationMapProps> = ({
             lng: parseFloat(result.lon),
             address: result.display_name
           };
+          
+          // Update marker
+          if (markerRef.current) {
+            markerRef.current.setLngLat([location.lng, location.lat]);
+          } else if (mapInstance) {
+            const marker = new mapboxgl.Marker()
+              .setLngLat([location.lng, location.lat])
+              .addTo(mapInstance);
+            markerRef.current = marker;
+          }
+          
+          // Pan map to location
+          if (mapInstance) {
+            mapInstance.flyTo({
+              center: [location.lng, location.lat],
+              zoom: 14
+            });
+          }
           
           if (onChange) {
             onChange(location);
@@ -91,11 +179,11 @@ const LocationMap: React.FC<LocationMapProps> = ({
       </div>
 
       <div className="flex-grow relative">
-        <MapDisplay
+        <MapContainer
           loading={loading}
           error={error}
           onRetry={handleAddressSearch}
-          mapInitialized={handleMapInitialized}
+          onMapInit={handleMapInitialized}
         />
       </div>
     </div>

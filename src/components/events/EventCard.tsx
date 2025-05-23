@@ -38,11 +38,12 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
 
   return (
     <div 
-      className={`p-4 rounded-md border ${
+      id={`event-${event.id}`}
+      className={`p-4 rounded-md border transition-all ${
         isInBreakPeriod 
           ? 'border-red-200 bg-red-50' 
           : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
-      } transition-colors`}
+      } highlight-event:border-primary highlight-event:bg-primary/5 highlight-event:shadow-md`}
     >
       <div className="text-right">
         <div className="text-sm text-accent font-medium mb-2">

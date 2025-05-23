@@ -16,7 +16,7 @@ interface MapContainerProps {
 /**
  * A reusable container for mapbox maps providing loading, error states, and initialization
  */
-const MapContainer: React.FC<MapContainerProps> = ({
+export const MapContainer: React.FC<MapContainerProps> = ({
   loading,
   error,
   onRetry,
