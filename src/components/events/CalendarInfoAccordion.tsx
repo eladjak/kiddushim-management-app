@@ -1,57 +1,66 @@
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Calendar } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { specialDates } from "@/data/calendar/specialDates";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
 
 export const CalendarInfoAccordion = () => {
+  const { holidays, fasts, breakPeriods } = specialDates;
+  
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="calendar-info" className="border-none">
-          <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-secondary/10">
-            <div className="flex items-center text-primary">
-              <Calendar className="h-5 w-5 ml-2" />
-              <span className="font-medium">מידע שנתי - לוח אירועי קידושישי</span>
+    <Accordion type="single" collapsible className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <AccordionItem value="events-calendar">
+        <AccordionTrigger className="text-lg font-medium">
+          לוח שנתי - מידע חשוב
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="space-y-6 py-2">
+            <div>
+              <h3 className="font-bold mb-2">חגים ומועדים</h3>
+              <ul className="list-disc list-inside space-y-1 pr-4">
+                {holidays.map((holiday, index) => (
+                  <li key={index}>
+                    {holiday.name}: {format(new Date(holiday.date), "dd/MM/yyyy", { locale: he })}
+                    {holiday.endDate && <> עד {format(new Date(holiday.endDate), "dd/MM/yyyy", { locale: he })}</>}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </AccordionTrigger>
-          <AccordionContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-              <div className="space-y-2">
-                <h3 className="font-bold text-primary">ימי זיכרון וחגים לאומיים 🕯️</h3>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>יום הזיכרון לשואה ולגבורה: 24.4.25</li>
-                  <li>יום הזיכרון לחללי צה"ל: 30.4.25</li>
-                  <li>יום העצמאות: 1-2.5.25</li>
-                  <li>ל"ג בעומר: 15.5.25</li>
-                  <li>יום ירושלים: 28.5.25</li>
-                </ul>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="font-bold text-primary">צומות 📅</h3>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>צום י"ז בתמוז: 13.7.25</li>
-                  <li>צום תשעה באב: 31.7.25</li>
-                  <li>צום גדליה: 25.9.25</li>
-                  <li>יום כיפור: 1-2.10.25</li>
-                </ul>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="font-bold text-primary">תקופות הפסקה</h3>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>הפסקה בתשעת הימים (23.7-1.8.25)</li>
-                  <li>הפסקת חגי תשרי (24.9-17.10.25)</li>
-                </ul>
-              </div>
+            
+            <div>
+              <h3 className="font-bold mb-2">צומות</h3>
+              <ul className="list-disc list-inside space-y-1 pr-4">
+                {fasts.map((fast, index) => (
+                  <li key={index}>
+                    {fast.name}: {format(new Date(fast.date), "dd/MM/yyyy", { locale: he })}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </div>
+            
+            <div>
+              <h3 className="font-bold mb-2 text-red-600">תקופות הפסקה - לא מתקיימים אירועים</h3>
+              <ul className="list-disc list-inside space-y-1 pr-4">
+                {breakPeriods.map((period, index) => (
+                  <li key={index} className="text-red-600">
+                    {period.name}: {format(new Date(period.startDate), "dd/MM/yyyy", { locale: he })} - 
+                    {format(new Date(period.endDate), "dd/MM/yyyy", { locale: he })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
+              <h3 className="font-bold text-blue-700 mb-2">הערות חשובות</h3>
+              <ul className="list-disc list-inside space-y-2 pr-4 text-sm">
+                <li>אירועים בימי חמישי מתקיימים בשעות הערב, אירועים בימי שישי לפני כניסת השבת</li>
+                <li>באירועים המסומנים ב-👧 בנות שירות לאומי זמינות לעזרה בהפקת האירוע</li>
+                <li>יש להגיע לפחות שעה לפני תחילת האירוע לצורך הכנות</li>
+              </ul>
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };

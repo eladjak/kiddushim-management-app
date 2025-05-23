@@ -28,14 +28,24 @@ export const useEvents = (userId?: string) => {
         // Filter future events and sort them by date
         const futureEvents = events
           .filter(event => {
-            const eventDate = new Date(event.main_time || event.date);
-            const now = new Date();
-            return eventDate >= now;
+            try {
+              const eventDate = new Date(event.main_time || event.date);
+              const now = new Date();
+              return eventDate >= now;
+            } catch (err) {
+              log.error("Error filtering event date", { err, event });
+              return false;
+            }
           })
           .sort((a, b) => {
-            const dateA = new Date(a.main_time || a.date);
-            const dateB = new Date(b.main_time || b.date);
-            return dateA.getTime() - dateB.getTime();
+            try {
+              const dateA = new Date(a.main_time || a.date);
+              const dateB = new Date(b.main_time || b.date);
+              return dateA.getTime() - dateB.getTime();
+            } catch (err) {
+              log.error("Error sorting event dates", { err });
+              return 0;
+            }
           });
         
         // Limit to 6 events for dashboard display
@@ -46,5 +56,7 @@ export const useEvents = (userId?: string) => {
       }
     },
     enabled: true, // Always fetch events
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 };

@@ -30,18 +30,25 @@ export async function getUpcomingEvents(): Promise<Event[]> {
     // המרה מפורמט הדאטהבייס לפורמט האפליקציה
     const convertedEvents = convertDBEventsToEvents(data as EventDB[]);
     
+    // סידור האירועים לפי תאריך
+    const sortedEvents = convertedEvents.sort((a, b) => {
+      const dateA = a.main_time ? new Date(a.main_time) : new Date(a.date);
+      const dateB = b.main_time ? new Date(b.main_time) : new Date(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
+    
     // Log detailed event data for debugging
-    log.info('Converted events:', { 
-      count: convertedEvents.length,
-      firstEvent: convertedEvents.length > 0 ? {
-        id: convertedEvents[0].id,
-        title: convertedEvents[0].title,
-        date: convertedEvents[0].date,
-        main_time: convertedEvents[0].main_time,
+    log.info('Sorted upcoming events:', { 
+      count: sortedEvents.length,
+      firstEvent: sortedEvents.length > 0 ? {
+        id: sortedEvents[0].id,
+        title: sortedEvents[0].title,
+        date: sortedEvents[0].date,
+        main_time: sortedEvents[0].main_time,
       } : 'No events'
     });
     
-    return convertedEvents;
+    return sortedEvents;
   } catch (error) {
     log.error('Error in getUpcomingEvents:', error);
     // Return empty array instead of throwing to avoid breaking dashboard
