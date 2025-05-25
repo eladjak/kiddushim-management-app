@@ -4,6 +4,7 @@ import { useEventForm } from "./form-hooks/useEventForm";
 import { EventBasicInfoSection } from "./form-sections/EventBasicInfoSection";
 import { EventDetailsSection } from "./form-sections/EventDetailsSection";
 import { EventFormActions } from "./form-actions/EventFormActions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const CreateEventForm = () => {
   const { 
@@ -28,31 +29,41 @@ export const CreateEventForm = () => {
         <h2 className="text-2xl font-bold">יצירת אירוע חדש</h2>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <EventBasicInfoSection 
-            formData={formData}
-            eventNotes={eventNotes}
-            onChange={handleInputChange}
-            onSelectChange={handleSelectChange}
-            onEventSelect={handleEventSelect}
-          />
-          
-          <EventDetailsSection 
-            formData={formData}
-            posterUrl={posterUrl}
-            eventImages={eventImages}
-            onChange={handleInputChange}
-            onSelectChange={handleSelectChange}
-            onPosterChange={setPosterUrl}
-            onImagesChange={setEventImages}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <ScrollArea className="max-h-[70vh] overflow-y-auto">
+          <div className="space-y-6 pr-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <EventBasicInfoSection 
+                  formData={formData}
+                  eventNotes={eventNotes}
+                  onChange={handleInputChange}
+                  onSelectChange={handleSelectChange}
+                  onEventSelect={handleEventSelect}
+                />
+              </div>
+              
+              <div className="space-y-6">
+                <EventDetailsSection 
+                  formData={formData}
+                  posterUrl={posterUrl}
+                  eventImages={eventImages}
+                  onChange={handleInputChange}
+                  onSelectChange={handleSelectChange}
+                  onPosterChange={setPosterUrl}
+                  onImagesChange={setEventImages}
+                />
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+        
+        <div className="border-t pt-4 bg-white sticky bottom-0">
+          <EventFormActions 
+            isLoading={isLoading}
+            onCancel={() => navigate("/events")}
           />
         </div>
-        
-        <EventFormActions 
-          isLoading={isLoading}
-          onCancel={() => navigate("/events")}
-        />
       </form>
     </div>
   );

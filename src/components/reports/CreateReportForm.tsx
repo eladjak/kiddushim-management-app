@@ -9,6 +9,7 @@ import { TzoharRepresentativeField } from "./form-fields/TzoharRepresentativeFie
 import { ReportBasicInfo } from "./form-sections/ReportBasicInfo";
 import { FeedbackField } from "./form-fields/FeedbackField";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CreateReportFormProps {
   eventId: string;
@@ -23,15 +24,14 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
   const { submitReport, events } = useReportForm();
   
   const [loading, setLoading] = useState(false);
-  // ערכי ברירת מחדל ריקים
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     reporter_name: "",
     event_id: eventId || "",
-    participants_count: 0, // שינוי ל-0
-    participants_kids: 0, // שינוי ל-0
-    participants_adults: 0, // שינוי ל-0
+    participants_count: 0,
+    participants_kids: 0,
+    participants_adults: 0,
     location_other: "",
     participants_gained: "",
     what_was_good: "",
@@ -105,7 +105,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg">
         <h3 className="font-medium text-lg mb-2">דיווח אירוע לצהר</h3>
         <p className="text-sm text-gray-600">
@@ -113,67 +113,75 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
         </p>
       </div>
 
-      <ReportBasicInfo 
-        events={events}
-        formData={formData}
-        onFieldChange={handleFieldChange}
-      />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <ScrollArea className="max-h-[60vh] overflow-y-auto">
+          <div className="space-y-6 pr-4">
+            <ReportBasicInfo 
+              events={events}
+              formData={formData}
+              onFieldChange={handleFieldChange}
+            />
 
-      <ParticipantsCountField
-        totalParticipants={formData.participants_count}
-        kidsCount={formData.participants_kids}
-        adultsCount={formData.participants_adults}
-        onTotalChange={(value) => handleFieldChange('participants_count', value)}
-        onKidsChange={(value) => handleFieldChange('participants_kids', value)}
-        onAdultsChange={(value) => handleFieldChange('participants_adults', value)}
-      />
+            <ParticipantsCountField
+              totalParticipants={formData.participants_count}
+              kidsCount={formData.participants_kids}
+              adultsCount={formData.participants_adults}
+              onTotalChange={(value) => handleFieldChange('participants_count', value)}
+              onKidsChange={(value) => handleFieldChange('participants_kids', value)}
+              onAdultsChange={(value) => handleFieldChange('participants_adults', value)}
+            />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          מה להערכתך קיבלו המשתתפים שהיו באירוע? *
-        </label>
-        <p className="text-sm text-gray-500">
-          איזה פרטו האם יצירתם איתם קשר, כיצד לדעתכם הם השתלבו?
-        </p>
-        <textarea
-          value={formData.participants_gained}
-          onChange={(e) => handleFieldChange('participants_gained', e.target.value)}
-          rows={4}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="כאן תגיעו תיאור החוויה והקבלה מהמשתתפים..."
-          required
-        />
-      </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                מה להערכתך קיבלו המשתתפים שהיו באירוע? *
+              </label>
+              <p className="text-sm text-gray-500">
+                איזה פרטו האם יצירתם איתם קשר, כיצד לדעתכם הם השתלבו?
+              </p>
+              <textarea
+                value={formData.participants_gained}
+                onChange={(e) => handleFieldChange('participants_gained', e.target.value)}
+                rows={4}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                placeholder="כאן תגיעו תיאור החוויה והקבלה מהמשתתפים..."
+                required
+              />
+            </div>
 
-      <TzoharRepresentativeField
-        value={formData.is_tzohar_representative}
-        onChange={(value) => handleFieldChange('is_tzohar_representative', value)}
-      />
+            <TzoharRepresentativeField
+              value={formData.is_tzohar_representative}
+              onChange={(value) => handleFieldChange('is_tzohar_representative', value)}
+            />
 
-      <FeedbackField
-        name="what_was_good"
-        label="מה היה טוב באירוע?"
-        value={formData.what_was_good}
-        onChange={(e) => handleFieldChange('what_was_good', e.target.value)}
-        placeholder="תארו את הדברים החיוביים שקרו באירוע..."
-      />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FeedbackField
+                name="what_was_good"
+                label="מה היה טוב באירוע?"
+                value={formData.what_was_good}
+                onChange={(e) => handleFieldChange('what_was_good', e.target.value)}
+                placeholder="תארו את הדברים החיוביים שקרו באירוע..."
+              />
 
-      <FeedbackField
-        name="what_to_improve"
-        label="מה ניתן לשפר?"
-        value={formData.what_to_improve}
-        onChange={(e) => handleFieldChange('what_to_improve', e.target.value)}
-        placeholder="הצעות לשיפור לאירועים הבאים..."
-      />
+              <FeedbackField
+                name="what_to_improve"
+                label="מה ניתן לשפר?"
+                value={formData.what_to_improve}
+                onChange={(e) => handleFieldChange('what_to_improve', e.target.value)}
+                placeholder="הצעות לשיפור לאירועים הבאים..."
+              />
+            </div>
+          </div>
+        </ScrollArea>
 
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={loading} className="flex-1">
-          {loading ? "שולח דיווח..." : "שלח דיווח לצהר"}
-        </Button>
-        <Button type="button" variant="outline" onClick={onClose}>
-          ביטול
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-3 pt-4 border-t bg-white sticky bottom-0">
+          <Button type="submit" disabled={loading} className="flex-1">
+            {loading ? "שולח דיווח..." : "שלח דיווח לצהר"}
+          </Button>
+          <Button type="button" variant="outline" onClick={onClose}>
+            ביטול
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };

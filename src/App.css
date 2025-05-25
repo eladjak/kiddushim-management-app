@@ -139,7 +139,7 @@ img {
   animation: slide-in-rtl 0.3s ease-out;
 }
 
-/* Improved scrolling for long forms */
+/* Enhanced scrollable forms */
 .scrollable-form {
   max-height: 70vh;
   overflow-y: auto;
@@ -148,22 +148,26 @@ img {
 }
 
 /* Custom scrollbar for better RTL support */
-.scrollable-form::-webkit-scrollbar {
+.scrollable-form::-webkit-scrollbar,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar {
   width: 6px;
 }
 
-.scrollable-form::-webkit-scrollbar-track {
+.scrollable-form::-webkit-scrollbar-track,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
 
-.scrollable-form::-webkit-scrollbar-thumb {
-  background: #888;
+.scrollable-form::-webkit-scrollbar-thumb,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
   border-radius: 3px;
 }
 
-.scrollable-form::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.scrollable-form::-webkit-scrollbar-thumb:hover,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* Tables for RTL */
@@ -187,8 +191,12 @@ form {
   margin-right: 0;
 }
 
-/* Responsive image adjustments */
+/* Responsive improvements for forms */
 @media (max-width: 768px) {
+  .scrollable-form {
+    max-height: 60vh;
+  }
+  
   .h-48 {
     height: 8rem !important;
   }
@@ -214,6 +222,17 @@ form {
   }
 }
 
+/* Enhanced form responsiveness */
+@media (max-width: 640px) {
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .lg\\:grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}
+
 /* Fix encoding for Hebrew text in inputs */
 input[type="text"],
 input[type="email"],
@@ -234,4 +253,35 @@ select {
 /* Fix scroll area for long forms */
 [data-radix-scroll-area-viewport] {
   direction: rtl !important;
+}
+
+/* Sticky form actions */
+.sticky-form-actions {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+/* Enhanced textarea styling */
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+textarea:focus {
+  resize: vertical;
+}
+
+/* Form section spacing */
+.form-section {
+  padding: 1rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.form-section:last-child {
+  border-bottom: none;
 }
