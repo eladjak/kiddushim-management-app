@@ -81,21 +81,6 @@ export const ParticipantsCountField = ({
           placeholder=""
         />
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="participants-gained">
-          מה להערכתך אותו המשתתפים שהיו על עצמן הקהקול? *
-        </Label>
-        <p className="text-sm text-gray-500">
-          איזה פרטו האם יצירתם איתם קשר, כיצר לדעתכם הם השתלבו?
-        </p>
-        <textarea
-          id="participants-gained"
-          rows={3}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="כאן תגיעו חייכות ותיאור החליל והקליך מהתרופות..."
-        />
-      </div>
     </div>
   );
 };

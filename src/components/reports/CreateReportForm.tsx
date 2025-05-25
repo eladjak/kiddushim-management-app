@@ -6,10 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useReportForm } from "@/hooks/reports/useReportForm";
 import { ParticipantsCountField } from "./form-fields/ParticipantsCountField";
 import { TzoharRepresentativeField } from "./form-fields/TzoharRepresentativeField";
-import { ReportTitleField } from "./form-fields/ReportTitleField";
-import { ReportDescriptionField } from "./form-fields/ReportDescriptionField";
-import { ReporterNameField } from "./form-fields/ReporterNameField";
-import { ReportEventField } from "./form-fields/ReportEventField";
+import { ReportBasicInfo } from "./form-sections/ReportBasicInfo";
 import { FeedbackField } from "./form-fields/FeedbackField";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +27,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
     title: "",
     description: "",
     reporter_name: "",
+    event_id: eventId || "",
     participants_count: 50,
     participants_kids: 20,
     participants_adults: 80,
@@ -40,7 +38,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
     is_tzohar_representative: false,
   });
 
-  const handleChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -73,7 +71,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
       await submitReport({
         values: {
           ...formData,
-          event_id: eventId || undefined,
+          event_id: formData.event_id || undefined,
           severity: "medium",
           overall_rating: 5,
           audience_rating: 5,
@@ -110,34 +108,19 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
         </p>
       </div>
 
-      <ReportTitleField 
-        value={formData.title}
-        onChange={(e) => handleChange('title', e.target.value)}
-      />
-
-      <ReportDescriptionField 
-        value={formData.description}
-        onChange={(e) => handleChange('description', e.target.value)}
-      />
-
-      <ReporterNameField 
-        value={formData.reporter_name}
-        onChange={(e) => handleChange('reporter_name', e.target.value)}
-      />
-
-      <ReportEventField 
-        value={eventId}
+      <ReportBasicInfo 
         events={events}
-        onChange={(value) => handleChange('event_id', value)}
+        formData={formData}
+        onFieldChange={handleFieldChange}
       />
 
       <ParticipantsCountField
         totalParticipants={formData.participants_count}
         kidsCount={formData.participants_kids}
         adultsCount={formData.participants_adults}
-        onTotalChange={(value) => handleChange('participants_count', value)}
-        onKidsChange={(value) => handleChange('participants_kids', value)}
-        onAdultsChange={(value) => handleChange('participants_adults', value)}
+        onTotalChange={(value) => handleFieldChange('participants_count', value)}
+        onKidsChange={(value) => handleFieldChange('participants_kids', value)}
+        onAdultsChange={(value) => handleFieldChange('participants_adults', value)}
       />
 
       <div className="space-y-2">
@@ -149,7 +132,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
         </p>
         <textarea
           value={formData.participants_gained}
-          onChange={(e) => handleChange('participants_gained', e.target.value)}
+          onChange={(e) => handleFieldChange('participants_gained', e.target.value)}
           rows={4}
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           placeholder="כאן תגיעו תיאור החוויה והקבלה מהמשתתפים..."
@@ -159,14 +142,14 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
 
       <TzoharRepresentativeField
         value={formData.is_tzohar_representative}
-        onChange={(value) => handleChange('is_tzohar_representative', value)}
+        onChange={(value) => handleFieldChange('is_tzohar_representative', value)}
       />
 
       <FeedbackField
         name="what_was_good"
         label="מה היה טוב באירוע?"
         value={formData.what_was_good}
-        onChange={(e) => handleChange('what_was_good', e.target.value)}
+        onChange={(e) => handleFieldChange('what_was_good', e.target.value)}
         placeholder="תארו את הדברים החיוביים שקרו באירוע..."
       />
 
@@ -174,7 +157,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
         name="what_to_improve"
         label="מה ניתן לשפר?"
         value={formData.what_to_improve}
-        onChange={(e) => handleChange('what_to_improve', e.target.value)}
+        onChange={(e) => handleFieldChange('what_to_improve', e.target.value)}
         placeholder="הצעות לשיפור לאירועים הבאים..."
       />
 

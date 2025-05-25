@@ -1,5 +1,4 @@
 
-import { useFormContext } from "react-hook-form";
 import { ReportTitleField } from "../form-fields/ReportTitleField";
 import { ReportDescriptionField } from "../form-fields/ReportDescriptionField";
 import { ReportEventField } from "../form-fields/ReportEventField";
@@ -7,32 +6,37 @@ import { ReporterNameField } from "../form-fields/ReporterNameField";
 
 interface ReportBasicInfoProps {
   events: any[];
+  formData: {
+    title: string;
+    description: string;
+    event_id: string;
+    reporter_name: string;
+  };
+  onFieldChange: (field: string, value: any) => void;
 }
 
-export const ReportBasicInfo = ({ events }: ReportBasicInfoProps) => {
-  const form = useFormContext();
-
+export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasicInfoProps) => {
   return (
     <div className="space-y-4">
       <ReportTitleField 
-        value={form.watch("title")}
-        onChange={(e) => form.setValue("title", e.target.value)}
+        value={formData.title}
+        onChange={(e) => onFieldChange("title", e.target.value)}
       />
       
       <ReportDescriptionField 
-        value={form.watch("description")}
-        onChange={(e) => form.setValue("description", e.target.value)}
+        value={formData.description}
+        onChange={(e) => onFieldChange("description", e.target.value)}
       />
       
       <ReportEventField 
-        value={form.watch("event_id")}
+        value={formData.event_id}
         events={events}
-        onChange={(value) => form.setValue("event_id", value)}
+        onChange={(value) => onFieldChange("event_id", value)}
       />
       
       <ReporterNameField 
-        value={form.watch("reporter_name")}
-        onChange={(e) => form.setValue("reporter_name", e.target.value)}
+        value={formData.reporter_name}
+        onChange={(e) => onFieldChange("reporter_name", e.target.value)}
       />
     </div>
   );
