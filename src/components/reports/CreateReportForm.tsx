@@ -163,6 +163,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
       />
 
       <FeedbackField
+        name="what_was_good"
         label="מה היה טוב באירוע?"
         value={formData.what_was_good}
         onChange={(e) => handleChange('what_was_good', e.target.value)}
@@ -170,6 +171,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
       />
 
       <FeedbackField
+        name="what_to_improve"
         label="מה ניתן לשפר?"
         value={formData.what_to_improve}
         onChange={(e) => handleChange('what_to_improve', e.target.value)}
