@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PlusCircle } from "lucide-react";
 import { CreateReportForm } from "./CreateReportForm";
 
@@ -21,9 +21,15 @@ export const ReportsHeader = () => {
       <div className="flex gap-2">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>יצירת דיווח חדש</DialogTitle>
+              <DialogDescription>
+                מלא את הפרטים ליצירת דיווח אירוע לצהר
+              </DialogDescription>
+            </DialogHeader>
             <CreateReportForm 
               onClose={() => setIsDialogOpen(false)}
-              eventId="no-events" // Provide a default eventId
+              eventId="no-events"
               reportType={reportType}
             />
           </DialogContent>

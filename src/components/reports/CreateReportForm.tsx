@@ -23,14 +23,15 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
   const { submitReport, events } = useReportForm();
   
   const [loading, setLoading] = useState(false);
+  // ערכי ברירת מחדל ריקים
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     reporter_name: "",
     event_id: eventId || "",
-    participants_count: 50,
-    participants_kids: 20,
-    participants_adults: 80,
+    participants_count: 0, // שינוי ל-0
+    participants_kids: 0, // שינוי ל-0
+    participants_adults: 0, // שינוי ל-0
     location_other: "",
     participants_gained: "",
     what_was_good: "",
@@ -66,6 +67,10 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
 
       if (!formData.participants_gained) {
         throw new Error("יש לתאר מה המשתתפים למדו/קיבלו מהאירוע");
+      }
+
+      if (formData.participants_count <= 0) {
+        throw new Error("יש להזין מספר משתתפים גדול מ-0");
       }
 
       await submitReport({

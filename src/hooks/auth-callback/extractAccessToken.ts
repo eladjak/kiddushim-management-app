@@ -42,12 +42,13 @@ export async function extractAccessToken(): Promise<boolean> {
       return false;
     }
     
-    // Check for Hebrew characters in metadata that might need encoding protection
+    // Check for Hebrew characters in metadata but don't try to encode them
     if (data.user?.user_metadata) {
       for (const key in data.user.user_metadata) {
         if (typeof data.user.user_metadata[key] === 'string' && 
             containsNonLatinChars(data.user.user_metadata[key] as string)) {
-          log.info(`Detected non-Latin characters in user metadata field: ${key}`);
+          log.info(`Detected Hebrew characters in user metadata field: ${key}`);
+          // רק לוג מידע - לא מנסים לקודד כלום
         }
       }
     }

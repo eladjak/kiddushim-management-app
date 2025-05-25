@@ -63,15 +63,16 @@ export const useReportForm = () => {
     fetchEvents();
   }, []);
 
+  // ערכי ברירת מחדל ריקים
   const defaultValues: ReportFormValues = {
     title: "",
     description: "",
-    event_id: events.length > 0 ? events[0]?.id : undefined,
+    event_id: "",
     reporter_name: "",
     severity: "medium",
-    participants_count: 30,
-    participants_kids: 20,
-    participants_adults: 80,
+    participants_count: 0, // שינוי ל-0 במקום 30
+    participants_kids: 0, // שינוי ל-0 במקום 20
+    participants_adults: 0, // שינוי ל-0 במקום 80
     location_other: "",
     participants_gained: "",
     overall_rating: 5,

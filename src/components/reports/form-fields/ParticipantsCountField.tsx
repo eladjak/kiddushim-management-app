@@ -31,9 +31,9 @@ export const ParticipantsCountField = ({
           type="number"
           min="1"
           max="200"
-          value={totalParticipants}
+          value={totalParticipants || ""}
           onChange={(e) => onTotalChange(parseInt(e.target.value) || 0)}
-          placeholder="50"
+          placeholder="למשל: 50"
           className="text-right"
           required
         />
@@ -50,9 +50,9 @@ export const ParticipantsCountField = ({
               type="number"
               min="0"
               max="100"
-              value={adultsCount}
+              value={adultsCount || ""}
               onChange={(e) => onAdultsChange(parseInt(e.target.value) || 0)}
-              placeholder="80"
+              placeholder="למשל: 80"
               className="text-right"
             />
           </div>
@@ -64,9 +64,9 @@ export const ParticipantsCountField = ({
               type="number"
               min="0"
               max="100"
-              value={kidsCount}
+              value={kidsCount || ""}
               onChange={(e) => onKidsChange(parseInt(e.target.value) || 0)}
-              placeholder="20"
+              placeholder="למשל: 20"
               className="text-right"
             />
           </div>
