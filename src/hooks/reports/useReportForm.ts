@@ -4,19 +4,35 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
-// Schema for report form validation
+// Schema for report form validation matching Tzohar requirements
 export const reportFormSchema = z.object({
   title: z.string().min(3, "יש להזין כותרת באורך של 3 תווים לפחות"),
   description: z.string().min(10, "יש להזין תיאור באורך של 10 תווים לפחות"),
   event_id: z.string().min(1, "יש לבחור אירוע").optional(),
   reporter_name: z.string().min(2, "יש להזין שם בן 2 תווים לפחות"),
   severity: z.string().min(1, "יש לבחור רמת חומרה").default("medium"),
+  
+  // Tzohar specific fields
+  participants_count: z.number().min(1, "יש להזין מספר משתתפים").max(200, "מקסימום 200 משתתפים"),
+  participants_kids: z.number().min(0, "מספר ילדים לא יכול להיות שלילי").max(100),
+  participants_adults: z.number().min(0, "מספר מבוגרים לא יכול להיות שלילי").max(100),
+  location_other: z.string().optional(),
+  
+  // New field for what participants learned/gained
+  participants_gained: z.string().min(5, "יש לתאר מה המשתתפים למדו/קיבלו"),
+  
+  // Modified rating fields for Tzohar
   overall_rating: z.number().min(1).max(10).default(5),
   audience_rating: z.number().min(1).max(10).default(5),
   organization_rating: z.number().min(1).max(10).default(5),
   logistics_rating: z.number().min(1).max(10).default(5),
+  
+  // Standard feedback fields
   what_was_good: z.string().optional(),
   what_to_improve: z.string().optional(),
+  
+  // Tzohar specific - is the reporter from their team
+  is_tzohar_representative: z.boolean().default(false),
 });
 
 type ReportFormValues = z.infer<typeof reportFormSchema>;
@@ -53,17 +69,23 @@ export const useReportForm = () => {
     event_id: events.length > 0 ? events[0]?.id : undefined,
     reporter_name: "",
     severity: "medium",
+    participants_count: 30,
+    participants_kids: 20,
+    participants_adults: 80,
+    location_other: "",
+    participants_gained: "",
     overall_rating: 5,
     audience_rating: 5,
     organization_rating: 5,
     logistics_rating: 5,
     what_was_good: "",
     what_to_improve: "",
+    is_tzohar_representative: false,
   };
 
   const getReportTypeName = (reportType: string) => {
     switch (reportType) {
-      case "event_report": return "דיווח אירוע";
+      case "event_report": return "דיווח אירוע לצהר";
       case "feedback": return "משוב";
       case "issue": return "תקלה";
       default: return "דיווח";
@@ -72,7 +94,7 @@ export const useReportForm = () => {
 
   const submitReport = async ({ values, images, userId, reportType }: SubmitReportParams) => {
     try {
-      // Create content object with sanitized values
+      // Create content object with sanitized values for Tzohar format
       const contentData = {
         title: values.title,
         description: values.description,
@@ -80,6 +102,17 @@ export const useReportForm = () => {
         status: "new",
         severity: reportType === "issue" ? values.severity : null,
         images: images.length > 0 ? images : null,
+        
+        // Tzohar specific fields
+        participants: {
+          total: values.participants_count,
+          kids: values.participants_kids,
+          adults: values.participants_adults,
+        },
+        location_details: values.location_other || "",
+        participants_gained: values.participants_gained,
+        is_tzohar_representative: values.is_tzohar_representative,
+        
         ratings: reportType === "event_report" || reportType === "feedback" ? {
           overall: values.overall_rating,
           audience: values.audience_rating,
@@ -92,21 +125,16 @@ export const useReportForm = () => {
         },
       };
       
-      // Create sanitized report data object with type assertion
+      // Create sanitized report data object
       const reportData = {
         content: contentData,
-        event_id: values.event_id || null,
+        event_id: values.event_id || 'no-events',
         reporter_id: userId,
         type: reportType,
-      } as any; // Type assertion to avoid strict type checking
+      } as any;
       
       // Log the data being sent for debugging
-      log.info("Submitting report data:", { report: JSON.stringify(reportData) });
-      
-      // Handle the case where event_id is null or undefined
-      if (!reportData.event_id) {
-        reportData.event_id = 'no-events';
-      }
+      log.info("Submitting Tzohar report data:", { report: JSON.stringify(reportData) });
       
       const { data, error } = await supabase
         .from("reports")
@@ -118,9 +146,8 @@ export const useReportForm = () => {
         throw error;
       }
       
-      // Safe access to data with type checking
       const reportId = data && data.length > 0 ? (data[0] as any).id : undefined;
-      log.info("Report submitted successfully:", { reportId });
+      log.info("Tzohar report submitted successfully:", { reportId });
       
       return data?.[0] as any;
     } catch (error) {
