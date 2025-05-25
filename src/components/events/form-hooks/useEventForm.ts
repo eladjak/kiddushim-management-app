@@ -15,9 +15,12 @@ export const useEventForm = () => {
     setIsLoading,
     posterUrl,
     setPosterUrl,
+    eventImages,
+    setEventImages,
     eventNotes,
     setEventNotes,
-    handleInputChange
+    handleInputChange,
+    handleSelectChange
   } = useFormState();
 
   const { handleEventSelect } = useEventSelection(setFormData, setEventNotes);
@@ -27,10 +30,13 @@ export const useEventForm = () => {
   return {
     formData,
     posterUrl,
+    eventImages,
     eventNotes,
     isLoading,
     setPosterUrl,
+    setEventImages,
     handleInputChange,
+    handleSelectChange,
     handleEventSelect,
     handleSubmit,
     navigate

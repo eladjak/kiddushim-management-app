@@ -9,10 +9,13 @@ export const CreateEventForm = () => {
   const { 
     formData,
     posterUrl,
+    eventImages,
     eventNotes,
     isLoading,
     setPosterUrl,
+    setEventImages,
     handleInputChange,
+    handleSelectChange,
     handleEventSelect,
     handleSubmit,
     navigate
@@ -31,14 +34,18 @@ export const CreateEventForm = () => {
             formData={formData}
             eventNotes={eventNotes}
             onChange={handleInputChange}
+            onSelectChange={handleSelectChange}
             onEventSelect={handleEventSelect}
           />
           
           <EventDetailsSection 
             formData={formData}
             posterUrl={posterUrl}
+            eventImages={eventImages}
             onChange={handleInputChange}
+            onSelectChange={handleSelectChange}
             onPosterChange={setPosterUrl}
+            onImagesChange={setEventImages}
           />
         </div>
         

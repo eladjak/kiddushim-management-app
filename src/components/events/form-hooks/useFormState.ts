@@ -15,6 +15,13 @@ export interface EventFormData {
   facilitator: string;
   workshopContent: string;
   eventContent: string;
+  duration: string;
+  audienceOpen: string;
+  capacity: string;
+  description: string;
+  contactName: string;
+  contactPhone: string;
+  hasWhatsApp: string;
 }
 
 /**
@@ -23,6 +30,7 @@ export interface EventFormData {
 export const useFormState = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [posterUrl, setPosterUrl] = useState("");
+  const [eventImages, setEventImages] = useState<string[]>([]);
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     date: "",
@@ -37,6 +45,13 @@ export const useFormState = () => {
     facilitator: "",
     workshopContent: "",
     eventContent: "",
+    duration: "",
+    audienceOpen: "",
+    capacity: "",
+    description: "",
+    contactName: "",
+    contactPhone: "",
+    hasWhatsApp: "",
   });
 
   const [eventNotes, setEventNotes] = useState<string[]>([]);
@@ -49,6 +64,13 @@ export const useFormState = () => {
     });
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   return {
     formData,
     setFormData,
@@ -56,8 +78,11 @@ export const useFormState = () => {
     setIsLoading,
     posterUrl,
     setPosterUrl,
+    eventImages,
+    setEventImages,
     eventNotes,
     setEventNotes,
-    handleInputChange
+    handleInputChange,
+    handleSelectChange
   };
 };

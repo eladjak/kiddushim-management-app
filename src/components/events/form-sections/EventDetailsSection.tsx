@@ -5,6 +5,8 @@ import { PosterUploadField } from "../form-fields/PosterUploadField";
 import { DateTimeFields } from "../form-fields/DateTimeFields";
 import { VolunteersFields } from "../form-fields/VolunteersFields";
 import { LocationFields } from "../form-fields/LocationFields";
+import { EventImagesField } from "../form-fields/EventImagesField";
+import { ContactPersonField } from "../form-fields/ContactPersonField";
 
 interface EventDetailsSectionProps {
   formData: {
@@ -16,17 +18,26 @@ interface EventDetailsSectionProps {
     locationAddress: string;
     requiredServiceGirls: number;
     requiredYouthVolunteers: number;
+    contactName: string;
+    contactPhone: string;
+    hasWhatsApp: string;
   };
   posterUrl: string;
+  eventImages: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSelectChange: (name: string, value: string) => void;
   onPosterChange: (url: string) => void;
+  onImagesChange: (images: string[]) => void;
 }
 
 export const EventDetailsSection = ({ 
   formData, 
   posterUrl, 
+  eventImages,
   onChange, 
-  onPosterChange 
+  onSelectChange,
+  onPosterChange,
+  onImagesChange
 }: EventDetailsSectionProps) => {
   return (
     <div className="space-y-6">
@@ -48,6 +59,20 @@ export const EventDetailsSection = ({
       <LocationFields 
         formData={formData}
         onChange={onChange}
+      />
+
+      <EventImagesField
+        images={eventImages}
+        onImagesChange={onImagesChange}
+      />
+
+      <ContactPersonField
+        name={formData.contactName}
+        phone={formData.contactPhone}
+        hasWhatsApp={formData.hasWhatsApp}
+        onNameChange={onChange}
+        onPhoneChange={onChange}
+        onWhatsAppChange={(value) => onSelectChange('hasWhatsApp', value)}
       />
 
       <Accordion type="single" collapsible className="w-full">

@@ -2,7 +2,10 @@
 import React from "react";
 import { EventTitleField } from "../form-fields/EventTitleField";
 import { ParashaField } from "../form-fields/ParashaField";
-import { EventContentField } from "../form-fields/EventContentField";
+import { EventDescriptionField } from "../form-fields/EventDescriptionField";
+import { EventDurationField } from "../form-fields/EventDurationField";
+import { EventAudienceField } from "../form-fields/EventAudienceField";
+import { EventCapacityField } from "../form-fields/EventCapacityField";
 
 interface EventBasicInfoSectionProps {
   formData: {
@@ -11,9 +14,14 @@ interface EventBasicInfoSectionProps {
     facilitator: string;
     eventContent: string;
     workshopContent: string;
+    duration: string;
+    audienceOpen: string;
+    capacity: string;
+    description: string;
   };
   eventNotes: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSelectChange: (name: string, value: string) => void;
   onEventSelect: (event: any) => void;
 }
 
@@ -21,6 +29,7 @@ export const EventBasicInfoSection = ({
   formData, 
   eventNotes, 
   onChange, 
+  onSelectChange,
   onEventSelect 
 }: EventBasicInfoSectionProps) => {
   return (
@@ -46,13 +55,25 @@ export const EventBasicInfoSection = ({
           </ul>
         </div>
       )}
-      
-      <EventContentField
-        value={formData.eventContent}
+
+      <EventDurationField
+        value={formData.duration}
+        onChange={(value) => onSelectChange('duration', value)}
+      />
+
+      <EventAudienceField
+        value={formData.audienceOpen}
+        onChange={(value) => onSelectChange('audienceOpen', value)}
+      />
+
+      <EventCapacityField
+        value={formData.capacity}
         onChange={onChange}
-        label="תוכן האירוע"
-        name="eventContent"
-        placeholder="פרטים על האירוע והפעילויות המתוכננות"
+      />
+      
+      <EventDescriptionField
+        value={formData.description}
+        onChange={onChange}
       />
       
       <div className="space-y-2">
@@ -68,14 +89,6 @@ export const EventBasicInfoSection = ({
           placeholder="שם המפעיל/ה של האירוע"
         />
       </div>
-      
-      <EventContentField
-        value={formData.workshopContent}
-        onChange={onChange}
-        label="תוכן הסדנה"
-        name="workshopContent"
-        placeholder="תיאור הסדנה והפעילות"
-      />
     </div>
   );
 };
