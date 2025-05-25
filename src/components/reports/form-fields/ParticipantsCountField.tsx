@@ -21,7 +21,7 @@ export const ParticipantsCountField = ({
 }: ParticipantsCountFieldProps) => {
   return (
     <div className="space-y-4">
-      <Label className="text-base font-medium">תקהל באירוע</Label>
+      <Label className="text-base font-medium">קהל באירוע</Label>
       <p className="text-sm text-gray-500">כמות משתתפים באירוע *</p>
       
       <div className="space-y-2">
@@ -40,7 +40,7 @@ export const ParticipantsCountField = ({
       </div>
 
       <div className="space-y-3">
-        <Label>נסו לפצל את חלקת הקהל באחוזים:</Label>
+        <Label>נסו לפצל את חלוק הקהל באחוזים:</Label>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -71,15 +71,6 @@ export const ParticipantsCountField = ({
             />
           </div>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="location-other">אחר - אחר</Label>
-        <Input
-          id="location-other"
-          type="text"
-          placeholder=""
-        />
       </div>
     </div>
   );

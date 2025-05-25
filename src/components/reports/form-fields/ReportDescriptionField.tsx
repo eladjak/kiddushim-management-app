@@ -4,21 +4,20 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface ReportDescriptionFieldProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 export const ReportDescriptionField = ({ value, onChange }: ReportDescriptionFieldProps) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="description">תיאור</Label>
-      <Textarea 
-        id="description" 
-        name="description" 
-        value={value} 
-        onChange={onChange} 
-        required 
-        placeholder="תאר את הדיווח בהרחבה"
-        className="min-h-[100px]"
+      <Label htmlFor="report-description">תיאור הדיווח *</Label>
+      <Textarea
+        id="report-description"
+        value={value}
+        onChange={onChange}
+        rows={4}
+        placeholder="תאר את הדיווח בפירוט..."
+        required
       />
     </div>
   );

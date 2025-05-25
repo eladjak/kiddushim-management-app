@@ -1,34 +1,27 @@
 
-import { FormItem, FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 interface FeedbackFieldProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   name: string;
   label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
 }
 
-export const FeedbackField = ({ 
-  value, 
-  onChange, 
-  name, 
-  label, 
-  placeholder 
-}: FeedbackFieldProps) => {
+export const FeedbackField = ({ name, label, value, onChange, placeholder }: FeedbackFieldProps) => {
   return (
-    <FormItem className="space-y-2" dir="rtl">
-      <FormLabel htmlFor={name} className="text-right block">{label}</FormLabel>
-      <Textarea 
-        id={name} 
-        name={name} 
-        value={value} 
-        onChange={onChange} 
-        placeholder={placeholder} 
-        className="min-h-[100px] resize-y text-right w-full"
-        dir="rtl"
+    <div className="space-y-2">
+      <Label htmlFor={name}>{label}</Label>
+      <Textarea
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        rows={3}
+        placeholder={placeholder}
       />
-    </FormItem>
+    </div>
   );
 };
