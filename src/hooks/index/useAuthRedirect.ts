@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "@/utils/logger";
 
@@ -9,8 +9,14 @@ import { logger } from "@/utils/logger";
 export function useAuthRedirect() {
   const navigate = useNavigate();
   const log = logger.createLogger({ component: 'useAuthRedirect' });
+  const processedRef = useRef(false);
 
   useEffect(() => {
+    // מניעת עיבוד כפול
+    if (processedRef.current) {
+      return;
+    }
+    
     const handleAuthRedirect = () => {
       try {
         // בדיקה אם קיים קוד אימות בכתובת ה-URL
@@ -20,30 +26,33 @@ export function useAuthRedirect() {
         // בדיקה אם קיים access_token ב-hash
         const hasAccessToken = window.location.hash && window.location.hash.includes('access_token');
         
-        // אם יש לנו קוד אימות תקף
-        if (code && code.length > 10) {
-          log.info("Detected auth code in URL, redirecting to callback page");
-          navigate("/auth/callback", { 
-            replace: true, 
-            state: { 
-              code,
-              authSource: 'index_redirect'
-            } 
-          });
-          return true;
-        }
-        
-        // אם יש לנו access_token בפרגמנט
-        if (hasAccessToken) {
-          log.info("Detected access_token in URL hash, redirecting to auth callback");
-          navigate("/auth/callback", { 
-            replace: true,
-            state: {
-              hasAccessToken: true,
-              authSource: 'implicit_flow'
-            }
-          });
-          return true;
+        // רק אם יש נתוני אימות תקפים
+        if ((code && code.length > 10) || hasAccessToken) {
+          processedRef.current = true;
+          
+          if (hasAccessToken) {
+            log.info("Detected access_token in URL hash, redirecting to auth callback");
+            navigate("/auth/callback", { 
+              replace: true,
+              state: {
+                hasAccessToken: true,
+                authSource: 'implicit_flow'
+              }
+            });
+            return true;
+          }
+          
+          if (code) {
+            log.info("Detected auth code in URL, redirecting to callback page");
+            navigate("/auth/callback", { 
+              replace: true, 
+              state: { 
+                code,
+                authSource: 'index_redirect'
+              } 
+            });
+            return true;
+          }
         }
       } catch (error) {
         log.error("Error processing auth redirect:", error);
@@ -52,6 +61,9 @@ export function useAuthRedirect() {
       return false;
     };
     
-    handleAuthRedirect();
+    // השהיה קטנה כדי לוודא שהדף נטען
+    setTimeout(() => {
+      handleAuthRedirect();
+    }, 100);
   }, [navigate]);
 }
