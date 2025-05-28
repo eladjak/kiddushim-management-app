@@ -22,7 +22,7 @@ export const ContactPersonField = ({
 }: ContactPersonFieldProps) => {
   return (
     <div className="space-y-4 border border-gray-200 p-4 rounded-lg">
-      <h3 className="font-medium">ניתן ליצור תמונות תסמינית המשפחתיות אצלכם</h3>
+      <h3 className="font-medium">פרטי איש/אשת קשר לאירוע</h3>
       
       <div className="space-y-2">
         <Label htmlFor="contact-name">שם איש/אשת קשר לאירוע *</Label>
@@ -60,7 +60,7 @@ export const ContactPersonField = ({
       </div>
 
       <div className="space-y-3">
-        <Label className="text-base font-medium">האם חותם לאירוע ספק אחר? *</Label>
+        <Label className="text-base font-medium">האם יש לאיש הקשר וואטסאפ? *</Label>
         <div className="flex gap-6">
           <div className="flex items-center space-x-2 rtl:space-x-reverse">
             <input
@@ -90,8 +90,8 @@ export const ContactPersonField = ({
       </div>
 
       <div className="bg-gray-50 p-3 rounded text-sm text-gray-600">
-        <p>התוכן המפורסם בקהלשי בלבד, לא ויפרסם באתר!</p>
-        <p>אם יש עסק - פרטו את חלקו והזמן אם יש מין עסקי פרוטי בצעדם ובמי</p>
+        <p>הפרטים יישמרו במערכת בלבד, ולא יפורסמו באתר!</p>
+        <p>אם יש צורך - פרטו את חלקכם בהכנות ובזמן האירוע במידה ויש צורך לעזרה נוספת</p>
       </div>
     </div>
   );

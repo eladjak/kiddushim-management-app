@@ -13,7 +13,7 @@ export const EventDurationField = ({ value, onChange }: EventDurationFieldProps)
       <Label htmlFor="duration">משך האירוע בשעות</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder="לחץ, אורך ציין X למשל" />
+          <SelectValue placeholder="בחר משך זמן" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="1">שעה אחת</SelectItem>

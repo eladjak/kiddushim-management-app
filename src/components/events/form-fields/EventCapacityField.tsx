@@ -10,8 +10,8 @@ interface EventCapacityFieldProps {
 export const EventCapacityField = ({ value, onChange }: EventCapacityFieldProps) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="capacity">תיגבול בלטת עד 4 מילים</Label>
-      <p className="text-sm text-gray-500">למשל: אירוע ציין X, מיועד לנשים בלבד ומי</p>
+      <Label htmlFor="capacity">הגבלת קהל עד 4 מילים</Label>
+      <p className="text-sm text-gray-500">למשל: אירוע לנשים בלבד, משפחות עם ילדים וכד'</p>
       <Textarea
         id="capacity"
         name="capacity"
