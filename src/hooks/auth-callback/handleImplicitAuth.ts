@@ -6,7 +6,7 @@ import { extractAccessToken } from "./extractAccessToken";
 import { showToast } from "./toastHelpers";
 
 /**
- * טיפול בזרימת אימות Implicit עם טיפול טוב יותר בתווים עבריים
+ * טיפול בזרימת אימות Implicit עם טיפול משופר
  */
 export async function handleImplicitAuth(
   navigate: NavigateFunction, 
@@ -23,19 +23,13 @@ export async function handleImplicitAuth(
       return false;
     }
     
-    // שמירת ה-hash המקורי כגיבוי לפני שהוא נמחק
+    // שמירת ה-hash המקורי לפני ניקוי
     const originalHash = window.location.hash;
     
     log.info("נמצא access_token בפרגמנט, מנסה לעבד", {
-      hashLength: originalHash.length
+      hashLength: originalHash.length,
+      hashStart: originalHash.substring(0, 100)
     });
-    
-    // ניקוי ה-URL מפרמטרים רגישים
-    try {
-      history.replaceState(null, document.title, window.location.pathname);
-    } catch (historyError) {
-      log.warn("לא ניתן לנקות את ה-URL:", historyError);
-    }
     
     const success = await extractAccessToken();
     

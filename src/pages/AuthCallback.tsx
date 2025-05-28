@@ -38,14 +38,18 @@ const AuthCallback = () => {
           search: window.location.search,
           hasCode: !!new URLSearchParams(window.location.search).get('code'),
           stateCode: location.state?.code ? true : false,
-          hasAccessToken: window.location.hash && window.location.hash.includes('access_token')
+          hasAccessToken: window.location.hash && window.location.hash.includes('access_token'),
+          currentUrl: window.location.href
         });
         
-        // מסלול 1: בדיקה אם יש לנו access_token בפרגמנט
+        // מסלול 1: בדיקה אם יש לנו access_token בפרגמנט (זהו המסלול הנוכחי)
         if (window.location.hash && window.location.hash.includes('access_token')) {
-          log.info("נמצא access_token ב-hash, מעבד ישירות");
+          log.info("זוהה access_token ב-hash, מעבד ישירות");
           
-          // עיבוד הטוקן ישירות
+          // נשמור את ה-hash לפני שהוא נמחק
+          const originalHash = window.location.hash;
+          log.info("Hash מקורי נשמר:", { hashStart: originalHash.substring(0, 100) });
+          
           const success = await extractAccessToken();
           
           if (success) {
@@ -62,7 +66,39 @@ const AuthCallback = () => {
             
             return;
           } else {
-            log.error("עיבוד access token נכשל");
+            log.error("עיבוד access token נכשל, מנסה דרכים חלופיות");
+            
+            // אם נכשל, ננסה לחלץ הפרמטרים ידנית
+            try {
+              const hashParams = new URLSearchParams(originalHash.substring(1));
+              const accessToken = hashParams.get("access_token");
+              const refreshToken = hashParams.get("refresh_token");
+              
+              if (accessToken && accessToken.length > 20) {
+                log.info("מנסה הגדרת סשן ידנית");
+                
+                const { data, error: setSessionError } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken || "",
+                });
+                
+                if (!setSessionError && data.session) {
+                  log.info("הגדרת סשן ידנית הצליחה");
+                  
+                  toastHelper.toast({
+                    description: "התחברת בהצלחה",
+                  });
+                  
+                  setTimeout(() => {
+                    navigate("/", { replace: true });
+                  }, 500);
+                  
+                  return;
+                }
+              }
+            } catch (manualError) {
+              log.error("שגיאה בעיבוד ידני:", manualError);
+            }
           }
         }
         
@@ -134,8 +170,28 @@ const AuthCallback = () => {
           log.error("שגיאה בבדיקת סטטוס משתמש:", e);
         }
         
+        // אם כל השיטות נכשלו
+        log.error("כל שיטות האימות נכשלו");
+        toastHelper.toast({
+          title: "שגיאה בהתחברות",
+          description: "לא ניתן היה להשלים את תהליך ההתחברות. נא לנסות שוב.",
+          variant: "destructive"
+        });
+        
+        // ניקוי וחזרה לדף התחברות
+        clearAuthStorage();
+        setTimeout(() => {
+          navigate("/auth", { replace: true });
+        }, 2000);
+        
       } catch (err) {
         log.error("שגיאה בלתי צפויה במעבד הקולבק:", { error: err });
+        
+        toastHelper.toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בלתי צפויה. נא לנסות שוב.",
+          variant: "destructive"
+        });
         
         // ננסה לנקות את כל נתוני האימות
         try {
@@ -143,6 +199,10 @@ const AuthCallback = () => {
         } catch (e) {
           log.error("שגיאה בניקוי נתוני אימות:", e);
         }
+        
+        setTimeout(() => {
+          navigate("/auth", { replace: true });
+        }, 2000);
       }
     };
     
@@ -153,9 +213,9 @@ const AuthCallback = () => {
     const safetyTimer = setTimeout(() => {
       if (loading && !error) {
         log.warn("הופעל טיימר בטיחות בקולבק אימות");
-        navigate("/", { replace: true });
+        navigate("/auth", { replace: true });
       }
-    }, 12000); // 12 שניות
+    }, 15000); // 15 שניות
     
     return () => {
       clearTimeout(safetyTimer);
