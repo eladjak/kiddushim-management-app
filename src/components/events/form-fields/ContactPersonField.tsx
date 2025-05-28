@@ -22,8 +22,6 @@ export const ContactPersonField = ({
 }: ContactPersonFieldProps) => {
   return (
     <div className="space-y-4 border border-gray-200 p-4 rounded-lg">
-      <h3 className="font-medium">פרטי איש/אשת קשר לאירוע</h3>
-      
       <div className="space-y-2">
         <Label htmlFor="contact-name">שם איש/אשת קשר לאירוע *</Label>
         <Input
@@ -60,38 +58,33 @@ export const ContactPersonField = ({
       </div>
 
       <div className="space-y-3">
-        <Label className="text-base font-medium">האם יש לאיש הקשר וואטסאפ? *</Label>
+        <Label className="text-base font-medium">האם הוזמן לאירוע ספק צהר? *</Label>
         <div className="flex gap-6">
           <div className="flex items-center space-x-2 rtl:space-x-reverse">
             <input
               type="radio"
-              id="whatsapp-yes"
-              name="hasWhatsApp"
+              id="supplier-yes"
+              name="hasSupplier"
               value="yes"
               checked={hasWhatsApp === "yes"}
               onChange={(e) => onWhatsAppChange(e.target.value)}
               className="w-4 h-4"
             />
-            <Label htmlFor="whatsapp-yes">כן</Label>
+            <Label htmlFor="supplier-yes">כן</Label>
           </div>
           <div className="flex items-center space-x-2 rtl:space-x-reverse">
             <input
               type="radio"
-              id="whatsapp-no"
-              name="hasWhatsApp"
+              id="supplier-no"
+              name="hasSupplier"
               value="no"
               checked={hasWhatsApp === "no"}
               onChange={(e) => onWhatsAppChange(e.target.value)}
               className="w-4 h-4"
             />
-            <Label htmlFor="whatsapp-no">לא</Label>
+            <Label htmlFor="supplier-no">לא</Label>
           </div>
         </div>
-      </div>
-
-      <div className="bg-gray-50 p-3 rounded text-sm text-gray-600">
-        <p>הפרטים יישמרו במערכת בלבד, ולא יפורסמו באתר!</p>
-        <p>אם יש צורך - פרטו את חלקכם בהכנות ובזמן האירוע במידה ויש צורך לעזרה נוספת</p>
       </div>
     </div>
   );

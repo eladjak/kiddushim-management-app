@@ -28,11 +28,11 @@ export const EventImagesField = ({ images, onImagesChange }: EventImagesFieldPro
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
-        // Check file size (max 1GB as per form)
-        if (file.size > 1024 * 1024 * 1024) {
+        // Check file size (max 400KB as mentioned in form)
+        if (file.size > 400 * 1024) {
           toast({
             variant: "destructive",
-            description: "גודל הקובץ מקסימלי הוא 1GB",
+            description: "גודל הקובץ מקסימלי הוא 400KB",
           });
           continue;
         }
@@ -75,27 +75,17 @@ export const EventImagesField = ({ images, onImagesChange }: EventImagesFieldPro
 
   return (
     <div className="space-y-3">
-      <Label>תמונות אווירה</Label>
-      <p className="text-sm text-gray-500">
-        יש לצרף תמונות אווירה של אופי האירוע / הקהל (לא מודעות פרסום)
-        <br />
-        התמונה צריכה להיות בגודל בין 150-400 KB
-      </p>
+      <Label>ניתן לצרף תמונות נוספות המשקפות את חוויית המפגשים אצלכם</Label>
       
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
         <div className="space-y-2">
-          <div className="text-gray-500">
-            גרור ושחרר קובץ או נויט
-            <br />
-            הקובץ המקסימלי הוא המקסין 0.4 מגבבייטים
-          </div>
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => document.getElementById('event-images')?.click()}
             disabled={isUploading}
           >
-            {isUploading ? "מעלה..." : "בחירה"}
+            {isUploading ? "מעלה..." : "לא נבחר קובץ"}
           </Button>
           <Input
             id="event-images"
@@ -106,14 +96,6 @@ export const EventImagesField = ({ images, onImagesChange }: EventImagesFieldPro
             className="hidden"
           />
         </div>
-      </div>
-
-      <div className="text-xs text-blue-600 bg-blue-50 p-3 rounded">
-        במידה קוצב חמרה מולד ניתן להקטין אותו בקלות בקישור זה:
-        <br />
-        <a href="https://tinypng.com" target="_blank" rel="noopener noreferrer" className="underline">
-          https://tinypng.com
-        </a>
       </div>
 
       {images.length > 0 && (

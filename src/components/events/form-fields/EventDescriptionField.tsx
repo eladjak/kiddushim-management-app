@@ -11,7 +11,7 @@ export const EventDescriptionField = ({ value, onChange }: EventDescriptionField
   return (
     <div className="space-y-2">
       <Label htmlFor="description">תיאור האירוע *</Label>
-      <p className="text-sm text-gray-500">כתבו את כל הפרטים על האירוע, הנושא והפעילות על מנת למשוך קהל רלוונטי</p>
+      <p className="text-sm text-gray-500">כתבו את כל הפרטים על האירוע באופן חוויתי ונעים, הקפידו על מרווח שורות בין קטע לקטע.</p>
       <Textarea
         id="description"
         name="description"

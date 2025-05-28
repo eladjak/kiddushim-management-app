@@ -1,32 +1,29 @@
 
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface EventDurationFieldProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const EventDurationField = ({ value, onChange }: EventDurationFieldProps) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="duration">משך האירוע בשעות</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="בחר משך זמן" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="1">שעה אחת</SelectItem>
-          <SelectItem value="1.5">שעה וחצי</SelectItem>
-          <SelectItem value="2">שעתיים</SelectItem>
-          <SelectItem value="2.5">שעתיים וחצי</SelectItem>
-          <SelectItem value="3">3 שעות</SelectItem>
-          <SelectItem value="3.5">3.5 שעות</SelectItem>
-          <SelectItem value="4">4 שעות</SelectItem>
-          <SelectItem value="4.5">4.5 שעות</SelectItem>
-          <SelectItem value="5">5 שעות</SelectItem>
-        </SelectContent>
-      </Select>
+      <Label htmlFor="duration">משך האירוע בשעות *</Label>
+      <p className="text-sm text-gray-500">למשל, עבור אירוע של שעה וחצי יש להזין 1.5</p>
+      <Input
+        id="duration"
+        name="duration"
+        type="number"
+        step="0.5"
+        min="0.5"
+        max="12"
+        value={value}
+        onChange={onChange}
+        placeholder=""
+        required
+      />
     </div>
   );
 };
