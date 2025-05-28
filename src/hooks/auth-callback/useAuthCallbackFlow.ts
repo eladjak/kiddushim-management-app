@@ -3,9 +3,11 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
-import { clearAuthStorage, supabase } from "@/integrations/supabase/client";
-import { extractAccessToken } from "./extractAccessToken";
-import { handleAuthCode } from "./handleAuthCode";
+import { clearAuthStorage } from "@/integrations/supabase/client";
+import { processAccessToken } from "./processAccessToken";
+import { processAuthCodes } from "./processAuthCodes";
+import { checkExistingSession } from "./checkExistingSession";
+import { handleAuthFailure } from "./handleAuthFailure";
 
 /**
  * הוק מרכזי לטיפול בפלואו קולבק האימות
@@ -40,134 +42,31 @@ export function useAuthCallbackFlow() {
           currentUrl: window.location.href.substring(0, 100) + "..."
         });
         
+        const context = { navigate, toastHelper };
+        
         // מסלול 1: access_token ב-hash (זהו המסלול העיקרי לגוגל אוט')
         if (hasAccessToken) {
-          log.info("🎯 זוהה access_token ב-hash - מעבד ישירות בעדיפות עליונה");
-          
-          const success = await extractAccessToken();
-          
-          if (success) {
-            log.info("✅ עיבוד access token הצליח בהצלחה");
-            
-            toastHelper.toast({
-              description: "התחברת בהצלחה",
-            });
-            
-            setTimeout(() => {
-              navigate("/", { replace: true });
-            }, 500);
-            
+          const result = await processAccessToken(context);
+          if (result.success) {
             return true;
-          } else {
-            log.error("❌ עיבוד access token נכשל - מנסה פתרונות חלופיים");
-            
-            // ננסה לחלץ הפרמטרים ידנית אם הפונקציה הרגילה נכשלה
-            try {
-              const hashParams = new URLSearchParams(window.location.hash.substring(1));
-              const accessToken = hashParams.get("access_token");
-              const refreshToken = hashParams.get("refresh_token");
-              
-              if (accessToken && accessToken.length > 20) {
-                log.info("🔧 מנסה הגדרת סשן ידנית כפתרון חלופי");
-                
-                const { data, error: setSessionError } = await supabase.auth.setSession({
-                  access_token: accessToken,
-                  refresh_token: refreshToken || "",
-                });
-                
-                if (!setSessionError && data.session) {
-                  log.info("✅ הגדרת סשן ידנית הצליחה");
-                  
-                  toastHelper.toast({
-                    description: "התחברת בהצלחה",
-                  });
-                  
-                  setTimeout(() => {
-                    navigate("/", { replace: true });
-                  }, 500);
-                  
-                  return true;
-                } else {
-                  log.error("❌ גם הגדרת סשן ידנית נכשלה:", setSessionError);
-                }
-              }
-            } catch (manualError) {
-              log.error("🚨 שגיאה בעיבוד ידני:", manualError);
-            }
           }
         }
         
-        // מסלול 2: קוד סשן מהסטייט
-        if (stateCode && stateCode.length > 10) {
-          log.info("📋 נמצא קוד ב-location state, מעבד");
-          const success = await handleAuthCode(stateCode, 'location_state', navigate, toastHelper);
-          
-          if (success) {
-            log.info("✅ עיבוד קוד מסטייט הצליח");
-            return true;
-          } else {
-            log.error("❌ עיבוד קוד מסטייט נכשל");
-          }
-        }
-        
-        // מסלול 3: קוד ב-URL
-        if (urlCode && urlCode.length > 10) {
-          log.info("🔗 נמצא קוד בפרמטרי ה-URL, מעבד");
-          
-          const success = await handleAuthCode(urlCode, 'url_direct', navigate, toastHelper);
-          
-          if (success) {
-            log.info("✅ עיבוד קוד מה-URL הצליח");
-            return true;
-          } else {
-            log.error("❌ עיבוד קוד מה-URL נכשל");
-          }
+        // מסלול 2 ו-3: קודי אימות
+        const codesResult = await processAuthCodes(context, location);
+        if (codesResult.success) {
+          return true;
         }
         
         // מסלול 4: בדיקת סשן קיים
-        try {
-          const { data } = await supabase.auth.getSession();
-          
-          if (data.session) {
-            log.info("✅ נמצא סשן קיים, מועבר לדף הבית");
-            
-            toastHelper.toast({
-              description: "התחברת בהצלחה",
-            });
-            
-            navigate("/", { replace: true });
-            return true;
-          }
-        } catch (sessionError) {
-          log.error("🚨 שגיאה בבדיקת סשן קיים:", { error: sessionError });
+        const sessionResult = await checkExistingSession(context);
+        if (sessionResult.success) {
+          return true;
         }
         
         // אם הגענו לכאן - לא הצלחנו לזהות שיטת אימות
-        log.warn("⚠️ לא נמצאה שיטת אימות תקפה - בודק סטטוס משתמש");
-        
-        try {
-          const { data, error } = await supabase.auth.getUser();
-          if (!error && data.user) {
-            log.info("✅ המשתמש כבר מאומת, מועבר לדף הבית");
-            navigate("/", { replace: true });
-            return true;
-          }
-        } catch (e) {
-          log.error("🚨 שגיאה בבדיקת סטטוס משתמש:", e);
-        }
-        
-        // כישלון בכל השיטות
-        log.error("🚨 כל שיטות האימות נכשלו");
-        toastHelper.toast({
-          title: "שגיאה בהתחברות",
-          description: "לא ניתן היה להשלים את תהליך ההתחברות. נא לנסות שוב.",
-          variant: "destructive"
-        });
-        
-        clearAuthStorage();
-        setTimeout(() => {
-          navigate("/auth", { replace: true });
-        }, 2000);
+        log.warn("⚠️ לא נמצאה שיטת אימות תקפה");
+        handleAuthFailure(context);
         
         return false;
         
