@@ -37,7 +37,7 @@ export function useProcessAuthCallback({
   location
 }: ProcessAuthCallbackProps) {
   const log = logger.createLogger({ component: 'useProcessAuthCallback' });
-  const maxRetriesRef = useRef(3); // הקטנתי את מספר הניסיונות
+  const maxRetriesRef = useRef(3);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,28 +76,45 @@ export function useProcessAuthCallback({
         
         setProcessAttempts(processAttempts + 1);
 
-        // סדר הקדימויות החדש - מתמקדים ב-access token קודם כל
+        // בדיקה ראשונה - האם יש access_token ב-hash?
+        const hasAccessToken = window.location.hash && window.location.hash.includes('access_token');
         
-        // 1. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow) - הכי חשוב!
-        if (window.location.hash && window.location.hash.includes('access_token')) {
+        log.info("מצב URL נוכחי:", {
+          hasHash: !!window.location.hash,
+          hasAccessToken,
+          hasCode: !!new URLSearchParams(window.location.search).get('code'),
+          locationStateCode: !!location.state?.code
+        });
+
+        // אם יש access_token ב-hash - זה המסלול הראשי שלנו!
+        if (hasAccessToken) {
           try {
-            log.info("נמצא access_token ב-hash, מעבד זרימת Implicit");
+            log.info("🎯 נמצא access_token ב-hash - מעבד זרימת Implicit באופן ישיר");
             const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
+            
             if (implicitAuthSuccess) {
-              log.info("זרימת Implicit הצליחה, יוצא מהפונקציה");
+              log.info("✅ זרימת Implicit הצליחה - משלים אימות");
               return;
+            } else {
+              log.error("❌ זרימת Implicit נכשלה למרות access_token תקף");
+              // נמשיך לשיטות חלופיות
             }
-            log.warn("זרימת Implicit נכשלה, ממשיך לשיטה הבאה");
           } catch (err) {
-            log.error("שגיאה בזרימת Implicit:", { error: err });
+            log.error("שגיאה בעיבוד זרימת Implicit:", { error: err });
+            // נמשיך לשיטות חלופיות
           }
         }
 
-        // 2. בדיקה אם כבר קיים סשן פעיל
-        const sessionExists = await handleExistingSession(navigate, toastHelper);
-        if (sessionExists) return;
+        // רק אם לא הצלחנו עם access_token, ננסה שיטות אחרות
         
-        // 3. אם יש קוד אימות בסטייט (מהנתב)
+        // בדיקה אם כבר קיים סשן פעיל
+        const sessionExists = await handleExistingSession(navigate, toastHelper);
+        if (sessionExists) {
+          log.info("נמצא סשן קיים - משלים אימות");
+          return;
+        }
+        
+        // אם יש קוד אימות בסטייט (מהנתב)
         if (location.state?.code && location.state.code.length > 10) {
           try {
             log.info("משתמש בקוד מ-location state");
@@ -115,7 +132,7 @@ export function useProcessAuthCallback({
           }
         }
         
-        // 4. טיפול בקוד אימות מה-URL
+        // טיפול בקוד אימות מה-URL
         try {
           const urlCodeSuccess = await handleUrlCode(navigate, toastHelper);
           if (urlCodeSuccess) return;
@@ -124,9 +141,9 @@ export function useProcessAuthCallback({
           log.error("שגיאה בעיבוד קוד URL:", { error: err });
         }
 
-        // אם אף שיטה לא הצליחה
+        // אם הגענו לכאן - אף שיטה לא הצליחה
         if (isMounted) {
-          log.error("אף שיטת אימות לא הצליחה");
+          log.error("🚨 אף שיטת אימות לא הצליחה - בודק פתרונות נוספים");
           
           // בדיקה לבעיית SSL certificate
           const hostHasWWW = window.location.hostname.startsWith("www.");
