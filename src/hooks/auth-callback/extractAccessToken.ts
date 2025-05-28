@@ -20,14 +20,6 @@ export async function extractAccessToken(): Promise<boolean> {
 
     log.info("נמצא hash עם access token", { hashLength: hash.length });
 
-    // ניקוי ה-URL קודם
-    try {
-      window.history.replaceState({}, document.title, window.location.pathname);
-      log.info("URL נוקה בהצלחה");
-    } catch (historyError) {
-      log.warn("לא ניתן לנקות את ה-URL:", historyError);
-    }
-    
     // פירוס ה-hash כפרמטרים
     const hashParams = new URLSearchParams(hash.substring(1));
     const accessToken = hashParams.get("access_token");
@@ -51,6 +43,14 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("access token קצר מדי", { length: accessToken.length });
       return false;
     }
+
+    // ניקוי ה-URL לפני הגדרת הסשן
+    try {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      log.info("URL נוקה בהצלחה");
+    } catch (historyError) {
+      log.warn("לא ניתן לנקות את ה-URL:", historyError);
+    }
     
     // הגדרת הסשן באמצעות הטוקנים
     log.info("מנסה להגדיר סשן עם הטוקנים");
@@ -63,7 +63,9 @@ export async function extractAccessToken(): Promise<boolean> {
       log.error("שגיאה בהגדרת הסשן:", error);
       
       // אם השגיאה קשורה לטוקן לא תקף, ננסה לנקות ולהפנות מחדש
-      if (error.message?.includes('invalid_token') || error.message?.includes('expired')) {
+      if (error.message?.includes('invalid_token') || 
+          error.message?.includes('expired') ||
+          error.message?.includes('JWT')) {
         log.warn("טוקן לא תקף או פג תוקף, מנקה נתונים");
         try {
           await supabase.auth.signOut();

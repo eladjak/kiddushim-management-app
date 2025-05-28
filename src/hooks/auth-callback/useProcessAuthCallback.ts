@@ -37,7 +37,7 @@ export function useProcessAuthCallback({
   location
 }: ProcessAuthCallbackProps) {
   const log = logger.createLogger({ component: 'useProcessAuthCallback' });
-  const maxRetriesRef = useRef(5); // הגדלנו את מספר הניסיונות
+  const maxRetriesRef = useRef(3); // הקטנתי את מספר הניסיונות
 
   useEffect(() => {
     let isMounted = true;
@@ -76,23 +76,26 @@ export function useProcessAuthCallback({
         
         setProcessAttempts(processAttempts + 1);
 
-        // קביעת סדר הקדימויות שלנו - מנסים מספר שיטות בזו אחר זו
+        // סדר הקדימויות החדש - מתמקדים ב-access token קודם כל
         
-        // 1. בדיקה אם כבר קיים סשן פעיל
-        const sessionExists = await handleExistingSession(navigate, toastHelper);
-        if (sessionExists) return;
-        
-        // 2. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow)
+        // 1. אימות באמצעות אקסס-טוקן בפרגמנט (Implicit Flow) - הכי חשוב!
         if (window.location.hash && window.location.hash.includes('access_token')) {
           try {
-            log.info("נמצא access_token ב-hash, מנסה זרימת Implicit");
+            log.info("נמצא access_token ב-hash, מעבד זרימת Implicit");
             const implicitAuthSuccess = await handleImplicitAuth(navigate, toastHelper);
-            if (implicitAuthSuccess) return;
+            if (implicitAuthSuccess) {
+              log.info("זרימת Implicit הצליחה, יוצא מהפונקציה");
+              return;
+            }
             log.warn("זרימת Implicit נכשלה, ממשיך לשיטה הבאה");
           } catch (err) {
             log.error("שגיאה בזרימת Implicit:", { error: err });
           }
         }
+
+        // 2. בדיקה אם כבר קיים סשן פעיל
+        const sessionExists = await handleExistingSession(navigate, toastHelper);
+        if (sessionExists) return;
         
         // 3. אם יש קוד אימות בסטייט (מהנתב)
         if (location.state?.code && location.state.code.length > 10) {

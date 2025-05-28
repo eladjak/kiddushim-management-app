@@ -38,10 +38,10 @@ export async function handleImplicitAuth(
       
       showToast(toastHelper, "התחברת בהצלחה");
       
-      // ניווט לדף הבית
+      // ניווט לדף הבית עם השהיה קצרה
       setTimeout(() => {
         navigate("/", { replace: true });
-      }, 500);
+      }, 1000);
       
       return true;
     } else {
