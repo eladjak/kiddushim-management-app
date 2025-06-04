@@ -74,15 +74,17 @@ export const EventsList = ({ events }: EventsListProps) => {
           return (
             <div key={monthKey} className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4 pb-2 border-b">{monthLabel}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* עטיפה ב-div רגיל במקום grid עם RovingFocusGroup */}
+              <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
                 {monthEvents.map(event => {
                   const inBreakPeriod = isDateInBreakPeriod(event.main_time || event.date);
                   return (
-                    <EventCard 
-                      key={event.id}
-                      event={event}
-                      isInBreakPeriod={inBreakPeriod}
-                    />
+                    <div key={event.id}>
+                      <EventCard 
+                        event={event}
+                        isInBreakPeriod={inBreakPeriod}
+                      />
+                    </div>
                   );
                 })}
               </div>

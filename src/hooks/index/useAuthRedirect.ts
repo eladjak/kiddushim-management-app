@@ -31,12 +31,18 @@ export function useAuthRedirect() {
           processedRef.current = true;
           
           if (hasAccessToken) {
-            log.info("Detected access_token in URL hash, redirecting to auth callback");
+            log.info("Detected access_token in URL hash, redirecting to auth callback with hash preserved");
+            
+            // שמירת כל ה-hash כמו שהוא
+            const fullHash = window.location.hash;
+            
             navigate("/auth/callback", { 
               replace: true,
               state: {
                 hasAccessToken: true,
-                authSource: 'implicit_flow'
+                authSource: 'implicit_flow',
+                originalHash: fullHash, // שמירת ה-hash המלא
+                preservedUrl: window.location.href // שמירת כל הכתובת
               }
             });
             return true;
