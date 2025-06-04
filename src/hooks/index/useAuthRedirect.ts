@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook to handle OAuth redirect URLs that might come to the index page
@@ -17,8 +18,16 @@ export function useAuthRedirect() {
       return;
     }
     
-    const handleAuthRedirect = () => {
+    const handleAuthRedirect = async () => {
       try {
+        // קודם נבדוק אם יש כבר סשן פעיל
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          log.info("יש כבר סשן פעיל, לא צריך לעבד redirect");
+          processedRef.current = true;
+          return false;
+        }
+        
         // בדיקה אם קיים קוד אימות בכתובת ה-URL
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');

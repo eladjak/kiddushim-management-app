@@ -14,6 +14,22 @@ export async function processAccessToken(
   const { navigate, toastHelper } = context;
   
   try {
+    // בדיקה אם יש כבר סשן פעיל קודם לכל
+    const { data: currentSession } = await supabase.auth.getSession();
+    if (currentSession.session) {
+      log.info("✅ כבר יש סשן פעיל, לא צריך לעבד access token");
+      
+      toastHelper.toast({
+        description: "התחברת בהצלחה",
+      });
+      
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 500);
+      
+      return { success: true, source: 'existing_session' };
+    }
+    
     const hasAccessToken = window.location.hash && window.location.hash.includes('access_token');
     
     if (!hasAccessToken) {
@@ -107,36 +123,6 @@ export async function processAccessToken(
         }
       } catch (manualError) {
         log.error("🚨 שגיאה בעיבוד ידני:", manualError);
-      }
-    }
-    
-    // ניסיון שלישי - exchangeCodeForSession אם יש קוד
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    
-    if (code && code.length > 10) {
-      log.info("🔄 מנסה exchangeCodeForSession כפתרון אחרון");
-      
-      try {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        
-        if (!error && data.session) {
-          log.info("✅ exchangeCodeForSession הצליח");
-          
-          toastHelper.toast({
-            description: "התחברת בהצלחה",
-          });
-          
-          setTimeout(() => {
-            navigate("/", { replace: true });
-          }, 500);
-          
-          return { success: true, source: 'code_exchange' };
-        } else {
-          log.error("❌ exchangeCodeForSession נכשל:", error);
-        }
-      } catch (exchangeError) {
-        log.error("🚨 שגיאה ב-exchangeCodeForSession:", exchangeError);
       }
     }
     
