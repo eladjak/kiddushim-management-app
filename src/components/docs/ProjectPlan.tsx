@@ -27,33 +27,39 @@ export const ProjectPlan = () => {
         value={activeTab}
         onValueChange={setActiveTab}
       >
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
-          <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
-          <TabsTrigger value="timeline">לוח זמנים</TabsTrigger>
-          <TabsTrigger value="team">מבנה צוות</TabsTrigger>
-          <TabsTrigger value="budget">תקציב ולוגיסטיקה</TabsTrigger>
-          <TabsTrigger value="processes">תהליכי עבודה</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center mb-6">
+          <div className="bg-white rounded-lg shadow p-1">
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <TabsTrigger value="overview" className="px-4 py-2 rounded hover:bg-gray-100">סקירה כללית</TabsTrigger>
+              <TabsTrigger value="timeline" className="px-4 py-2 rounded hover:bg-gray-100">לוח זמנים</TabsTrigger>
+              <TabsTrigger value="team" className="px-4 py-2 rounded hover:bg-gray-100">מבנה צוות</TabsTrigger>
+              <TabsTrigger value="budget" className="px-4 py-2 rounded hover:bg-gray-100">תקציב ולוגיסטיקה</TabsTrigger>
+              <TabsTrigger value="processes" className="px-4 py-2 rounded hover:bg-gray-100">תהליכי עבודה</TabsTrigger>
+            </div>
+          </div>
+        </div>
         
-        <TabsContent value="overview" className="mt-6">
-          <ProjectOverview />
-        </TabsContent>
-        
-        <TabsContent value="timeline" className="mt-6">
-          <Timeline />
-        </TabsContent>
-        
-        <TabsContent value="team" className="mt-6">
-          <TeamStructure />
-        </TabsContent>
-        
-        <TabsContent value="budget" className="mt-6">
-          <BudgetAndLogistics />
-        </TabsContent>
-        
-        <TabsContent value="processes" className="mt-6">
-          <WorkProcesses />
-        </TabsContent>
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <TabsContent value="overview">
+            <ProjectOverview />
+          </TabsContent>
+          
+          <TabsContent value="timeline">
+            <Timeline />
+          </TabsContent>
+          
+          <TabsContent value="team">
+            <TeamStructure />
+          </TabsContent>
+          
+          <TabsContent value="budget">
+            <BudgetAndLogistics />
+          </TabsContent>
+          
+          <TabsContent value="processes">
+            <WorkProcesses />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

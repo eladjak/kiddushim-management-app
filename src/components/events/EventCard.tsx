@@ -76,11 +76,11 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
         
         <div className="flex justify-end gap-2">
           <Link to={`/events/${event.id}`}>
-            <Button variant="outline" size="sm" type="button">
+            <Button variant="outline" size="sm">
               פרטים נוספים
             </Button>
           </Link>
-          <Button size="sm" disabled={isInBreakPeriod} type="button">
+          <Button size="sm" disabled={isInBreakPeriod}>
             הרשמה לאירוע
           </Button>
         </div>

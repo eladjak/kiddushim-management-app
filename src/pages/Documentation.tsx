@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/layout/Footer";
@@ -23,7 +24,7 @@ const Documentation = () => {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-center">תיעוד פרויקט קידושישי</h1>
           
-          <Tabs defaultValue="timeline">
+          <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab}>
             <div className="flex justify-center mb-8">
               <div className="bg-white rounded-lg shadow p-1">
                 <div className="flex space-x-2 rtl:space-x-reverse">
@@ -38,13 +39,11 @@ const Documentation = () => {
             </div>
             
             <div className="bg-white rounded-lg shadow-sm p-6">
-              {/* Timeline tab */}
               <TabsContent value="timeline">
                 <h2 className="text-2xl font-bold mb-4">לוח זמנים שנתי</h2>
                 <EventTimeline />
               </TabsContent>
               
-              {/* Other tabs */}
               <TabsContent value="overview">
                 <ProjectOverview />
               </TabsContent>
