@@ -4,18 +4,14 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { ProjectOverview } from "@/components/docs/ProjectOverview";
 import { TeamStructure } from "@/components/docs/TeamStructure";
-import { ProjectPlan } from "@/components/docs/ProjectPlan";
 import { BudgetAndLogistics } from "@/components/docs/BudgetAndLogistics";
 import { WorkProcesses } from "@/components/docs/WorkProcesses";
+import { Timeline } from "@/components/docs/Timeline";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventTimeline } from "@/components/events/EventTimeline";
 
 const Documentation = () => {
   const [activeTab, setActiveTab] = useState("timeline");
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
 
   return (
     <div className="min-h-screen bg-secondary/20 flex flex-col" dir="rtl">
@@ -53,7 +49,7 @@ const Documentation = () => {
               </TabsContent>
               
               <TabsContent value="plan">
-                <ProjectPlan />
+                <Timeline />
               </TabsContent>
               
               <TabsContent value="budget">

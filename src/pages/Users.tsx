@@ -12,6 +12,7 @@ const Users = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Redirect non-admin users
   useEffect(() => {
@@ -24,19 +25,23 @@ const Users = () => {
     }
   }, [profile, navigate, toast]);
 
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
       
       <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
-        <UsersHeader />
+        <UsersHeader onRefresh={handleRefresh} />
         
         {profile?.role !== "admin" ? (
           <div className="text-center py-12">
             <p className="text-lg">אין לך הרשאות לצפות בדף זה</p>
           </div>
         ) : (
-          <UsersContent />
+          <UsersContent key={refreshTrigger} />
         )}
       </main>
       

@@ -19,6 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AddUserDialog } from "@/components/users/AddUserDialog";
+import { InviteUserDialog } from "@/components/users/InviteUserDialog";
+import { Link } from "react-router-dom";
+import { Users } from "lucide-react";
 
 interface AdminTabProps {
   userId: string;
@@ -44,7 +48,8 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .order("name");
+        .order("name")
+        .limit(5); // מגביל ל-5 המשתמשים האחרונים
 
       if (error) throw error;
       setUsers(data || []);
@@ -94,63 +99,87 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
     }
   };
 
+  const handleUserAdded = () => {
+    fetchUsers();
+    toast({
+      description: "משתמש חדש נוסף בהצלחה",
+    });
+  };
+
   return (
     <>
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-4">ניהול משתמשים</h2>
-        
-        {loading && <p>טוען משתמשים...</p>}
-        
-        {!loading && users.length === 0 && (
-          <p>לא נמצאו משתמשים</p>
-        )}
-        
-        {!loading && users.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-right p-2">שם</th>
-                  <th className="text-right p-2">אימייל</th>
-                  <th className="text-right p-2">טלפון</th>
-                  <th className="text-right p-2">תפקיד</th>
-                  <th className="text-right p-2">פעולות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2">{user.name}</td>
-                    <td className="p-2">{user.email}</td>
-                    <td className="p-2">{user.phone || "-"}</td>
-                    <td className="p-2">
-                      <span className="py-1 px-2 bg-primary/10 rounded text-primary text-sm">
-                        {user.role === "admin" && "מנהל"}
-                        {user.role === "coordinator" && "רכז"}
-                        {user.role === "youth_volunteer" && "מתנדב נוער"}
-                        {user.role === "service_girl" && "בת שירות"}
-                      </span>
-                    </td>
-                    <td className="p-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setSelectedRole(user.role);
-                          setRoleDialogOpen(true);
-                        }}
-                      >
-                        שנה תפקיד
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">פעולות ניהול מהירות</h2>
+            <Link to="/users">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                עבור לניהול מלא
+              </Button>
+            </Link>
           </div>
-        )}
-      </Card>
+          
+          <div className="flex gap-3 mb-4">
+            <AddUserDialog onUserAdded={handleUserAdded} />
+            <InviteUserDialog onUserInvited={handleUserAdded} />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-xl font-bold mb-4">משתמשים אחרונים</h2>
+          
+          {loading && <p>טוען משתמשים...</p>}
+          
+          {!loading && users.length === 0 && (
+            <p>לא נמצאו משתמשים</p>
+          )}
+          
+          {!loading && users.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-right p-2">שם</th>
+                    <th className="text-right p-2">אימייל</th>
+                    <th className="text-right p-2">תפקיד</th>
+                    <th className="text-right p-2">פעולות</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} className="border-b hover:bg-gray-50">
+                      <td className="p-2">{user.name}</td>
+                      <td className="p-2">{user.email}</td>
+                      <td className="p-2">
+                        <span className="py-1 px-2 bg-primary/10 rounded text-primary text-sm">
+                          {user.role === "admin" && "מנהל"}
+                          {user.role === "coordinator" && "רכז"}
+                          {user.role === "youth_volunteer" && "מתנדב נוער"}
+                          {user.role === "service_girl" && "בת שירות"}
+                        </span>
+                      </td>
+                      <td className="p-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setSelectedRole(user.role);
+                            setRoleDialogOpen(true);
+                          }}
+                        >
+                          שנה תפקיד
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
 
       {/* Role Change Dialog */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
