@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,7 @@ import { logger } from "@/utils/logger";
 export const reportFormSchema = z.object({
   title: z.string().min(3, "יש להזין כותרת באורך של 3 תווים לפחות"),
   description: z.string().min(10, "יש להזין תיאור באורך של 10 תווים לפחות"),
-  event_id: z.string().min(1, "יש לבחור אירוע").optional(),
+  event_id: z.string().min(1, "יש לבחור אירוع").optional(),
   reporter_name: z.string().min(2, "יש להזין שם בן 2 תווים לפחות"),
   severity: z.string().min(1, "יש לבחור רמת חומרה").default("medium"),
   
@@ -30,6 +29,7 @@ export const reportFormSchema = z.object({
   // Standard feedback fields
   what_was_good: z.string().optional(),
   what_to_improve: z.string().optional(),
+  additional_feedback: z.string().optional(),
   
   // Tzohar specific - is the reporter from their team
   is_tzohar_representative: z.boolean().default(false),
@@ -81,6 +81,7 @@ export const useReportForm = () => {
     logistics_rating: 5,
     what_was_good: "",
     what_to_improve: "",
+    additional_feedback: "",
     is_tzohar_representative: false,
   };
 
@@ -123,6 +124,7 @@ export const useReportForm = () => {
         feedback: {
           positive: values.what_was_good || "",
           improvement: values.what_to_improve || "",
+          additional: values.additional_feedback || "",
         },
       };
       
