@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getNavItems } from "./navItems";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
+import { UserMenu } from "./UserMenu";
 
 interface DesktopNavProps {
   onLogout: () => Promise<void>;
@@ -35,17 +35,7 @@ export const DesktopNav = ({ onLogout }: DesktopNavProps) => {
       
       <div className="flex items-center space-x-4 rtl:space-x-reverse">
         {user ? (
-          <>
-            <NotificationsDropdown />
-            <Link to="/profile">
-              <Button variant="ghost" size="sm">
-                פרופיל
-              </Button>
-            </Link>
-            <Button variant="outline" size="sm" onClick={onLogout}>
-              התנתק
-            </Button>
-          </>
+          <UserMenu onLogout={onLogout} />
         ) : (
           <Link to="/auth">
             <Button size="sm">כניסה</Button>

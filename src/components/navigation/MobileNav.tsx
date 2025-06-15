@@ -4,8 +4,12 @@ import { Link } from "react-router-dom";
 import { getNavItems } from "./navItems";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Bell, User, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/hooks/dashboard/useNotifications";
+import { Bell, User, LogOut, UserPlus } from "lucide-react";
 import { useOnClickOutside } from "@/hooks/use-click-outside";
 
 interface MobileNavProps {
@@ -27,6 +31,8 @@ export const MobileNav = ({
   const isMobile = useIsMobile();
   const navRef = useRef<HTMLDivElement>(null);
   const navItems = getNavItems(isAdmin, isCoordinator);
+  const { user, profile } = useAuth();
+  const { unreadCount } = useNotifications(user?.id);
   
   // Handle outside clicks to close menu
   useOnClickOutside(navRef, () => {
@@ -51,6 +57,15 @@ export const MobileNav = ({
   const animationClass = isOpen 
     ? "translate-x-0 opacity-100" 
     : "translate-x-full opacity-0";
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
   
   return (
     <div
@@ -64,6 +79,33 @@ export const MobileNav = ({
       >
         <div className="flex flex-col h-full overflow-y-auto">
           <div className="p-4">
+            {isLoggedIn && profile && (
+              <>
+                <div className="flex items-center gap-3 mb-6 p-3 bg-secondary/10 rounded-lg">
+                  <div className="relative">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile.avatar_url || undefined} alt={profile.name} />
+                      <AvatarFallback className="text-sm">
+                        {getInitials(profile.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {unreadCount > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px] flex items-center justify-center"
+                      >
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{profile.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                </div>
+              </>
+            )}
+            
             <h2 className="text-lg font-bold mb-4">תפריט ניווט</h2>
             
             <div className="space-y-1 mb-6">
@@ -83,15 +125,29 @@ export const MobileNav = ({
             
             {isLoggedIn ? (
               <div className="space-y-2">
-                <Link to="/notifications" className="flex items-center py-2 px-3 rounded-md hover:bg-secondary">
-                  <Bell className="h-5 w-5 ml-2" />
-                  <span>התראות</span>
+                <Link to="/notifications" className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-secondary">
+                  <div className="flex items-center">
+                    <Bell className="h-5 w-5 ml-2" />
+                    <span>התראות</span>
+                  </div>
+                  {unreadCount > 0 && (
+                    <Badge variant="secondary" className="h-5 text-xs">
+                      {unreadCount}
+                    </Badge>
+                  )}
                 </Link>
                 
                 <Link to="/profile" className="flex items-center py-2 px-3 rounded-md hover:bg-secondary">
                   <User className="h-5 w-5 ml-2" />
                   <span>פרופיל</span>
                 </Link>
+                
+                {isAdmin && (
+                  <Link to="/users" className="flex items-center py-2 px-3 rounded-md hover:bg-secondary">
+                    <UserPlus className="h-5 w-5 ml-2" />
+                    <span>הוספת משתמש</span>
+                  </Link>
+                )}
                 
                 <Button 
                   variant="outline" 

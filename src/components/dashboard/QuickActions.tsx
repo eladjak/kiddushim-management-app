@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, FileText, Shield, UserPlus, Bell } from "lucide-react";
+import { Calendar, Users, FileText, Shield, Bell } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,20 +100,6 @@ export const QuickActions = ({
             </Button>
           </div>
         </div>
-        
-        {isAdmin && (
-          <div className="mt-4 pt-4 border-t">
-            <h4 className="text-sm font-medium mb-2">פעולות מנהל</h4>
-            <div className="flex gap-2">
-              <Link to="/users">
-                <Button size="sm" className="flex items-center gap-1">
-                  <UserPlus className="h-4 w-4" />
-                  הוספת משתמש
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
