@@ -62,25 +62,25 @@ export const ReportsTabs = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">כל הדיווחים</TabsTrigger>
-          <TabsTrigger value="event_report">דיווחי אירועים</TabsTrigger>
+          <TabsTrigger value="event_reports">דיווחי אירועים</TabsTrigger>
           <TabsTrigger value="feedback">משובים</TabsTrigger>
-          <TabsTrigger value="issue">תקלות</TabsTrigger>
+          <TabsTrigger value="issues">תקלות</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
-          <ReportsList />
+          <ReportsList activeTab="all" />
         </TabsContent>
         
-        <TabsContent value="event_report">
-          <ReportsList filter="event_report" />
+        <TabsContent value="event_reports">
+          <ReportsList activeTab="event_reports" />
         </TabsContent>
         
         <TabsContent value="feedback">
-          <ReportsList filter="feedback" />
+          <ReportsList activeTab="feedback" />
         </TabsContent>
         
-        <TabsContent value="issue">
-          <ReportsList filter="issue" />
+        <TabsContent value="issues">
+          <ReportsList activeTab="issues" />
         </TabsContent>
       </Tabs>
     </div>

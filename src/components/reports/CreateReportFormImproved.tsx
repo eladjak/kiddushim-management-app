@@ -73,11 +73,11 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
 
   const isFormValid = () => {
     return (
-      formData.title.length >= 3 &&
-      formData.description.length >= 10 &&
-      formData.reporter_name.length >= 2 &&
-      formData.participants_count > 0 &&
-      formData.participants_gained.length >= 5
+      formData.title && formData.title.length >= 3 &&
+      formData.description && formData.description.length >= 10 &&
+      formData.reporter_name && formData.reporter_name.length >= 2 &&
+      formData.participants_count && formData.participants_count > 0 &&
+      formData.participants_gained && formData.participants_gained.length >= 5
     );
   };
 
@@ -88,7 +88,7 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
           <CardTitle>דיווח אירוע חדש</CardTitle>
           <CardDescription>
             {reportType === "event_report" && "דיווח מפורט לארגון צהר"}
-            {reportType === "feedback" && "משוב על אירוع"}
+            {reportType === "feedback" && "משוב על אירוע"}
             {reportType === "issue" && "דיווח על תקלה"}
           </CardDescription>
         </CardHeader>
@@ -105,21 +105,33 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
         <TabsContent value="basic" className="space-y-4">
           <ReportBasicInfo
             events={events}
-            formData={formData}
+            formData={{
+              title: formData.title || "",
+              description: formData.description || "",
+              event_id: formData.event_id || "",
+              reporter_name: formData.reporter_name || ""
+            }}
             onFieldChange={handleFieldChange}
           />
         </TabsContent>
 
         <TabsContent value="participants" className="space-y-4">
           <ParticipantsSection
-            formData={formData}
+            formData={{
+              participants_count: formData.participants_count || 0,
+              participants_kids: formData.participants_kids || 0,
+              participants_adults: formData.participants_adults || 0
+            }}
             onFieldChange={handleFieldChange}
           />
         </TabsContent>
 
         <TabsContent value="content" className="space-y-4">
           <TzoharSection
-            formData={formData}
+            formData={{
+              participants_gained: formData.participants_gained || "",
+              is_tzohar_representative: formData.is_tzohar_representative || false
+            }}
             onFieldChange={handleFieldChange}
           />
           
@@ -131,8 +143,8 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
           )}
           
           <FeedbackSection
-            formData={formData}
-            onFieldChange={handleFieldChange}
+            images={images}
+            onImagesChange={setImages}
           />
         </TabsContent>
 
