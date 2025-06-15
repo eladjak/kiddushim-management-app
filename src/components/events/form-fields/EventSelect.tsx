@@ -1,6 +1,6 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { predefinedEvents, isEventAvailable } from "@/data/calendar/predefinedEvents";
+import { kidushishiEvents2025_2026, getUpcomingKidushishiEvents } from "@/data/events/predefinedEvents2025-2026";
 import { isDateInBreakPeriod, getHebrewMonthName } from "@/data/calendar/calendarUtils";
 import { PredefinedEvent } from "@/data/types/eventTypes";
 import { logger } from "@/utils/logger";
@@ -15,15 +15,11 @@ export const EventSelect = ({ onEventSelect }: EventSelectProps) => {
   // Group events by month
   const eventsByMonth: Record<string, PredefinedEvent[]> = {};
   
-  // Filter out past events
-  const today = new Date();
-  const upcomingEvents = predefinedEvents.filter(event => {
-    const eventDate = new Date(event.date);
-    return eventDate >= today;
-  });
+  // Get upcoming events from the new 2025-2026 data
+  const upcomingEvents = getUpcomingKidushishiEvents();
   
   // Log for debugging
-  log.info(`Found ${upcomingEvents.length} upcoming events`);
+  log.info(`Found ${upcomingEvents.length} upcoming events from 2025-2026 calendar`);
   
   upcomingEvents.forEach(event => {
     try {

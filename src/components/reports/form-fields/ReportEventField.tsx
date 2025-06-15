@@ -6,15 +6,28 @@ interface ReportEventFieldProps {
   value: string;
   events: any[];
   onChange: (value: string) => void;
+  onEventDetailsLoad?: (eventDetails: any) => void;
 }
 
-export const ReportEventField = ({ value, events, onChange }: ReportEventFieldProps) => {
+export const ReportEventField = ({ value, events, onChange, onEventDetailsLoad }: ReportEventFieldProps) => {
+  const handleEventChange = (eventId: string) => {
+    console.log("ReportEventField - Event selected:", eventId);
+    onChange(eventId);
+    
+    // מחפש את פרטי האירוע ומעביר אותם להורה
+    const selectedEvent = events.find(event => event.id === eventId);
+    if (selectedEvent && onEventDetailsLoad) {
+      console.log("ReportEventField - Loading event details:", selectedEvent);
+      onEventDetailsLoad(selectedEvent);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Label>אירוע</Label>
       <Select 
         value={value} 
-        onValueChange={onChange}
+        onValueChange={handleEventChange}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="בחר אירוע" />

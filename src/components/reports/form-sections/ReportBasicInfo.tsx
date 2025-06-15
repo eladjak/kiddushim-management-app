@@ -19,6 +19,21 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
   console.log("ReportBasicInfo - Events received:", events);
   console.log("ReportBasicInfo - Form data received:", formData);
   
+  const handleEventDetailsLoad = (eventDetails: any) => {
+    console.log("ReportBasicInfo - Auto-filling from event details:", eventDetails);
+    
+    // מילוי אוטומטי של כותרת הדיווח
+    if (eventDetails.title && !formData.title) {
+      onFieldChange("title", `דיווח ${eventDetails.title}`);
+    }
+    
+    // מילוי אוטומטי של תיאור בסיסי
+    if (eventDetails.parasha && eventDetails.hebrewDate && !formData.description) {
+      const basicDescription = `דיווח על אירוע קידושישי פרשת ${eventDetails.parasha} שהתקיים ב${eventDetails.hebrewDate}`;
+      onFieldChange("description", basicDescription);
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <ReportTitleField 
@@ -44,6 +59,7 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
           console.log("Event field change:", value);
           onFieldChange("event_id", value);
         }}
+        onEventDetailsLoad={handleEventDetailsLoad}
       />
       
       <ReporterNameField 

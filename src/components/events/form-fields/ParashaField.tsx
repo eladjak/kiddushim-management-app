@@ -1,6 +1,6 @@
 
 import { Label } from "@/components/ui/label";
-import { predefinedEvents } from "@/data/calendar/predefinedEvents";
+import { kidushishiEvents2025_2026, getKidushishiEventById } from "@/data/events/predefinedEvents2025-2026";
 import { PredefinedEvent } from "@/data/types/eventTypes";
 import { EventSelect } from "./EventSelect";
 import { SpecialDatesInfo } from "./SpecialDatesInfo";
@@ -13,7 +13,7 @@ interface ParashaFieldProps {
 
 export const ParashaField = ({ value, onChange, onEventSelect }: ParashaFieldProps) => {
   const handleEventSelect = (eventId: string) => {
-    const selectedEvent = predefinedEvents.find(event => event.id === eventId);
+    const selectedEvent = getKidushishiEventById(eventId);
     
     if (selectedEvent) {
       // Create fake event for parasha field

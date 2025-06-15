@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { getUpcomingKidushishiEvents } from "@/data/events/predefinedEvents2025-2026";
 
 // Schema for report form validation matching Tzohar requirements
 export const reportFormSchema = z.object({
@@ -50,22 +51,54 @@ export const useReportForm = () => {
   const log = logger.createLogger({ component: 'useReportForm' });
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      console.log("useReportForm - Fetching events...");
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, title")
-        .order("date", { ascending: false });
+    const loadEvents = async () => {
+      console.log("useReportForm - Loading predefined events...");
+      
+      try {
+        // טוען אירועים מוגדרים מראש במקום מהדאטהבייס
+        const predefinedEvents = getUpcomingKidushishiEvents();
+        console.log("useReportForm - Predefined events loaded:", predefinedEvents);
+        
+        // ממיר לפורמט הנדרש עבור הקומפוננט
+        const formattedEvents = predefinedEvents.map(event => ({
+          id: event.id,
+          title: `קידושישי - פרשת ${event.parasha} (${event.hebrewDate})`,
+          date: event.date,
+          parasha: event.parasha,
+          hebrewDate: event.hebrewDate
+        }));
 
-      if (!error && data) {
-        console.log("useReportForm - Events fetched successfully:", data);
-        setEvents(data);
-      } else {
-        console.error("useReportForm - Error fetching events:", error);
+        console.log("useReportForm - Formatted events:", formattedEvents);
+        setEvents(formattedEvents);
+        
+        // בנוסף, טוען גם אירועים מהדאטהבייס במקרה שיש כאלה
+        const { data: dbEvents, error } = await supabase
+          .from("events")
+          .select("id, title, date, parasha")
+          .order("date", { ascending: false });
+
+        if (!error && dbEvents && dbEvents.length > 0) {
+          console.log("useReportForm - Database events found:", dbEvents);
+          const combinedEvents = [...formattedEvents, ...dbEvents];
+          setEvents(combinedEvents);
+        }
+        
+      } catch (error) {
+        console.error("useReportForm - Error loading events:", error);
+        // במקרה של שגיאה, נסה לטעון רק מהדאטהבייס
+        const { data, error: dbError } = await supabase
+          .from("events")
+          .select("id, title, date")
+          .order("date", { ascending: false });
+
+        if (!dbError && data) {
+          console.log("useReportForm - Fallback to database events:", data);
+          setEvents(data);
+        }
       }
     };
 
-    fetchEvents();
+    loadEvents();
   }, []);
 
   // ערכי ברירת מחדל ריקים
@@ -75,9 +108,9 @@ export const useReportForm = () => {
     event_id: "",
     reporter_name: "",
     severity: "medium",
-    participants_count: 0, // שינוי ל-0 במקום 30
-    participants_kids: 0, // שינוי ל-0 במקום 20
-    participants_adults: 0, // שינוי ל-0 במקום 80
+    participants_count: 0,
+    participants_kids: 0,
+    participants_adults: 0,
     location_other: "",
     participants_gained: "",
     overall_rating: 5,

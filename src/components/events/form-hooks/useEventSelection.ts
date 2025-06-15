@@ -1,4 +1,5 @@
 
+import { kidushishiEvents2025_2026, getKidushishiEventById } from "@/data/events/predefinedEvents2025-2026";
 import { PredefinedEvent } from "@/data/types/eventTypes";
 import { logger } from "@/utils/logger";
 
@@ -11,7 +12,15 @@ export const useEventSelection = (
 ) => {
   const log = logger.createLogger({ component: 'useEventSelection' });
   
-  const handleEventSelect = (event: PredefinedEvent) => {
+  const handleEventSelect = (eventId: string) => {
+    // מחפש באירועים החדשים של 2025-2026
+    const event = getKidushishiEventById(eventId);
+    
+    if (!event) {
+      log.warn('Event not found', { eventId });
+      return;
+    }
+    
     log.info('Selected predefined event', { eventId: event.id, parasha: event.parasha });
     
     // Parse the main time to calculate cleanup time
