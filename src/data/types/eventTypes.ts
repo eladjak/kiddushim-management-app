@@ -1,4 +1,3 @@
-
 export interface PredefinedEvent {
   id: string;
   date: string;
@@ -11,6 +10,7 @@ export interface PredefinedEvent {
   mainTime?: string;
   setupTime?: string;
   dayOfWeek?: string;
+  location?: string;
 }
 
 export interface SpecialDate {
