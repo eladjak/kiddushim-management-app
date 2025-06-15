@@ -22,6 +22,11 @@ export const getNavItems = (isAdmin: boolean, isCoordinator: boolean): NavItem[]
       icon: <Calendar className="h-4 w-4 ml-1" />,
     },
     {
+      path: "/timeline",
+      label: "לוח זמנים",
+      icon: <Calendar className="h-4 w-4 ml-1" />,
+    },
+    {
       path: "/volunteers",
       label: "מתנדבים",
       icon: <Users className="h-4 w-4 ml-1" />,
@@ -42,12 +47,8 @@ export const getNavItems = (isAdmin: boolean, isCoordinator: boolean): NavItem[]
       path: "/equipment",
       label: "ציוד",
       icon: <Package2 className="h-4 w-4 ml-1" />,
-    },
-    {
-      path: "/profile",
-      label: "פרופיל",
-      icon: <User className="h-4 w-4 ml-1" />,
-    },
+    }
+    // הסרנו את הפרופיל מכאן כי הוא נגיש דרך תפריט האווטאר
   ];
 };
 
