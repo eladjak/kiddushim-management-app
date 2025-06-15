@@ -149,7 +149,7 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
           
           <FeedbackSection
             formData={{
-              additional_feedback: formData.additional_feedback
+              additional_feedback: formData.additional_feedback || ""
             }}
             onFieldChange={handleFieldChange}
             images={images}
