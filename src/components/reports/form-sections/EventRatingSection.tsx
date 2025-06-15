@@ -1,37 +1,90 @@
 
-import { useFormContext } from "react-hook-form";
-import { EventRatingField } from "../form-fields/EventRatingField";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export const EventRatingSection = () => {
-  const form = useFormContext();
+interface EventRatingSectionProps {
+  formData: {
+    overall_rating?: number;
+    audience_rating?: number;
+    organization_rating?: number;
+    logistics_rating?: number;
+  };
+  onFieldChange: (field: string, value: any) => void;
+}
+
+export const EventRatingSection = ({ formData, onFieldChange }: EventRatingSectionProps) => {
+  const handleRatingChange = (field: string, values: number[]) => {
+    onFieldChange(field, values[0]);
+  };
 
   return (
-    <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
-      <h3 className="font-medium text-gray-700">דירוג האירוע</h3>
-      
-      <EventRatingField 
-        form={form} 
-        name="overall_rating" 
-        label="דירוג כללי" 
-      />
-      
-      <EventRatingField 
-        form={form} 
-        name="audience_rating" 
-        label="חווית הקהל" 
-      />
-      
-      <EventRatingField 
-        form={form} 
-        name="organization_rating" 
-        label="רמת הארגון" 
-      />
-      
-      <EventRatingField 
-        form={form} 
-        name="logistics_rating" 
-        label="לוגיסטיקה" 
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>דירוג האירוע</CardTitle>
+        <CardDescription>דרג את האירוע בקטגוריות שונות</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="overall_rating">
+            דירוג כללי ({formData.overall_rating || 5})
+          </Label>
+          <Slider 
+            id="overall_rating"
+            min={1} 
+            max={10} 
+            step={1}
+            value={[formData.overall_rating || 5]} 
+            onValueChange={(values) => handleRatingChange("overall_rating", values)}
+            className="pt-2" 
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="audience_rating">
+            חווית הקהל ({formData.audience_rating || 5})
+          </Label>
+          <Slider 
+            id="audience_rating"
+            min={1} 
+            max={10} 
+            step={1}
+            value={[formData.audience_rating || 5]} 
+            onValueChange={(values) => handleRatingChange("audience_rating", values)}
+            className="pt-2" 
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="organization_rating">
+            רמת הארגון ({formData.organization_rating || 5})
+          </Label>
+          <Slider 
+            id="organization_rating"
+            min={1} 
+            max={10} 
+            step={1}
+            value={[formData.organization_rating || 5]} 
+            onValueChange={(values) => handleRatingChange("organization_rating", values)}
+            className="pt-2" 
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="logistics_rating">
+            לוגיסטיקה ({formData.logistics_rating || 5})
+          </Label>
+          <Slider 
+            id="logistics_rating"
+            min={1} 
+            max={10} 
+            step={1}
+            value={[formData.logistics_rating || 5]} 
+            onValueChange={(values) => handleRatingChange("logistics_rating", values)}
+            className="pt-2" 
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 };

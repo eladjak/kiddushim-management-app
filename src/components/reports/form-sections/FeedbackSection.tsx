@@ -4,11 +4,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FeedbackSectionProps {
+  formData: {
+    additional_feedback?: string;
+  };
+  onFieldChange: (field: string, value: any) => void;
   images: string[];
   onImagesChange: (images: string[]) => void;
 }
 
-export const FeedbackSection = ({ images, onImagesChange }: FeedbackSectionProps) => {
+export const FeedbackSection = ({ formData, onFieldChange, images, onImagesChange }: FeedbackSectionProps) => {
   return (
     <Card>
       <CardHeader>
@@ -20,6 +24,8 @@ export const FeedbackSection = ({ images, onImagesChange }: FeedbackSectionProps
           <Label htmlFor="additional_feedback">הערות כלליות</Label>
           <Textarea
             id="additional_feedback"
+            value={formData.additional_feedback || ""}
+            onChange={(e) => onFieldChange("additional_feedback", e.target.value)}
             placeholder="הוסף כאן הערות נוספות לגבי האירוע..."
             rows={4}
             className="resize-none"

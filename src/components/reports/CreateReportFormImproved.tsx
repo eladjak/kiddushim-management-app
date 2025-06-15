@@ -137,12 +137,21 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
           
           {(reportType === "event_report" || reportType === "feedback") && (
             <EventRatingSection
-              formData={formData}
+              formData={{
+                overall_rating: formData.overall_rating,
+                audience_rating: formData.audience_rating,
+                organization_rating: formData.organization_rating,
+                logistics_rating: formData.logistics_rating
+              }}
               onFieldChange={handleFieldChange}
             />
           )}
           
           <FeedbackSection
+            formData={{
+              additional_feedback: formData.additional_feedback
+            }}
+            onFieldChange={handleFieldChange}
             images={images}
             onImagesChange={setImages}
           />
