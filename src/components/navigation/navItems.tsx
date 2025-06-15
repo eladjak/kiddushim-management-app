@@ -22,11 +22,6 @@ export const getNavItems = (isAdmin: boolean, isCoordinator: boolean): NavItem[]
       icon: <Calendar className="h-4 w-4 ml-1" />,
     },
     {
-      path: "/documentation",
-      label: "תיעוד",
-      icon: <FileText className="h-4 w-4 ml-1" />,
-    },
-    {
       path: "/volunteers",
       label: "מתנדבים",
       icon: <Users className="h-4 w-4 ml-1" />,
@@ -58,11 +53,6 @@ export const getNavItems = (isAdmin: boolean, isCoordinator: boolean): NavItem[]
 
 export const getPublicNavItems = (): NavItem[] => {
   return [
-    {
-      path: "/documentation",
-      label: "תיעוד הפרויקט",
-      icon: <FileText className="h-4 w-4 ml-1" />,
-    },
     {
       path: "/auth",
       label: "התחבר",

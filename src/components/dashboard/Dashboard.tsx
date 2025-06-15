@@ -4,6 +4,9 @@ import { useAuth } from "@/context/AuthContext";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { HelpButton } from "@/components/onboarding/HelpButton";
+import { useOnboarding } from "@/hooks/onboarding/useOnboarding";
 import { useNotifications } from "@/hooks/dashboard/useNotifications";
 import { useEvents } from "@/hooks/dashboard/useEvents";
 import { useAssignments } from "@/hooks/dashboard/useAssignments";
@@ -15,6 +18,9 @@ export const Dashboard = () => {
   const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'Dashboard' });
   const isMobile = useIsMobile();
+  
+  // Onboarding hook
+  const { showOnboarding, completeOnboarding, skipOnboarding, startOnboarding } = useOnboarding();
   
   // Use the hooks for fetching data
   const { data: eventsData, isLoading: eventsLoading } = useEvents(user?.id);
@@ -93,6 +99,17 @@ export const Dashboard = () => {
           )}
         </div>
       </div>
+      
+      {/* Onboarding Tour */}
+      {showOnboarding && (
+        <OnboardingTour 
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
+      )}
+      
+      {/* Help Button */}
+      <HelpButton onStartTour={startOnboarding} />
     </div>
   );
 };

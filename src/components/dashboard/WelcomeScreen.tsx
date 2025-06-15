@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Image } from "@/components/ui/image";
-import { FileText } from "lucide-react";
+import { FileText, ExternalLink } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 
 export const WelcomeScreen = () => {
@@ -53,10 +53,10 @@ export const WelcomeScreen = () => {
             </Button>
             
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link to="/documentation" className="flex items-center gap-2">
-                <FileText className="h-4 w-4 ml-1" />
-                לתיעוד הפרויקט
-              </Link>
+              <a href="https://kidushishi.tzohar.org.il/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 ml-1" />
+                למידע נוסף על פרויקט קידושישי
+              </a>
             </Button>
           </div>
         </div>

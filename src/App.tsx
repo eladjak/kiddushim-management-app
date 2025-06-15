@@ -17,7 +17,6 @@ import Users from "./pages/Users";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Equipment from "./pages/Equipment";
-import Documentation from "./pages/Documentation";
 import UserProfile from "./pages/UserProfile";
 import TimelinePDF from "./pages/TimelinePDF";
 import "./App.css";
@@ -78,7 +77,6 @@ function AppWithAdminCheck() {
       <Route path="/auth/callback" element={<PublicLayout><AuthCallback /></PublicLayout>} />
       
       {/* Authenticated routes with Navigation */}
-      <Route path="/documentation" element={<AuthenticatedLayout><Documentation /></AuthenticatedLayout>} />
       <Route path="/events" element={<AuthenticatedLayout><Events /></AuthenticatedLayout>} />
       <Route path="/volunteers" element={<AuthenticatedLayout><Volunteers /></AuthenticatedLayout>} />
       <Route path="/users" element={<AuthenticatedLayout><Users /></AuthenticatedLayout>} />
