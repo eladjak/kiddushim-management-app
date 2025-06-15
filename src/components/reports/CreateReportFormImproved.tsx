@@ -26,12 +26,20 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  console.log("CreateReportFormImproved - Default values:", defaultValues);
+  console.log("CreateReportFormImproved - Form data:", formData);
+  console.log("CreateReportFormImproved - Events:", events);
+  console.log("CreateReportFormImproved - Report type:", reportType);
+
   const handleFieldChange = (field: string, value: any) => {
+    console.log("Field change:", field, "New value:", value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("Submitting form with data:", formData);
     
     if (!user) {
       toast({
@@ -72,13 +80,29 @@ export const CreateReportFormImproved = ({ reportType, onClose, onSuccess }: Cre
   };
 
   const isFormValid = () => {
-    return (
+    const valid = (
       formData.title && formData.title.length >= 3 &&
       formData.description && formData.description.length >= 10 &&
       formData.reporter_name && formData.reporter_name.length >= 2 &&
       formData.participants_count && formData.participants_count > 0 &&
       formData.participants_gained && formData.participants_gained.length >= 5
     );
+    
+    console.log("Form validation result:", valid);
+    console.log("Validation details:", {
+      title: formData.title,
+      titleValid: formData.title && formData.title.length >= 3,
+      description: formData.description,
+      descriptionValid: formData.description && formData.description.length >= 10,
+      reporter_name: formData.reporter_name,
+      reporterNameValid: formData.reporter_name && formData.reporter_name.length >= 2,
+      participants_count: formData.participants_count,
+      participantsCountValid: formData.participants_count && formData.participants_count > 0,
+      participants_gained: formData.participants_gained,
+      participantsGainedValid: formData.participants_gained && formData.participants_gained.length >= 5
+    });
+    
+    return valid;
   };
 
   return (

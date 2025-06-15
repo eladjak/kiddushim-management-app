@@ -13,6 +13,8 @@ interface TzoharSectionProps {
 }
 
 export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) => {
+  console.log("TzoharSection - Form data received:", formData);
+  
   return (
     <Card>
       <CardHeader>
@@ -25,7 +27,10 @@ export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) =
           <Textarea
             id="participants_gained"
             value={formData.participants_gained}
-            onChange={(e) => onFieldChange("participants_gained", e.target.value)}
+            onChange={(e) => {
+              console.log("Participants gained change:", e.target.value);
+              onFieldChange("participants_gained", e.target.value);
+            }}
             placeholder="תאר בקצרה מה המשתתפים למדו, חוו או קיבלו מהאירוע..."
             rows={3}
             className="resize-none"
@@ -36,7 +41,10 @@ export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) =
           <Checkbox
             id="is_tzohar_representative"
             checked={formData.is_tzohar_representative}
-            onCheckedChange={(checked) => onFieldChange("is_tzohar_representative", checked)}
+            onCheckedChange={(checked) => {
+              console.log("Tzohar representative change:", checked);
+              onFieldChange("is_tzohar_representative", checked);
+            }}
           />
           <Label htmlFor="is_tzohar_representative" className="text-sm">
             אני נציג מטעם ארגון צהר

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ import { logger } from "@/utils/logger";
 export const reportFormSchema = z.object({
   title: z.string().min(3, "יש להזין כותרת באורך של 3 תווים לפחות"),
   description: z.string().min(10, "יש להזין תיאור באורך של 10 תווים לפחות"),
-  event_id: z.string().min(1, "יש לבחור אירוع").optional(),
+  event_id: z.string().min(1, "יש לבחור אירוע").optional(),
   reporter_name: z.string().min(2, "יש להזין שם בן 2 תווים לפחות"),
   severity: z.string().min(1, "יש לבחור רמת חומרה").default("medium"),
   
@@ -50,13 +51,17 @@ export const useReportForm = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      console.log("useReportForm - Fetching events...");
       const { data, error } = await supabase
         .from("events")
         .select("id, title")
         .order("date", { ascending: false });
 
       if (!error && data) {
+        console.log("useReportForm - Events fetched successfully:", data);
         setEvents(data);
+      } else {
+        console.error("useReportForm - Error fetching events:", error);
       }
     };
 
@@ -85,6 +90,8 @@ export const useReportForm = () => {
     is_tzohar_representative: false,
   };
 
+  console.log("useReportForm - Default values created:", defaultValues);
+
   const getReportTypeName = (reportType: string) => {
     switch (reportType) {
       case "event_report": return "דיווח אירוע לצהר";
@@ -96,6 +103,8 @@ export const useReportForm = () => {
 
   const submitReport = async ({ values, images, userId, reportType }: SubmitReportParams) => {
     try {
+      console.log("useReportForm - Submitting report with values:", values);
+      
       // Create content object with sanitized values for Tzohar format
       const contentData = {
         title: values.title,
