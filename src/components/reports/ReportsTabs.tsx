@@ -57,20 +57,25 @@ export const ReportsTabs = () => {
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all">כל הדיווחים</TabsTrigger>
-          <TabsTrigger value="my-reports">הדיווחים שלי</TabsTrigger>
-          <TabsTrigger value="pending">ממתינים לאישור</TabsTrigger>
+          <TabsTrigger value="event_reports">דיווחי אירועים</TabsTrigger>
+          <TabsTrigger value="feedback">משובים</TabsTrigger>
+          <TabsTrigger value="issues">תקלות</TabsTrigger>
         </TabsList>
         
         <TabsContent value="all" className="mt-6">
-          <ReportsList filter="all" />
+          <ReportsList activeTab="all" />
         </TabsContent>
         
-        <TabsContent value="my-reports" className="mt-6">
-          <ReportsList filter="my-reports" />
+        <TabsContent value="event_reports" className="mt-6">
+          <ReportsList activeTab="event_reports" />
         </TabsContent>
         
-        <TabsContent value="pending" className="mt-6">
-          <ReportsList filter="pending" />
+        <TabsContent value="feedback" className="mt-6">
+          <ReportsList activeTab="feedback" />
+        </TabsContent>
+        
+        <TabsContent value="issues" className="mt-6">
+          <ReportsList activeTab="issues" />
         </TabsContent>
       </Tabs>
 
