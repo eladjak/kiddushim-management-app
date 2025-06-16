@@ -109,16 +109,19 @@ export const MobileNav = ({
             <h2 className="text-lg font-bold mb-4">תפריט ניווט</h2>
             
             <div className="space-y-1 mb-6">
-              {navItems.map((item, index) => (
-                <Link
-                  key={index}
-                  to={item.path}
-                  className="block py-2 px-3 rounded-md hover:bg-secondary text-base"
-                >
-                  {item.icon && <span className="mr-2">{item.icon}</span>}
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item, index) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    className="flex items-center py-2 px-3 rounded-md hover:bg-secondary text-base"
+                  >
+                    {IconComponent && <IconComponent className="h-5 w-5 ml-2" />}
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
             
             <Separator className="my-4" />
