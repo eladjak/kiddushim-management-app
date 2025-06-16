@@ -1,8 +1,7 @@
 
 import { Label } from "@/components/ui/label";
-import { kidushishiEvents2025_2026, getKidushishiEventById } from "@/data/events/predefinedEvents2025-2026";
 import { PredefinedEvent } from "@/data/types/eventTypes";
-import { EventSelect } from "./EventSelect";
+import { ImprovedEventSelect } from "./ImprovedEventSelect";
 import { SpecialDatesInfo } from "./SpecialDatesInfo";
 
 interface ParashaFieldProps {
@@ -13,31 +12,45 @@ interface ParashaFieldProps {
 
 export const ParashaField = ({ value, onChange, onEventSelect }: ParashaFieldProps) => {
   const handleEventSelect = (eventId: string) => {
-    const selectedEvent = getKidushishiEventById(eventId);
+    console.log("ParashaField - Event selected:", eventId);
     
-    if (selectedEvent) {
-      // Create fake event for parasha field
-      const parashaEvent = {
-        target: {
-          name: "parasha",
-          value: selectedEvent.parasha
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
+    // Import the function locally to avoid circular imports
+    import("@/data/events/predefinedEvents2025-2026").then(({ getKidushishiEventById }) => {
+      const selectedEvent = getKidushishiEventById(eventId);
       
-      // Update parasha field
-      onChange(parashaEvent);
-      
-      // Call the parent handler with the full event data
-      onEventSelect(selectedEvent);
-    }
+      if (selectedEvent) {
+        // Create fake event for parasha field
+        const parashaEvent = {
+          target: {
+            name: "parasha",
+            value: selectedEvent.parasha
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        
+        // Update parasha field
+        onChange(parashaEvent);
+        
+        // Call the parent handler with the full event data
+        onEventSelect(selectedEvent);
+      }
+    });
   };
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="event-select">מועד אירוע</Label>
-        <EventSelect onEventSelect={handleEventSelect} />
-      </div>
+      <ImprovedEventSelect 
+        onEventSelect={handleEventSelect}
+        onCustomEventCreate={() => {
+          // Clear the parasha field to indicate custom event creation
+          const clearEvent = {
+            target: {
+              name: "parasha",
+              value: ""
+            }
+          } as React.ChangeEvent<HTMLInputElement>;
+          onChange(clearEvent);
+        }}
+      />
       
       <div className="mt-4">
         <Label htmlFor="parasha">פרשת השבוע</Label>

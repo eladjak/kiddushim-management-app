@@ -1,10 +1,9 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import MapSearchInput from './map-components/MapSearchInput';
 import MapContainer from './map/MapContainer';
+import { MapboxTokenCheck } from './MapboxTokenCheck';
 import { logger } from '@/utils/logger';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -168,25 +167,27 @@ const LocationMap: React.FC<LocationMapProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 flex flex-col gap-2">
-        <MapSearchInput
-          addressInput={addressInput}
-          setAddressInput={setAddressInput}
-          handleAddressSearch={handleAddressSearch}
-          loading={loading}
-        />
-      </div>
+    <MapboxTokenCheck>
+      <div className="flex flex-col h-full">
+        <div className="p-4 flex flex-col gap-2">
+          <MapSearchInput
+            addressInput={addressInput}
+            setAddressInput={setAddressInput}
+            handleAddressSearch={handleAddressSearch}
+            loading={loading}
+          />
+        </div>
 
-      <div className="flex-grow relative">
-        <MapContainer
-          loading={loading}
-          error={error}
-          onRetry={handleAddressSearch}
-          onMapInit={handleMapInitialized}
-        />
+        <div className="flex-grow relative">
+          <MapContainer
+            loading={loading}
+            error={error}
+            onRetry={handleAddressSearch}
+            onMapInit={handleMapInitialized}
+          />
+        </div>
       </div>
-    </div>
+    </MapboxTokenCheck>
   );
 };
 

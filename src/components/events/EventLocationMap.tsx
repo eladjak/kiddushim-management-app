@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { MapContainer } from '@/components/maps/map/MapContainer';
+import { MapboxTokenCheck } from '@/components/maps/MapboxTokenCheck';
 import { Event } from '@/types/events';
 import { logger } from '@/utils/logger';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -134,13 +135,15 @@ export const EventLocationMap = ({ events, onSelectEvent }: EventLocationMapProp
   
   return (
     <div className="h-[400px] rounded-lg overflow-hidden border border-gray-200">
-      <MapContainer
-        loading={loading}
-        error={error}
-        onRetry={handleRetry}
-        onMapInit={handleMapInit}
-        className="w-full h-full"
-      />
+      <MapboxTokenCheck>
+        <MapContainer
+          loading={loading}
+          error={error}
+          onRetry={handleRetry}
+          onMapInit={handleMapInit}
+          className="w-full h-full"
+        />
+      </MapboxTokenCheck>
     </div>
   );
 };
