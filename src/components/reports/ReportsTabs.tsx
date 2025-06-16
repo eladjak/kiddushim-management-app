@@ -3,86 +3,93 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
 import { ReportsList } from "./ReportsList";
-import { CreateReportFormImproved } from "./CreateReportFormImproved";
+import { ReportFormSimplified } from "./ReportFormSimplified";
+import { Plus, FileText, MessageSquare, AlertTriangle } from "lucide-react";
 
 export const ReportsTabs = () => {
-  const [activeTab, setActiveTab] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedReportType, setSelectedReportType] = useState("event_report");
-  
+  const [selectedReportType, setSelectedReportType] = useState<string>("");
+
   const handleCreateReport = (reportType: string) => {
     setSelectedReportType(reportType);
     setIsCreateDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setIsCreateDialogOpen(false);
-  };
-
-  const handleSuccess = () => {
-    // רענון הרשימה יקרה אוטומטית דרך React Query
+  const handleReportSuccess = () => {
+    // Refresh the reports list or handle success
+    console.log("Report created successfully");
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">דיווחים</h2>
-        <div className="flex gap-2">
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleCreateReport("event_report")}>
-                <Plus className="h-4 w-4 ml-2" />
-                דיווח אירוע לצהר
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>יצירת דיווח חדש</DialogTitle>
-              </DialogHeader>
-              <CreateReportFormImproved
-                reportType={selectedReportType}
-                onClose={handleCloseDialog}
-                onSuccess={handleSuccess}
-              />
-            </DialogContent>
-          </Dialog>
-          
-          <Button variant="outline" onClick={() => handleCreateReport("feedback")}>
-            משוב
-          </Button>
-          
-          <Button variant="outline" onClick={() => handleCreateReport("issue")}>
-            דיווח תקלה
-          </Button>
-        </div>
+      {/* Quick Action Buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Button 
+          onClick={() => handleCreateReport("event_report")}
+          className="h-20 flex flex-col gap-2"
+          variant="outline"
+        >
+          <FileText className="h-6 w-6" />
+          <span>דיווח אירוע לצהר</span>
+        </Button>
+        
+        <Button 
+          onClick={() => handleCreateReport("feedback")}
+          className="h-20 flex flex-col gap-2"
+          variant="outline"
+        >
+          <MessageSquare className="h-6 w-6" />
+          <span>משוב על אירוע</span>
+        </Button>
+        
+        <Button 
+          onClick={() => handleCreateReport("issue")}
+          className="h-20 flex flex-col gap-2"
+          variant="outline"
+        >
+          <AlertTriangle className="h-6 w-6" />
+          <span>דיווח תקלה</span>
+        </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      {/* Reports Tabs */}
+      <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all">כל הדיווחים</TabsTrigger>
-          <TabsTrigger value="event_reports">דיווחי אירועים</TabsTrigger>
-          <TabsTrigger value="feedback">משובים</TabsTrigger>
-          <TabsTrigger value="issues">תקלות</TabsTrigger>
+          <TabsTrigger value="my-reports">הדיווחים שלי</TabsTrigger>
+          <TabsTrigger value="pending">ממתינים לאישור</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="all">
-          <ReportsList activeTab="all" />
+        
+        <TabsContent value="all" className="mt-6">
+          <ReportsList filter="all" />
         </TabsContent>
         
-        <TabsContent value="event_reports">
-          <ReportsList activeTab="event_reports" />
+        <TabsContent value="my-reports" className="mt-6">
+          <ReportsList filter="my-reports" />
         </TabsContent>
         
-        <TabsContent value="feedback">
-          <ReportsList activeTab="feedback" />
-        </TabsContent>
-        
-        <TabsContent value="issues">
-          <ReportsList activeTab="issues" />
+        <TabsContent value="pending" className="mt-6">
+          <ReportsList filter="pending" />
         </TabsContent>
       </Tabs>
+
+      {/* Create Report Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>יצירת דיווח חדש</DialogTitle>
+          </DialogHeader>
+          
+          {selectedReportType && (
+            <ReportFormSimplified
+              reportType={selectedReportType}
+              onClose={() => setIsCreateDialogOpen(false)}
+              onSuccess={handleReportSuccess}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
