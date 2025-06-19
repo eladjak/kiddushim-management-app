@@ -32,12 +32,6 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
       const basicDescription = `דיווח על אירוע קידושישי פרשת ${eventDetails.parasha} שהתקיים ב${eventDetails.hebrewDate}`;
       onFieldChange("description", basicDescription);
     }
-
-    // מילוי אוטומטי של תבנית participants_gained
-    if (eventDetails.parasha && !formData.participants_gained) {
-      const template = `באירוע פרשת ${eventDetails.parasha} השתתפו משפחות ויחידים מהקהילה המקומית. הפעילות כללה קבלת שבת משותפת עם מוזיקה, פעילויות לילדים ולמידה משותפת. האירוע התקיים באווירה חמה ומכבדת שהתאימה לכל המשתתפים.`;
-      onFieldChange("participants_gained", template);
-    }
   };
   
   return (
