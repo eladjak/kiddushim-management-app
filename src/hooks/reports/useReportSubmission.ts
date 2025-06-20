@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
-import { ReportFormValues } from "./useReportFormValidation";
+import { ReportFormValues } from "@/types/reportFormTypes";
 
 interface SubmitReportParams {
   values: ReportFormValues;

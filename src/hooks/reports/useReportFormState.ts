@@ -1,23 +1,9 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { ReportFormValues } from "@/types/reportFormTypes";
 
-export interface ReportFormData {
-  title: string;
-  description: string;
-  event_id: string;
-  reporter_name: string;
-  participants_count: number;
-  participants_kids: number;
-  participants_adults: number;
-  participants_gained: string;
-  is_tzohar_representative: boolean;
-  overall_rating?: number;
-  audience_rating?: number;
-  organization_rating?: number;
-  logistics_rating?: number;
-  additional_feedback: string;
-}
+export interface ReportFormData extends ReportFormValues {}
 
 export const useReportFormState = () => {
   const { user, profile } = useAuth();
@@ -37,6 +23,10 @@ export const useReportFormState = () => {
     organization_rating: undefined,
     logistics_rating: undefined,
     additional_feedback: "",
+    severity: "medium",
+    location_other: "",
+    what_was_good: "",
+    what_to_improve: "",
   });
 
   const [formData, setFormData] = useState<ReportFormData>(getDefaultValues());
