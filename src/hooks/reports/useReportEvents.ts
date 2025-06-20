@@ -1,82 +1,61 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { eventsService } from "@/services/entity/events";
-import { logger } from "@/utils/logger";
-import { Event } from "@/types/events";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { getUpcomingKidushishiEvents } from "@/data/events/predefinedEvents2025-2026";
 
 export const useReportEvents = () => {
-  const log = logger.createLogger({ component: 'useReportEvents' });
-  
-  return useQuery({
-    queryKey: ['events'],
-    queryFn: async () => {
+  const [events, setEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      console.log("useReportEvents - Loading predefined events...");
+      
       try {
-        log.info("Fetching events for reports");
+        // טוען אירועים מוגדרים מראש במקום מהדאטהבייס
+        const predefinedEvents = getUpcomingKidushishiEvents();
+        console.log("useReportEvents - Predefined events loaded:", predefinedEvents);
         
-        // Use our updated event service
-        const events = await eventsService.getUpcoming();
+        // ממיר לפורמט הנדרש עבור הקומפוננט
+        const formattedEvents = predefinedEvents.map(event => ({
+          id: event.id,
+          title: `קידושישי - פרשת ${event.parasha} (${event.hebrewDate})`,
+          date: event.date,
+          parasha: event.parasha,
+          hebrewDate: event.hebrewDate
+        }));
+
+        console.log("useReportEvents - Formatted events:", formattedEvents);
+        setEvents(formattedEvents);
         
-        log.info("Fetched events successfully", { count: events?.length || 0 });
-        
-        // If there are no events, return an empty array
-        if (!events || events.length === 0) {
-          return [];
+        // בנוסף, טוען גם אירועים מהדאטהבייס במקרה שיש כאלה
+        const { data: dbEvents, error } = await supabase
+          .from("events")
+          .select("id, title, date, parasha")
+          .order("date", { ascending: false });
+
+        if (!error && dbEvents && dbEvents.length > 0) {
+          console.log("useReportEvents - Database events found:", dbEvents);
+          const combinedEvents = [...formattedEvents, ...dbEvents];
+          setEvents(combinedEvents);
         }
         
-        // Filter out past events (events before today)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        // Process and filter past events
-        const filteredEvents = events
-          .filter(event => {
-            const eventDate = new Date(event.main_time);
-            return eventDate >= today;
-          })
-          .map(event => ({
-            ...event,
-            title: event.title,
-            location_name: event.location_name || event.location,
-            parasha: event.parasha || event.description
-          }));
-          
-        if (filteredEvents.length === 0) {
-          // If no events after filtering, include at least one special "no-events" option
-          return [{
-            id: 'no-events',
-            title: 'אין אירועים זמינים',
-            main_time: '',
-            location_name: '',
-            date: '',
-            status: 'draft',
-            parasha: '',
-            description: '',
-            location: '',
-            created_at: '',
-            updated_at: '',
-            created_by: '',
-          } as unknown as Event];
-        }
-        
-        return filteredEvents;
       } catch (error) {
-        log.error("Error processing events:", { error });
-        // Return a "no-events" placeholder on error
-        return [{
-          id: 'no-events',
-          title: 'אין אירועים זמינים',
-          main_time: '',
-          location_name: '',
-          date: '',
-          status: 'draft',
-          parasha: '',
-          description: '',
-          location: '',
-          created_at: '',
-          updated_at: '',
-          created_by: '',
-        } as unknown as Event];
+        console.error("useReportEvents - Error loading events:", error);
+        // במקרה של שגיאה, נסה לטעון רק מהדאטהבייס
+        const { data, error: dbError } = await supabase
+          .from("events")
+          .select("id, title, date")
+          .order("date", { ascending: false });
+
+        if (!dbError && data) {
+          console.log("useReportEvents - Fallback to database events:", data);
+          setEvents(data);
+        }
       }
-    },
-  });
+    };
+
+    loadEvents();
+  }, []);
+
+  return { events };
 };
