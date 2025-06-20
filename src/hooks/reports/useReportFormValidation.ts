@@ -2,7 +2,7 @@
 import { useReportValidationSchema } from "./validation/useReportValidationSchema";
 import { useReportDefaultValues } from "./validation/useReportDefaultValues";
 
-export { ReportFormValues } from "@/types/reportFormTypes";
+export type { ReportFormValues } from "@/types/reportFormTypes";
 
 export const useReportFormValidation = () => {
   const { reportFormSchema } = useReportValidationSchema();
