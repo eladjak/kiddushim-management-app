@@ -2,20 +2,17 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface ParticipantsSectionProps {
-  formData: {
-    participants_count: number;
-    participants_kids: number;
-    participants_adults: number;
-  };
-  onFieldChange: (field: string, value: any) => void;
+  formData: ReportFormData;
+  onFieldChange: (field: keyof ReportFormData, value: any) => void;
 }
 
 export const ParticipantsSection = ({ formData, onFieldChange }: ParticipantsSectionProps) => {
   console.log("ParticipantsSection - Form data received:", formData);
   
-  const handleCountChange = (field: string, value: string) => {
+  const handleCountChange = (field: keyof ReportFormData, value: string) => {
     const numValue = parseInt(value) || 0;
     console.log(`ParticipantsSection - ${field} change:`, value, "=>", numValue);
     onFieldChange(field, numValue);
@@ -69,11 +66,11 @@ export const ParticipantsSection = ({ formData, onFieldChange }: ParticipantsSec
           </div>
         </div>
         
-        {formData.participants_count > 0 && (
+        {(formData.participants_count || 0) > 0 && (
           <div className="text-sm text-muted-foreground">
             סך הכל: {formData.participants_count} משתתפים
-            {formData.participants_kids > 0 && ` (כולל ${formData.participants_kids} ילדים)`}
-            {formData.participants_adults > 0 && ` (כולל ${formData.participants_adults} מבוגרים)`}
+            {(formData.participants_kids || 0) > 0 && ` (כולל ${formData.participants_kids} ילדים)`}
+            {(formData.participants_adults || 0) > 0 && ` (כולל ${formData.participants_adults} מבוגרים)`}
           </div>
         )}
       </CardContent>

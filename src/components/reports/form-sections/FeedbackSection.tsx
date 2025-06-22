@@ -2,17 +2,14 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface FeedbackSectionProps {
-  formData: {
-    additional_feedback?: string;
-  };
-  onFieldChange: (field: string, value: any) => void;
-  images: string[];
-  onImagesChange: (images: string[]) => void;
+  formData: ReportFormData;
+  onFieldChange: (field: keyof ReportFormData, value: any) => void;
 }
 
-export const FeedbackSection = ({ formData, onFieldChange, images, onImagesChange }: FeedbackSectionProps) => {
+export const FeedbackSection = ({ formData, onFieldChange }: FeedbackSectionProps) => {
   return (
     <Card>
       <CardHeader>

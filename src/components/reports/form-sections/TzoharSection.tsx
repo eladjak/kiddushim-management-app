@@ -3,13 +3,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface TzoharSectionProps {
-  formData: {
-    participants_gained: string;
-    is_tzohar_representative: boolean;
-  };
-  onFieldChange: (field: string, value: any) => void;
+  formData: ReportFormData;
+  onFieldChange: (field: keyof ReportFormData, value: any) => void;
 }
 
 export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) => {
@@ -26,7 +24,7 @@ export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) =
           <Label htmlFor="participants_gained">מה המשתתפים למדו/קיבלו באירוע? *</Label>
           <Textarea
             id="participants_gained"
-            value={formData.participants_gained}
+            value={formData.participants_gained || ""}
             onChange={(e) => {
               console.log("Participants gained change:", e.target.value);
               onFieldChange("participants_gained", e.target.value);
@@ -40,7 +38,7 @@ export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) =
         <div className="flex items-center space-x-2">
           <Checkbox
             id="is_tzohar_representative"
-            checked={formData.is_tzohar_representative}
+            checked={formData.is_tzohar_representative || false}
             onCheckedChange={(checked) => {
               console.log("Tzohar representative change:", checked);
               onFieldChange("is_tzohar_representative", checked);

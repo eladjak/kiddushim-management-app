@@ -2,19 +2,15 @@
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface EventRatingSectionProps {
-  formData: {
-    overall_rating?: number;
-    audience_rating?: number;
-    organization_rating?: number;
-    logistics_rating?: number;
-  };
-  onFieldChange: (field: string, value: any) => void;
+  formData: ReportFormData;
+  onFieldChange: (field: keyof ReportFormData, value: any) => void;
 }
 
 export const EventRatingSection = ({ formData, onFieldChange }: EventRatingSectionProps) => {
-  const handleRatingChange = (field: string, values: number[]) => {
+  const handleRatingChange = (field: keyof ReportFormData, values: number[]) => {
     onFieldChange(field, values[0]);
   };
 
