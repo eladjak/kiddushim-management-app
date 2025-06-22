@@ -119,6 +119,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
             <ReportBasicInfo 
               events={events}
               formData={formData}
+              reportType={reportType}
               onFieldChange={handleFieldChange}
             />
 
