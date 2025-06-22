@@ -1,3 +1,4 @@
+
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
@@ -33,7 +34,7 @@ export const Navigation = () => {
     setIsOpen(false);
   }, [location.pathname]);
   
-  // אין להציג ניווט בעמוד הבית אם המשתמש אינו מחובר
+  // הצגת הניווט תמיד למשתמשים מחוברים, או בעמודים שאינם הדף הראשי
   if (isIndexPage && !isAuthenticated) {
     return null;
   }

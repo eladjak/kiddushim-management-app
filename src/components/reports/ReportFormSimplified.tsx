@@ -46,25 +46,27 @@ export const ReportFormSimplified = ({ reportType, onClose, onSuccess }: ReportF
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <ReportFormHeader reportType={reportType} />
+    <div className="w-full max-w-4xl mx-auto" dir="rtl">
+      <form onSubmit={onSubmit} className="space-y-6">
+        <ReportFormHeader reportType={reportType} />
 
-      <ReportFormContent
-        events={events}
-        formData={formData}
-        images={images}
-        currentTab={currentTab}
-        reportType={reportType}
-        onTabChange={setCurrentTab}
-        onFieldChange={handleFieldChange}
-        onImagesChange={setImages}
-      />
+        <ReportFormContent
+          events={events}
+          formData={formData}
+          images={images}
+          currentTab={currentTab}
+          reportType={reportType}
+          onTabChange={setCurrentTab}
+          onFieldChange={handleFieldChange}
+          onImagesChange={setImages}
+        />
 
-      <ReportFormActions
-        isSubmitting={isSubmitting}
-        isFormValid={isFormValid()}
-        onClose={onClose}
-      />
-    </form>
+        <ReportFormActions
+          isSubmitting={isSubmitting}
+          isFormValid={isFormValid()}
+          onClose={onClose}
+        />
+      </form>
+    </div>
   );
 };
