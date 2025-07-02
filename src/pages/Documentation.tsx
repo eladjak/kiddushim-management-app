@@ -36,8 +36,13 @@ const Documentation = () => {
             
             <div className="bg-white rounded-lg shadow-sm p-6">
               <TabsContent value="timeline">
-                <h2 className="text-2xl font-bold mb-4">לוח זמנים שנתי</h2>
-                <EventTimeline />
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">לוח זמנים שנתי</h2>
+                  <div className="text-center p-8 text-gray-500">
+                    <p>לוח הזמנים זמינות בקרוב...</p>
+                    <p className="text-sm mt-2">הקומפוננט נמצא כעת בפיתוח</p>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="overview">
@@ -49,7 +54,12 @@ const Documentation = () => {
               </TabsContent>
               
               <TabsContent value="plan">
-                <Timeline />
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">תכנית עבודה</h2>
+                  <div className="text-center p-8 text-gray-500">
+                    <p>תכנית העבודה זמינות בקרוב...</p>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="budget">

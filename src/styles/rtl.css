@@ -38,6 +38,15 @@
   margin-right: 0 !important;
 }
 
+/* Better button icon spacing for RTL */
+[dir="rtl"] .flex.items-center.gap-2 {
+  gap: 0.5rem;
+}
+
+[dir="rtl"] .flex.items-center.gap-3 {
+  gap: 0.75rem;
+}
+
 /* Dialog and form improvements for RTL */
 [dir="rtl"] .dialog-content,
 [dir="rtl"] [role="dialog"],
@@ -163,4 +172,58 @@
 [dir="rtl"] button[type="submit"] svg {
   margin-left: 0;
   margin-right: 0.5rem;
+}
+
+/* Navigation fixes for RTL */
+[dir="rtl"] nav {
+  direction: rtl;
+}
+
+[dir="rtl"] .navigation-links {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Card components RTL */
+[dir="rtl"] .card {
+  text-align: right;
+}
+
+/* Dropdown and select fixes */
+[dir="rtl"] [role="combobox"] {
+  text-align: right;
+}
+
+[dir="rtl"] .select-trigger {
+  text-align: right;
+}
+
+/* Modal and dialog fixes */
+[dir="rtl"] [role="dialog"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Toast notifications RTL */
+[dir="rtl"] [data-sonner-toast] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Form field layouts */
+[dir="rtl"] .form-field {
+  text-align: right;
+}
+
+[dir="rtl"] .form-label {
+  text-align: right;
+}
+
+/* Grid and flex container fixes */
+[dir="rtl"] .grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .flex-container {
+  direction: rtl;
 }

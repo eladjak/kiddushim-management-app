@@ -27,8 +27,8 @@ const LocationMap: React.FC<LocationMapProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [addressInput, setAddressInput] = useState(address || '');
   
-  // Get Mapbox token from environment variables
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  // Use the working public token from mapUtils
+  const mapboxToken = 'pk.eyJ1IjoiZWxhZGhpdGVjbGVhcm5pbmciLCJhIjoiY2x1Z2N3NmttMTJnYzJqcWg2ZGQ4eHpzNCJ9.ImnRI7WC8qVaRKcpxr9l8A';
   
   useEffect(() => {
     if (address && address !== addressInput) {

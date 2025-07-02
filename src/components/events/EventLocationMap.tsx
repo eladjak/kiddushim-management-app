@@ -19,8 +19,8 @@ export const EventLocationMap = ({ events, onSelectEvent }: EventLocationMapProp
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const log = logger.createLogger({ component: 'EventLocationMap' });
   
-  // Get Mapbox token from environment variables
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  // Use the working public token from mapUtils
+  const mapboxToken = 'pk.eyJ1IjoiZWxhZGhpdGVjbGVhcm5pbmciLCJhIjoiY2x1Z2N3NmttMTJnYzJqcWg2ZGQ4eHpzNCJ9.ImnRI7WC8qVaRKcpxr9l8A';
 
   const handleMapInit = (container: HTMLDivElement) => {
     try {

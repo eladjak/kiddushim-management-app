@@ -23,19 +23,32 @@ export const ReportsTabs = () => {
       <QuickActions onReportSuccess={handleReportSuccess} />
 
       {/* View Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" dir="rtl">
         <h2 className="text-xl font-semibold">הדיווחים שלי</h2>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCw className="h-4 w-4 ml-1" />
+            <RefreshCw className="h-4 w-4 mr-1" />
             רענן
           </Button>
           
-          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-            <ToggleGroupItem value="grid" aria-label="תצוגת רשת">
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(value) => value && setViewMode(value as "grid" | "list")}
+            className="border rounded-md"
+          >
+            <ToggleGroupItem 
+              value="grid" 
+              aria-label="תצוגת רשת"
+              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
               <Grid className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label="תצוגת רשימה">
+            <ToggleGroupItem 
+              value="list" 
+              aria-label="תצוגת רשימה"
+              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
               <List className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>

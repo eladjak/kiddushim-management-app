@@ -15,7 +15,7 @@ export const MapboxTokenCheck: React.FC<MapboxTokenCheckProps> = ({ children }) 
   const [customToken, setCustomToken] = useState('');
   const [isChecking, setIsChecking] = useState(false);
 
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  const mapboxToken = 'pk.eyJ1IjoiZWxhZGhpdGVjbGVhcm5pbmciLCJhIjoiY2x1Z2N3NmttMTJnYzJqcWg2ZGQ4eHpzNCJ9.ImnRI7WC8qVaRKcpxr9l8A';
 
   useEffect(() => {
     checkTokenValidity(mapboxToken);
