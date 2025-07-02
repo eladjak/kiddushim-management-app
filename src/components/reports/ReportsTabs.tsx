@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReportsList } from "./ReportsList";
 import { ReportFormSimplified } from "./ReportFormSimplified";
+import { TzoharReportForm } from "./tzohar/TzoharReportForm";
 import { Plus, FileText, MessageSquare, AlertTriangle } from "lucide-react";
 
 export const ReportsTabs = () => {
@@ -87,11 +88,19 @@ export const ReportsTabs = () => {
           </DialogHeader>
           
           {selectedReportType && (
-            <ReportFormSimplified
-              reportType={selectedReportType}
-              onClose={() => setIsCreateDialogOpen(false)}
-              onSuccess={handleReportSuccess}
-            />
+            <>
+              {selectedReportType === "event_report" ? (
+                <TzoharReportForm
+                  onClose={() => setIsCreateDialogOpen(false)}
+                />
+              ) : (
+                <ReportFormSimplified
+                  reportType={selectedReportType}
+                  onClose={() => setIsCreateDialogOpen(false)}
+                  onSuccess={handleReportSuccess}
+                />
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
