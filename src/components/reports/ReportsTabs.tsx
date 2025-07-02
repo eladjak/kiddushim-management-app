@@ -7,6 +7,7 @@ import { ReportsView } from "./ReportsView";
 import { QuickActions } from "./QuickActions";
 import { Grid, List, RefreshCw } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { RTLFlex } from "@/components/ui/rtl-layout";
 
 export const ReportsTabs = () => {
   const { profile } = useAuth();
@@ -23,11 +24,11 @@ export const ReportsTabs = () => {
       <QuickActions onReportSuccess={handleReportSuccess} />
 
       {/* View Controls */}
-      <div className="flex items-center justify-between" dir="rtl">
+      <RTLFlex className="items-center justify-between">
         <h2 className="text-xl font-semibold">הדיווחים שלי</h2>
-        <div className="flex items-center gap-3">
+        <RTLFlex className="items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCw className="h-4 w-4 mr-1" />
+            <RefreshCw className="h-4 w-4 ml-1" />
             רענן
           </Button>
           
@@ -52,8 +53,8 @@ export const ReportsTabs = () => {
               <List className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
-        </div>
-      </div>
+        </RTLFlex>
+      </RTLFlex>
 
       {/* Reports Tabs */}
       <Tabs defaultValue="all" className="w-full">

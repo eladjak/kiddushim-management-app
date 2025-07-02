@@ -15,6 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { TzoharReportForm } from "./tzohar/TzoharReportForm";
 import { ReportFormSimplified } from "./ReportFormSimplified";
 import { QuickMediaUpload } from "./QuickMediaUpload";
+import { RTLLayout } from "@/components/ui/rtl-layout";
 
 interface QuickActionsProps {
   onReportSuccess: () => void;
@@ -98,7 +99,7 @@ export const QuickActions = ({ onReportSuccess }: QuickActionsProps) => {
   const actions = getActionsForRole();
 
   return (
-    <>
+    <RTLLayout>
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
         {actions.map((action) => (
@@ -165,6 +166,6 @@ export const QuickActions = ({ onReportSuccess }: QuickActionsProps) => {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </RTLLayout>
   );
 };
