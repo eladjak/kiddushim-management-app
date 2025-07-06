@@ -25,7 +25,7 @@ interface EventBasicInfoSectionProps {
   eventNotes: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (name: string, value: string) => void;
-  onEventSelect: (event: any) => void;
+  onEventSelect: (event: import("@/data/types/eventTypes").PredefinedEvent) => void;
 }
 
 export const EventBasicInfoSection = ({ 

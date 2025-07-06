@@ -2,7 +2,7 @@
 import { useFormState, EventFormData } from "./useFormState";
 import { useEventSelection } from "./useEventSelection";
 import { useEventSubmission } from "./useEventSubmission";
-import { PredefinedEvent } from "@/data/types/predefinedEvents";
+import { PredefinedEvent } from "@/data/types/eventTypes";
 
 /**
  * הוק משולב לניהול טופס האירוע
