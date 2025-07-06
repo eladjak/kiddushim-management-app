@@ -1,0 +1,31 @@
+/**
+ * RTL Base Styles - Core RTL layout and direction
+ */
+
+/* Set default direction for RTL elements */
+[dir="rtl"] {
+  text-align: right;
+  direction: rtl;
+}
+
+/* RTL body and root elements */
+[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Container elements respect RTL */
+[dir="rtl"] .container {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Navigation fixes for RTL */
+[dir="rtl"] nav {
+  direction: rtl;
+}
+
+[dir="rtl"] .navigation-links {
+  direction: rtl;
+  text-align: right;
+}

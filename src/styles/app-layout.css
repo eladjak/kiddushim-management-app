@@ -1,0 +1,43 @@
+/**
+ * Global App Layout Styles
+ */
+
+/* Set global RTL direction */
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: right;
+  direction: rtl;
+}
+
+body {
+  font-family: 'Rubik', sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl-app {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Fix alignment for RTL */
+.card {
+  text-align: right;
+}
+
+.read-the-docs {
+  text-align: right;
+}
+
+/* Make container elements respect RTL */
+.container {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Direction fixes for flex containers */
+.flex, .md\\:flex, .lg\\:flex {
+  direction: inherit;
+}

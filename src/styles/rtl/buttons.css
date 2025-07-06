@@ -1,0 +1,35 @@
+/**
+ * RTL Button Styles - Buttons, icons, and interactive elements
+ */
+
+/* Fix button icons in RTL context */
+[dir="rtl"] button svg + span,
+[dir="rtl"] a svg + span {
+  margin-right: 0.5rem;
+  margin-left: 0 !important;
+}
+
+[dir="rtl"] button span + svg,
+[dir="rtl"] a span + svg {
+  margin-left: 0.5rem;
+  margin-right: 0 !important;
+}
+
+/* Button flex content fixes */
+[dir="rtl"] button .flex {
+  flex-direction: row;
+}
+
+[dir="rtl"] button .items-center {
+  flex-direction: row;
+}
+
+/* Specific fixes for form buttons */
+[dir="rtl"] button[type="submit"] {
+  flex-direction: row;
+}
+
+[dir="rtl"] button[type="submit"] svg {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}

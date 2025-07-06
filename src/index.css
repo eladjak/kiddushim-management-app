@@ -3,8 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import RTL styles */
-@import './styles/rtl.css';
+/* Import RTL styles - modular approach */
+@import './styles/rtl/base.css';
+@import './styles/rtl/forms.css';
+@import './styles/rtl/buttons.css';
+@import './styles/rtl/layout.css';
+@import './styles/rtl/components.css';
  
 @layer base {
   :root {

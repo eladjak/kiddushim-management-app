@@ -1,0 +1,67 @@
+/**
+ * RTL Form Styles - Input fields, forms, and form controls
+ */
+
+/* Fix input alignment in RTL */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Fix placeholder text alignment */
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Form controls and labels */
+[dir="rtl"] label {
+  text-align: right;
+  display: block;
+}
+
+[dir="rtl"] .form-control {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Dialog and form improvements for RTL */
+[dir="rtl"] .dialog-content,
+[dir="rtl"] [role="dialog"],
+[dir="rtl"] form {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Form field layouts */
+[dir="rtl"] .form-field {
+  text-align: right;
+}
+
+[dir="rtl"] .form-label {
+  text-align: right;
+}
+
+/* Input groups with icons */
+[dir="rtl"] .input-with-leading-icon svg {
+  left: auto;
+  right: 0.75rem;
+}
+
+[dir="rtl"] .input-with-leading-icon input {
+  padding-left: 0.75rem;
+  padding-right: 2.5rem;
+}
+
+[dir="rtl"] .input-with-trailing-icon svg {
+  right: auto;
+  left: 0.75rem;
+}
+
+[dir="rtl"] .input-with-trailing-icon input {
+  padding-right: 0.75rem;
+  padding-left: 2.5rem;
+}

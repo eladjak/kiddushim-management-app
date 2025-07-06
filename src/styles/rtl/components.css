@@ -1,0 +1,59 @@
+/**
+ * RTL Component Styles - ShadCN and custom components
+ */
+
+/* Tabs component RTL fixes */
+[dir="rtl"] [role="tablist"] {
+  direction: rtl;
+}
+
+[dir="rtl"] [role="tab"] {
+  text-align: center;
+}
+
+[dir="rtl"] [role="tabpanel"] {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Alert components */
+[dir="rtl"] [role="alert"] {
+  text-align: right;
+  direction: rtl;
+}
+
+/* ShadCN Components RTL fixes */
+[dir="rtl"] .select-content { text-align: right; }
+[dir="rtl"] .select-trigger .select-value { text-align: right; }
+[dir="rtl"] .dialog-title, [dir="rtl"] .dialog-description { text-align: right; }
+[dir="rtl"] .card-header, [dir="rtl"] .card-title, [dir="rtl"] .card-description,
+[dir="rtl"] .card-content, [dir="rtl"] .card-footer { text-align: right; }
+
+/* Tables for RTL */
+[dir="rtl"] table, [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+
+/* Card components RTL */
+[dir="rtl"] .card {
+  text-align: right;
+}
+
+/* Dropdown and select fixes */
+[dir="rtl"] [role="combobox"] {
+  text-align: right;
+}
+
+[dir="rtl"] .select-trigger {
+  text-align: right;
+}
+
+/* Modal and dialog fixes */
+[dir="rtl"] [role="dialog"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Toast notifications RTL */
+[dir="rtl"] [data-sonner-toast] {
+  direction: rtl;
+  text-align: right;
+}

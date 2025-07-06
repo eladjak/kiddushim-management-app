@@ -1,0 +1,70 @@
+/**
+ * Form and Scrollable Component Styles
+ */
+
+/* Enhanced scrollable forms */
+.scrollable-form {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-right: -0.5rem;
+}
+
+/* Custom scrollbar for better RTL support */
+.scrollable-form::-webkit-scrollbar,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-form::-webkit-scrollbar-track,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.scrollable-form::-webkit-scrollbar-thumb,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.scrollable-form::-webkit-scrollbar-thumb:hover,
+[data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Fix scroll area for long forms */
+[data-radix-scroll-area-viewport] {
+  direction: rtl !important;
+}
+
+/* Sticky form actions */
+.sticky-form-actions {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+/* Enhanced textarea styling */
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+textarea:focus {
+  resize: vertical;
+}
+
+/* Form section spacing */
+.form-section {
+  padding: 1rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+}

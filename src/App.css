@@ -1,33 +1,10 @@
 
-/* Set global RTL direction */
-#root {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  text-align: right;
-  direction: rtl;
-}
+/* Import focused CSS modules */
+@import './styles/app-layout.css';
+@import './styles/animations.css';
+@import './styles/scroll-forms.css';
 
-body {
-  font-family: 'Rubik', sans-serif;
-  direction: rtl;
-  text-align: right;
-}
-
-.rtl-app {
-  direction: rtl;
-  text-align: right;
-}
-
-/* Fix alignment for RTL */
-.card {
-  text-align: right;
-}
-
-.read-the-docs {
-  text-align: right;
-}
-
+/* Legacy overrides and fixes */
 /* Fix button icon alignment for RTL */
 button svg {
   margin-left: 8px;
@@ -41,17 +18,6 @@ input, textarea, select {
 
 label {
   display: block;
-  text-align: right;
-}
-
-/* Direction fixes for flex containers */
-.flex, .md\\:flex, .lg\\:flex {
-  direction: inherit;
-}
-
-/* Make container elements respect RTL */
-.container {
-  direction: rtl;
   text-align: right;
 }
 
@@ -87,87 +53,11 @@ label {
   background-color: white !important;
 }
 
-/* Image styling and adjustments */
-img {
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-
-.logo {
-  height: auto;
-  max-height: 6em;
-  width: auto;
-  padding: 1em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 1em #646cffaa);
-}
-
 /* Fix select and combobox direction */
 [role="combobox"],
 [role="listbox"] {
   text-align: right;
   background-color: white !important;
-}
-
-/* Animation adjustments for RTL */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-in-rtl {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-in {
-  animation: slide-in-rtl 0.3s ease-out;
-}
-
-/* Enhanced scrollable forms */
-.scrollable-form {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-  margin-right: -0.5rem;
-}
-
-/* Custom scrollbar for better RTL support */
-.scrollable-form::-webkit-scrollbar,
-[data-radix-scroll-area-viewport]::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollable-form::-webkit-scrollbar-track,
-[data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.scrollable-form::-webkit-scrollbar-thumb,
-[data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.scrollable-form::-webkit-scrollbar-thumb:hover,
-[data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }
 
 /* Tables for RTL */
@@ -248,40 +138,4 @@ select {
 [role="dialog"] {
   direction: rtl;
   text-align: right;
-}
-
-/* Fix scroll area for long forms */
-[data-radix-scroll-area-viewport] {
-  direction: rtl !important;
-}
-
-/* Sticky form actions */
-.sticky-form-actions {
-  position: sticky;
-  bottom: 0;
-  background: white;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 1rem;
-  margin-top: 1rem;
-  z-index: 10;
-}
-
-/* Enhanced textarea styling */
-textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-textarea:focus {
-  resize: vertical;
-}
-
-/* Form section spacing */
-.form-section {
-  padding: 1rem 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.form-section:last-child {
-  border-bottom: none;
 }
