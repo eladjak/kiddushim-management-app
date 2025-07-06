@@ -12,12 +12,9 @@ export const useEventSelection = (
 ) => {
   const log = logger.createLogger({ component: 'useEventSelection' });
   
-  const handleEventSelect = (eventId: string) => {
-    // מחפש באירועים החדשים של 2025-2026
-    const event = getKidushishiEventById(eventId);
-    
+  const handleEventSelect = (event: PredefinedEvent) => {
     if (!event) {
-      log.warn('Event not found', { eventId });
+      log.warn('Event not provided');
       return;
     }
     
