@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Calendar, 
   MapPin, 
@@ -19,8 +20,15 @@ import {
   Phone,
   Mail,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Download,
+  MessageCircle
 } from "lucide-react";
+
+// Import our beautiful images
+import kidushishiGathering from "@/assets/kidushishi-gathering.jpg";
+import kidushishiLogo from "@/assets/kidushishi-logo.png";
+import familiesActivity from "@/assets/families-activity.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -36,29 +44,61 @@ const Landing = () => {
     comments: ""
   });
 
+  // Fetch upcoming events from our system
+  const { data: upcomingEvents, isLoading: eventsLoading } = useQuery({
+    queryKey: ['upcoming-events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .gte('date', new Date().toISOString())
+        .order('date', { ascending: true })
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsRegistering(true);
     
     try {
-      // שמירת הרשמה במערכת
-      const { error } = await supabase
-        .from('event_registrations')
-        .insert([{
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          family_size: parseInt(formData.family_size) || 1,
-          children_ages: formData.children_ages,
-          comments: formData.comments,
-          registration_date: new Date().toISOString()
-        }]);
+      // שמירת הרשמה במערכת + שליחת הודעות
+      const registrationData = {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        family_size: parseInt(formData.family_size) || 1,
+        children_ages: formData.children_ages,
+        comments: formData.comments,
+        registration_date: new Date().toISOString(),
+        event_id: upcomingEvents?.[0]?.id || null // Link to next event if exists
+      };
 
-      if (error) throw error;
+      const { error: dbError } = await supabase
+        .from('event_registrations')
+        .insert([registrationData]);
+
+      if (dbError) throw dbError;
+
+      // Send confirmation via edge function (will implement after getting Resend key)
+      try {
+        await supabase.functions.invoke('send-registration-confirmation', {
+          body: {
+            registrationData,
+            eventDetails: upcomingEvents?.[0] || null
+          }
+        });
+      } catch (emailError) {
+        console.log('Email notification failed:', emailError);
+        // Don't fail the registration if email fails
+      }
 
       toast({
         title: "נרשמת בהצלחה! 🎉",
-        description: "תקבל הודעה עם פרטי האירוע הקרוב",
+        description: "תקבל הודעה עם פרטי האירוע הקרוב בהקדם",
       });
 
       setShowRegistration(false);
@@ -187,15 +227,22 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 text-center bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
+      {/* Hero Section - Enhanced with real image */}
+      <section 
+        className="relative py-20 px-4 text-center bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(rgba(37, 99, 235, 0.8), rgba(29, 78, 216, 0.8)), url(${kidushishiGathering})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-4xl mx-auto">
           <div className="mb-8">
             <img 
-              src="/lovable-uploads/95344b3f-5084-447f-8d10-aa4f56fbb8f1.png" 
+              src={kidushishiLogo}
               alt="קידושישי מגדל העמק" 
-              className="h-20 mx-auto mb-4"
+              className="h-24 mx-auto mb-4 drop-shadow-lg"
             />
           </div>
           
@@ -242,7 +289,7 @@ const Landing = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8 text-white" />
               </div>
@@ -252,17 +299,23 @@ const Landing = () => {
               </CardDescription>
             </Card>
             
-            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Music className="h-8 w-8 text-white" />
+            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105 relative overflow-hidden">
+              <div 
+                className="absolute inset-0 opacity-10 bg-cover bg-center"
+                style={{ backgroundImage: `url(${familiesActivity})` }}
+              ></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Music className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="mb-3 text-xl">מוזיקה ויצירה</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  אירועים עשירים בשירה, מוזיקה, פעילויות יצירה ולימוד משותף לכל המשפחה
+                </CardDescription>
               </div>
-              <CardTitle className="mb-3 text-xl">מוזיקה ויצירה</CardTitle>
-              <CardDescription className="text-base leading-relaxed">
-                אירועים עשירים בשירה, מוזיקה, פעילויות יצירה ולימוד משותף לכל המשפחה
-              </CardDescription>
             </Card>
             
-            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105">
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Heart className="h-8 w-8 text-white" />
               </div>
@@ -318,29 +371,84 @@ const Landing = () => {
             </div>
             
             <div className="relative">
-              <div className="bg-gradient-to-r from-blue-600 to-orange-500 p-8 rounded-2xl text-white">
-                <h3 className="text-2xl font-bold mb-6">האירוע הבא</h3>
+              {/* Enhanced event card with real data */}
+              <div className="bg-gradient-to-r from-blue-600 to-orange-500 p-8 rounded-2xl text-white shadow-2xl">
+                <h3 className="text-2xl font-bold mb-6">
+                  {eventsLoading ? "טוען אירוע..." : 
+                   upcomingEvents && upcomingEvents.length > 0 ? 
+                   "האירוע הבא" : "האירוע הבא בתכנון"}
+                </h3>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5" />
-                    <span>יום שישי הקרוב, 17:00</span>
+                {upcomingEvents && upcomingEvents.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5" />
+                      <span>{new Date(upcomingEvents[0].date).toLocaleDateString('he-IL', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-5 w-5" />
+                      <span>{upcomingEvents[0].location_name}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5" />
+                      <span>מתאים לכל המשפחה</span>
+                    </div>
+
+                    <div className="mt-6 flex gap-3">
+                      <Badge className="bg-white text-blue-700 px-4 py-2">
+                        השתתפות ללא עלות
+                      </Badge>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-white text-white hover:bg-white hover:text-blue-700"
+                        onClick={() => {
+                          // Generate calendar event
+                          const event = upcomingEvents[0];
+                          const eventDate = new Date(event.date);
+                          const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+                          
+                          const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${eventDate.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}&location=${encodeURIComponent(event.location_address || event.location_name)}&details=${encodeURIComponent(`קידושישי מגדל העמק - ${event.title}`)}`;
+                          window.open(calendarUrl, '_blank');
+                        }}
+                      >
+                        <Download className="h-4 w-4 ml-1" />
+                        הוסף ליומן
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5" />
-                    <span>פארק העיר מגדל העמק</span>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5" />
+                      <span>האירוע הבא יפורסם בקרוב</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-5 w-5" />
+                      <span>מגדל העמק</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5" />
+                      <span>מתאים לכל המשפחה</span>
+                    </div>
+
+                    <Badge className="mt-6 bg-white text-blue-700 px-4 py-2">
+                      השתתפות ללא עלות
+                    </Badge>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5" />
-                    <span>מתאים לכל המשפחה</span>
-                  </div>
-                </div>
-                
-                <Badge className="mt-6 bg-white text-blue-700 px-4 py-2">
-                  השתתפות ללא עלות
-                </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -381,17 +489,33 @@ const Landing = () => {
       {/* יצירת קשר */}
       <section className="py-16 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8">נשמח לענות על שאלות</h2>
+          <h2 className="text-3xl font-bold mb-8">
+            נשמח לענות על שאלות ולקבל אותכם
+          </h2>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-            <div className="flex items-center justify-center gap-3">
-              <Phone className="h-6 w-6" />
-              <span className="text-lg">050-1234567</span>
+          <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto mb-8">
+            <div className="flex flex-col items-center gap-3 p-4 bg-white/10 rounded-lg">
+              <Phone className="h-8 w-8" />
+              <div>
+                <p className="font-semibold">טלפון</p>
+                <p className="text-lg">050-1234567</p>
+              </div>
             </div>
             
-            <div className="flex items-center justify-center gap-3">
-              <Mail className="h-6 w-6" />
-              <span className="text-lg">kidushishi@example.com</span>
+            <div className="flex flex-col items-center gap-3 p-4 bg-white/10 rounded-lg">
+              <Mail className="h-8 w-8" />
+              <div>
+                <p className="font-semibold">אימייל</p>
+                <p className="text-lg">kidushishi@example.com</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-3 p-4 bg-white/10 rounded-lg">
+              <MessageCircle className="h-8 w-8" />
+              <div>
+                <p className="font-semibold">וואטסאפ</p>
+                <p className="text-lg">050-1234567</p>
+              </div>
             </div>
           </div>
           
