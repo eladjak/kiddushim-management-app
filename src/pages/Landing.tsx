@@ -27,8 +27,15 @@ import {
 
 // Import our beautiful images
 import kidushishiGathering from "@/assets/kidushishi-gathering.jpg";
-import kidushishiLogo from "@/assets/kidushishi-logo.png";
 import familiesActivity from "@/assets/families-activity.jpg";
+
+// Official logos
+import kidushishiOfficialLogo from "/lovable-uploads/c53fe31c-08ad-433e-83bb-0046039b3fb9.png";
+import tzoharShabbatLogo from "/lovable-uploads/f2c17f54-6797-468f-9aaf-dccb20f6dd77.png";
+import mgdalHaemekLogo from "/lovable-uploads/3ba8cd58-060e-46f0-ac3a-13a1fe6000e6.png";
+import orotYehudaLogo from "/lovable-uploads/7de3d1d1-e9ec-4b4b-9d03-6ffcebfd5724.png";
+import hachevraLogo from "/lovable-uploads/56501695-87ca-4a88-964c-b6bfe4012d7a.png";
+import motnimLogo from "/lovable-uploads/3a4b148f-6b74-4024-bd48-74b7f9376688.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -83,12 +90,20 @@ const Landing = () => {
 
       if (dbError) throw dbError;
 
-      // Send confirmation via edge function (will implement after getting Resend key)
+      // Send confirmation via edge function
       try {
+        const nextEvent = upcomingEvents?.[0];
         await supabase.functions.invoke('send-registration-confirmation', {
           body: {
-            registrationData,
-            eventDetails: upcomingEvents?.[0] || null
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            eventTitle: nextEvent?.title || "קידושי שבת מגדל העמק",
+            eventDate: nextEvent?.date || new Date().toISOString(),
+            eventLocation: nextEvent?.location_name || "יועלן בהמשך",
+            familySize: parseInt(formData.family_size) || 1,
+            childrenAges: formData.children_ages,
+            comments: formData.comments
           }
         });
       } catch (emailError) {
@@ -240,7 +255,7 @@ const Landing = () => {
         <div className="relative max-w-4xl mx-auto">
           <div className="mb-8">
             <img 
-              src={kidushishiLogo}
+              src={kidushishiOfficialLogo}
               alt="קידושישי מגדל העמק" 
               className="h-24 mx-auto mb-4 drop-shadow-lg"
             />
@@ -457,31 +472,49 @@ const Landing = () => {
 
       {/* יוזמי הפרויקט */}
       <section className="py-16 px-4 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">
             מי מאחורי הפרויקט?
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
             <Card className="p-6 text-center">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-10 w-10 text-white" />
+              <div className="mb-4">
+                <img 
+                  src={tzoharShabbatLogo}
+                  alt="ארגון רבני צהר" 
+                  className="h-20 mx-auto mb-4"
+                />
               </div>
-              <CardTitle className="mb-2">ארגון צהר</CardTitle>
+              <CardTitle className="mb-2">ארגון רבני צהר</CardTitle>
               <CardDescription className="text-base">
                 ארגון רבני צהר תומך בפרויקט במסגרת הפעילות הקהילתית להנגשת שירותי הדת לכלל החברה
               </CardDescription>
             </Card>
             
             <Card className="p-6 text-center">
-              <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-10 w-10 text-white" />
+              <div className="mb-4">
+                <img 
+                  src={mgdalHaemekLogo}
+                  alt="מגדל העמק" 
+                  className="h-20 mx-auto mb-4"
+                />
               </div>
               <CardTitle className="mb-2">הגרעין התורני מגדל העמק</CardTitle>
               <CardDescription className="text-base">
                 הגרעין התורני במגדל העמק שותף מרכזי בהפעלה ובתמיכה הלוגיסטית של הפרויקט
               </CardDescription>
             </Card>
+          </div>
+
+          {/* שותפים נוספים */}
+          <div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-6">שותפים נוספים</h3>
+            <div className="flex flex-wrap justify-center items-center gap-8 max-w-4xl mx-auto">
+              <img src={orotYehudaLogo} alt="אורות יהודה" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
+              <img src={hachevraLogo} alt="החברה נמתחניסים" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
+              <img src={motnimLogo} alt="מותניים מגדל העמק" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
       </section>
