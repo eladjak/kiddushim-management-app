@@ -199,13 +199,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "event_equipment_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "event_equipment_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
@@ -322,13 +315,6 @@ export type Database = {
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "feedback_submitted_by_fkey"
-            columns: ["submitted_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -481,57 +467,7 @@ export type Database = {
       }
     }
     Views: {
-      public_profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string | null
-          encoding_support: boolean | null
-          id: string | null
-          language: string | null
-          last_active: string | null
-          name: string | null
-          notification_settings: Json | null
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          settings: Json | null
-          shabbat_mode: boolean | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: never
-          encoding_support?: boolean | null
-          id?: string | null
-          language?: string | null
-          last_active?: string | null
-          name?: string | null
-          notification_settings?: never
-          phone?: never
-          role?: Database["public"]["Enums"]["user_role"] | null
-          settings?: never
-          shabbat_mode?: boolean | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: never
-          encoding_support?: boolean | null
-          id?: string | null
-          language?: string | null
-          last_active?: string | null
-          name?: string | null
-          notification_settings?: never
-          phone?: never
-          role?: Database["public"]["Enums"]["user_role"] | null
-          settings?: never
-          shabbat_mode?: boolean | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       can_view_profile_details: {
