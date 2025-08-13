@@ -291,95 +291,54 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* מה זה קידושישי - הרחבה */}
+      {/* מה זה קידושישי */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               מה זה קידושישי?
             </h2>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              מיזם קהילתי מיוחד המיועד ליצור מסורת של קבלות שבת משותפות ומאחדות במגדל העמק. 
-              הפרויקט נולד מתוך הרצון לחבר בין כל חלקי האוכלוסיה דרך חוויה משותפת של קדושת השבת, 
-              תוך יצירת מרחב מכבד ומותאם לכולם.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              מיזם קהילתי מיוחד המיועד ליצור מסורת של קבלות שבת משותפות ומאחדות במגדל העמק
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-10 w-10 text-white" />
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="mb-4 text-xl">קהילה מאוחדת</CardTitle>
+              <CardTitle className="mb-3 text-xl">קהילה מאוחדת</CardTitle>
               <CardDescription className="text-base leading-relaxed">
-                חיבור בין כל חלקי האוכלוסיה במגדל העמק - חילונים, מסורתיים ודתיים, 
-                ותיקים וחדשים, דרך חוויה משותפת של קדושת השבת ללא כפייה או שיפוט
+                חיבור בין כל חלקי האוכלוסיה במגדל העמק דרך חוויה משותפת של קדושת השבת
               </CardDescription>
             </Card>
             
-            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105 relative overflow-hidden">
+            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105 relative overflow-hidden">
               <div 
                 className="absolute inset-0 opacity-10 bg-cover bg-center"
                 style={{ backgroundImage: `url(${familiesActivity})` }}
               ></div>
               <div className="relative z-10">
-                <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Music className="h-10 w-10 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Music className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="mb-4 text-xl">מוזיקה ויצירה</CardTitle>
+                <CardTitle className="mb-3 text-xl">מוזיקה ויצירה</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  אירועים עשירים בשירה, מוזיקה, פעילויות יצירה ולימוד משותף. 
-                  כל אירוע מכיל תחנות שונות המתאימות לגילאים שונים ולהעדפות שונות
+                  אירועים עשירים בשירה, מוזיקה, פעילויות יצירה ולימוד משותף לכל המשפחה
                 </CardDescription>
               </div>
             </Card>
             
-            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105">
-              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Heart className="h-10 w-10 text-white" />
+            <Card className="text-center p-6 shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="mb-4 text-xl">חוויה משפחתית</CardTitle>
+              <CardTitle className="mb-3 text-xl">חוויה משפחתית</CardTitle>
               <CardDescription className="text-base leading-relaxed">
-                פעילויות מותאמות לכל הגילאים - מפעוטות ועד סבים וסבתות. 
-                יצירת זיכרונות יפים, רגעי חיבור אמיתיים והכרויות חדשות בקהילה
+                פעילויות מותאמות לכל הגילאים, יצירת זיכרונות יפים ורגעי חיבור אמיתיים
               </CardDescription>
             </Card>
-          </div>
-
-          {/* תיאור מפורט נוסף */}
-          <div className="bg-gradient-to-r from-blue-50 to-orange-50 p-8 rounded-2xl">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-              למה קידושישי חשוב לקהילה?
-            </h3>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-semibold mb-3 text-blue-700">חיבור בין-דורי</h4>
-                <p className="text-gray-700 mb-4">
-                  הפרויקט מחבר בין דורות שונים - צעירים ומבוגרים, הורים וילדים, 
-                  ויוצר מרחב של למידה הדדית וחלוקת חוויות.
-                </p>
-                
-                <h4 className="text-lg font-semibold mb-3 text-orange-700">נגישות וכבוד</h4>
-                <p className="text-gray-700">
-                  האירועים מתוכננים להיות נגישים לכולם - ללא קשר לרקע דתי, 
-                  מצב כלכלי או מוגבלויות. הכבוד ההדדי הוא ערך מנחה.
-                </p>
-              </div>
-              
-              <div>
-                <h4 className="text-lg font-semibold mb-3 text-green-700">העצמת צעירים</h4>
-                <p className="text-gray-700 mb-4">
-                  בנות שירות ובני נוער מקומיים משתתפים בהובלת הפעילות, 
-                  רוכשים כישורי הנחיה ומעורבות קהילתית.
-                </p>
-                
-                <h4 className="text-lg font-semibold mb-3 text-purple-700">מסורת חדשה</h4>
-                <p className="text-gray-700">
-                  יצירת מסורת קהילתית חדשה ומיוחדת למגדל העמק, 
-                  שמחזקת את הזהות המקומית והלכידות החברתית.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -519,91 +478,42 @@ const Landing = () => {
           </h2>
           
           <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <Card className="p-8 text-center shadow-lg hover:shadow-xl transition-shadow">
-              <a 
-                href="https://www.tzohar.org.il" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block group"
-              >
-                <div className="mb-6 p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-shadow">
-                  <img 
-                    src={tzoharShabbatLogo}
-                    alt="ארגון רבני צהר" 
-                    className="h-32 mx-auto mb-4 group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <CardTitle className="mb-3 text-xl group-hover:text-blue-600 transition-colors">ארגון רבני צהר</CardTitle>
-                <CardDescription className="text-base">
-                  ארגון רבני צהר תומך בפרויקט במסגרת הפעילות הקהילתית להנגשת שירותי הדת לכלל החברה הישראלית
-                </CardDescription>
-              </a>
+            <Card className="p-6 text-center">
+              <div className="mb-4">
+                <img 
+                  src={tzoharShabbatLogo}
+                  alt="ארגון רבני צהר" 
+                  className="h-20 mx-auto mb-4"
+                />
+              </div>
+              <CardTitle className="mb-2">ארגון רבני צהר</CardTitle>
+              <CardDescription className="text-base">
+                ארגון רבני צהר תומך בפרויקט במסגרת הפעילות הקהילתית להנגשת שירותי הדת לכלל החברה
+              </CardDescription>
             </Card>
             
-            <Card className="p-8 text-center shadow-lg hover:shadow-xl transition-shadow">
-              <div className="mb-6 p-4 bg-white rounded-xl shadow-sm">
+            <Card className="p-6 text-center">
+              <div className="mb-4">
                 <img 
                   src={mgdalHaemekLogo}
                   alt="מגדל העמק" 
-                  className="h-32 mx-auto mb-4"
+                  className="h-20 mx-auto mb-4"
                 />
               </div>
-              <CardTitle className="mb-3 text-xl">הגרעין התורני מגדל העמק</CardTitle>
+              <CardTitle className="mb-2">הגרעין התורני מגדל העמק</CardTitle>
               <CardDescription className="text-base">
-                הגרעין התורני במגדל העמק שותף מרכזי בהפעלה ובתמיכה הלוגיסטית של הפרויקט ומוביל את הפעילות המקומית
+                הגרעין התורני במגדל העמק שותף מרכזי בהפעלה ובתמיכה הלוגיסטית של הפרויקט
               </CardDescription>
             </Card>
           </div>
 
           {/* שותפים נוספים */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-8">שותפים וגורמים תומכים</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <a 
-                href="https://orot-yehuda.org.il" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="group flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="bg-white p-4 rounded-xl shadow-sm group-hover:shadow-md transition-shadow mb-3">
-                  <img 
-                    src={orotYehudaLogo} 
-                    alt="אורות יהודה" 
-                    className="h-20 group-hover:scale-105 transition-transform" 
-                  />
-                </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">אורות יהודה</span>
-              </a>
-
-              <a 
-                href="https://www.mgdal-haemek.muni.il" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="group flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="bg-white p-4 rounded-xl shadow-sm group-hover:shadow-md transition-shadow mb-3">
-                  <img 
-                    src={hachevraLogo} 
-                    alt="החברה נמתחניסים" 
-                    className="h-20 group-hover:scale-105 transition-transform" 
-                  />
-                </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">החברה נמתחניסים</span>
-              </a>
-
-              <a 
-                href="#" 
-                className="group flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="bg-white p-4 rounded-xl shadow-sm group-hover:shadow-md transition-shadow mb-3">
-                  <img 
-                    src={motnimLogo} 
-                    alt="מותניים מגדל העמק" 
-                    className="h-20 group-hover:scale-105 transition-transform" 
-                  />
-                </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">מותניים מגדל העמק</span>
-              </a>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-6">שותפים נוספים</h3>
+            <div className="flex flex-wrap justify-center items-center gap-8 max-w-4xl mx-auto">
+              <img src={orotYehudaLogo} alt="אורות יהודה" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
+              <img src={hachevraLogo} alt="החברה נמתחניסים" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
+              <img src={motnimLogo} alt="מותניים מגדל העמק" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
             </div>
           </div>
         </div>
@@ -663,26 +573,18 @@ const Landing = () => {
           <div className="flex justify-center gap-6">
             <Button 
               variant="link" 
-              className="text-gray-300 hover:text-white p-0 group"
+              className="text-gray-300 hover:text-white p-0"
               onClick={() => navigate("/auth")}
             >
-              <Users className="h-4 w-4 ml-2 group-hover:text-blue-400" />
-              כניסה לצוות הניהול
+              כניסה לצוות
             </Button>
             <Button 
               variant="link" 
-              className="text-gray-300 hover:text-white p-0 group"
+              className="text-gray-300 hover:text-white p-0"
               onClick={() => navigate("/documentation")}
             >
-              <BookOpen className="h-4 w-4 ml-2 group-hover:text-green-400" />
               תיעוד הפרויקט
             </Button>
-          </div>
-          <div className="mt-4 pt-4 border-t border-gray-700">
-            <p className="text-sm text-gray-400 max-w-2xl mx-auto">
-              מערכת הניהול הדיגיטלית של קידושישי מאפשרת לרכזים ולצוות לנהל אירועים, 
-              לעקוב אחר הרשמות, ליצור דוחות ולתאם פעילויות בקלות ובמקצועיות
-            </p>
           </div>
         </div>
       </footer>
