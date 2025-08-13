@@ -36,6 +36,7 @@ import mgdalHaemekLogo from "/lovable-uploads/3ba8cd58-060e-46f0-ac3a-13a1fe6000
 import orotYehudaLogo from "/lovable-uploads/7de3d1d1-e9ec-4b4b-9d03-6ffcebfd5724.png";
 import hachevraLogo from "/lovable-uploads/56501695-87ca-4a88-964c-b6bfe4012d7a.png";
 import motnimLogo from "/lovable-uploads/3a4b148f-6b74-4024-bd48-74b7f9376688.png";
+import agafTarbutLogo from "/lovable-uploads/7af2f9ec-39b3-4f17-8d6a-8c30b1d2ba8a.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -298,9 +299,19 @@ const Landing = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               מה זה קידושישי?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              מיזם קהילתי מיוחד המיועד ליצור מסורת של קבלות שבת משותפות ומאחדות במגדל העמק
-            </p>
+            <div className="text-xl text-gray-600 max-w-4xl mx-auto space-y-4">
+              <p>
+                <strong>קידושישי</strong> הוא מיזם קהילתי מיוחד שנועד ליצור מסורת חדשה ומאחדת של קבלות שבת במגדל העמק.
+              </p>
+              <p>
+                המיזם מחבר בין כל חלקי האוכלוסיה - דתיים וחילוניים, ותיקים וחדשים, צעירים ומבוגרים - 
+                דרך חוויה משותפת של קדושת השבת, מוזיקה עדינה, לימוד מעשיר ופעילויות יצירה משפחתיות.
+              </p>
+              <p>
+                <strong>המטרה:</strong> לבנות קהילה חזקה ומלכדת שמכבדת את המגוון התרבותי 
+                ויוצרת מרחב בטוח ומזמין לכולם להתחבר לערכי השבת בדרך שמתאימה להם.
+              </p>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -478,42 +489,110 @@ const Landing = () => {
           </h2>
           
           <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <Card className="p-6 text-center">
+            <Card className="p-6 text-center shadow-lg">
               <div className="mb-4">
-                <img 
-                  src={tzoharShabbatLogo}
-                  alt="ארגון רבני צהר" 
-                  className="h-20 mx-auto mb-4"
-                />
+                <a 
+                  href="https://www.tzohar.org.il/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <img 
+                    src={tzoharShabbatLogo}
+                    alt="ארגון רבני צהר" 
+                    className="h-24 mx-auto mb-4 hover:scale-105 transition-transform"
+                  />
+                </a>
               </div>
               <CardTitle className="mb-2">ארגון רבני צהר</CardTitle>
               <CardDescription className="text-base">
-                ארגון רבני צהר תומך בפרויקט במסגרת הפעילות הקהילתית להנגשת שירותי הדת לכלל החברה
+                ארגון רבני צהר תומך בפרויקט במסגרת הפעילות הקהילתית להנגשת שירותי הדת לכלל החברה.
+                הארגון מספק ליווי רוחני ומקצועי ותמיכה כלכלית לפרויקט.
               </CardDescription>
             </Card>
             
-            <Card className="p-6 text-center">
+            <Card className="p-6 text-center shadow-lg">
               <div className="mb-4">
-                <img 
-                  src={mgdalHaemekLogo}
-                  alt="מגדל העמק" 
-                  className="h-20 mx-auto mb-4"
-                />
+                <a 
+                  href="https://kidushishi.tzohar.org.il/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <img 
+                    src={kidushishiOfficialLogo}
+                    alt="קידושישי מגדל העמק" 
+                    className="h-24 mx-auto mb-4 hover:scale-105 transition-transform"
+                  />
+                </a>
               </div>
               <CardTitle className="mb-2">הגרעין התורני מגדל העמק</CardTitle>
               <CardDescription className="text-base">
-                הגרעין התורני במגדל העמק שותף מרכזי בהפעלה ובתמיכה הלוגיסטית של הפרויקט
+                הגרעין התורני במגדל העמק הוא השותף המקומי המוביל בפרויקט. 
+                הגרעין מספק ניהול שוטף, תמיכה לוגיסטית ומעורבות קהילתית עמוקה.
               </CardDescription>
             </Card>
           </div>
 
           {/* שותפים נוספים */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-6">שותפים נוספים</h3>
-            <div className="flex flex-wrap justify-center items-center gap-8 max-w-4xl mx-auto">
-              <img src={orotYehudaLogo} alt="אורות יהודה" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src={hachevraLogo} alt="החברה נמתחניסים" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src={motnimLogo} alt="מותניים מגדל העמק" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
+            <h3 className="text-xl font-semibold text-gray-700 mb-6">שותפים ותומכים</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+              <a 
+                href="https://www.facebook.com/OrotYehudaMigdalHaemeq/?locale=he_IL" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+              >
+                <img 
+                  src={orotYehudaLogo} 
+                  alt="גרעין תורני אורות יהודה" 
+                  className="h-16 w-auto mb-2 object-contain" 
+                />
+                <span className="text-sm text-gray-600 text-center">גרעין תורני אורות יהודה</span>
+              </a>
+              
+              <a 
+                href="https://www.matnasmh.org.il/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+              >
+                <img 
+                  src={motnimLogo} 
+                  alt="מתנ״ס מגדל העמק" 
+                  className="h-16 w-auto mb-2 object-contain" 
+                />
+                <span className="text-sm text-gray-600 text-center">מתנ״ס מגדל העמק</span>
+              </a>
+              
+              <a 
+                href="https://www.migdal-haemeq.muni.il/Pages/default.aspx" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+              >
+                <img 
+                  src={mgdalHaemekLogo} 
+                  alt="עיריית מגדל העמק" 
+                  className="h-16 w-auto mb-2 object-contain" 
+                />
+                <span className="text-sm text-gray-600 text-center">עיריית מגדל העמק</span>
+              </a>
+              
+              <a 
+                href="https://www.gov.il/he/departments/Units/jewish-culture" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+              >
+                <img 
+                  src={agafTarbutLogo} 
+                  alt="האגף לתרבות יהודית" 
+                  className="h-16 w-auto mb-2 object-contain" 
+                />
+                <span className="text-sm text-gray-600 text-center">האגף לתרבות יהודית</span>
+              </a>
             </div>
           </div>
         </div>
@@ -570,20 +649,25 @@ const Landing = () => {
           <p className="mb-4">
             © 2025 קידושישי מגדל העמק • פרויקט של ארגון צהר והגרעין התורני מגדל העמק
           </p>
-          <div className="flex justify-center gap-6">
+          <div className="flex justify-center gap-6 flex-wrap">
             <Button 
               variant="link" 
               className="text-gray-300 hover:text-white p-0"
               onClick={() => navigate("/auth")}
             >
-              כניסה לצוות
+              🔐 כניסה לצוות ניהול
             </Button>
+            <p className="text-sm text-gray-400 mx-4 hidden md:block">|</p>
+            <p className="text-sm text-gray-400 text-center max-w-md">
+              מערכת ניהול מתקדמת לרכזים ומתנדבים - לתכנון אירועים, ניהול דוחות ותיאום צוות
+            </p>
+            <p className="text-sm text-gray-400 mx-4 hidden md:block">|</p>
             <Button 
               variant="link" 
               className="text-gray-300 hover:text-white p-0"
               onClick={() => navigate("/documentation")}
             >
-              תיעוד הפרויקט
+              📋 תיעוד הפרויקט
             </Button>
           </div>
         </div>
