@@ -609,24 +609,40 @@ const Landing = () => {
             <div className="flex flex-col items-center gap-3 p-4 bg-white/10 rounded-lg">
               <Phone className="h-8 w-8" />
               <div>
-                <p className="font-semibold">טלפון</p>
-                <p className="text-lg">050-1234567</p>
+                <p className="font-semibold">אלעד - רכז קידושישי</p>
+                <a href="tel:+972525427474" className="text-lg hover:text-blue-200 transition-colors">
+                  052-542-7474
+                </a>
               </div>
             </div>
             
             <div className="flex flex-col items-center gap-3 p-4 bg-white/10 rounded-lg">
-              <Mail className="h-8 w-8" />
+              <BookOpen className="h-8 w-8" />
               <div>
-                <p className="font-semibold">אימייל</p>
-                <p className="text-lg">kidushishi@example.com</p>
+                <p className="font-semibold">עדכונים</p>
+                <a 
+                  href="https://kidushishi.tzohar.org.il/lp-groups/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-lg hover:text-blue-200 transition-colors"
+                >
+                  קישור לעדכונים
+                </a>
               </div>
             </div>
 
             <div className="flex flex-col items-center gap-3 p-4 bg-white/10 rounded-lg">
               <MessageCircle className="h-8 w-8" />
               <div>
-                <p className="font-semibold">וואטסאפ</p>
-                <p className="text-lg">050-1234567</p>
+                <p className="font-semibold">קבוצת וואטסאפ</p>
+                <a 
+                  href="https://chat.whatsapp.com/CHgXiEZ3KdC7ovX7WYIt2s" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-lg hover:text-blue-200 transition-colors"
+                >
+                  הצטרפות לקבוצה
+                </a>
               </div>
             </div>
           </div>
