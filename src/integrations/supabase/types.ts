@@ -214,6 +214,59 @@ export type Database = {
           },
         ]
       }
+      event_registrations: {
+        Row: {
+          children_ages: string | null
+          comments: string | null
+          created_at: string
+          email: string | null
+          event_id: string | null
+          family_size: number | null
+          id: string
+          name: string
+          phone: string
+          registration_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          children_ages?: string | null
+          comments?: string | null
+          created_at?: string
+          email?: string | null
+          event_id?: string | null
+          family_size?: number | null
+          id?: string
+          name: string
+          phone: string
+          registration_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          children_ages?: string | null
+          comments?: string | null
+          created_at?: string
+          email?: string | null
+          event_id?: string | null
+          family_size?: number | null
+          id?: string
+          name?: string
+          phone?: string
+          registration_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           cleanup_time: string

@@ -1,7 +1,15 @@
 
-import { Calendar, Users, FileText, Settings, Wrench, BookOpen, Clock, UserCheck } from "lucide-react";
+import { Calendar, Users, FileText, Settings, Wrench, BookOpen, Clock, UserCheck, Home } from "lucide-react";
 
 export const navItems = [
+  {
+    title: "דף קידושישי",
+    href: "/landing",
+    icon: Home,
+    path: "/landing",
+    label: "דף קידושישי",
+    public: true
+  },
   {
     title: "אירועים",
     href: "/events",
