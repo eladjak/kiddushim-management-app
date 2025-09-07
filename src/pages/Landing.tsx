@@ -73,7 +73,7 @@ const Landing = () => {
     setIsRegistering(true);
     
     try {
-      // שמירת הרשמה במערכת + שליחת הודעות
+      // שמירת הרשמה במערכת + שליחת הודעות דרך הפונקציה המאובטחת
       const registrationData = {
         name: formData.name,
         phone: formData.phone,
@@ -81,15 +81,15 @@ const Landing = () => {
         family_size: parseInt(formData.family_size) || 1,
         children_ages: formData.children_ages,
         comments: formData.comments,
-        registration_date: new Date().toISOString(),
         event_id: upcomingEvents?.[0]?.id || null // Link to next event if exists
       };
 
-      const { error: dbError } = await supabase
-        .from('event_registrations')
-        .insert([registrationData]);
+      const { data, error: functionError } = await supabase.functions.invoke('secure-registration', {
+        body: registrationData
+      });
 
-      if (dbError) throw dbError;
+      if (functionError) throw functionError;
+      if (data?.error) throw new Error(data.error);
 
       // Send confirmation via edge function
       try {
