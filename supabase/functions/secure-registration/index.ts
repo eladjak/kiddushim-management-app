@@ -1,18 +1,26 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 interface RegistrationData {
   name: string;
   phone: string;
   email?: string;
-  family_size?: number;
+  family_size: number;
   children_ages?: string;
   comments?: string;
   event_id?: string;
+}
+
+interface RateLimit {
+  ip_address: string;
+  phone_number?: string;
+  email?: string;
+  attempts: number;
+  blocked_until?: string;
 }
 
 Deno.serve(async (req) => {
@@ -21,198 +29,193 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log('Secure registration function called');
-
   try {
-    // Initialize Supabase client with service role key for admin operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Initialize Supabase client with service role
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false }
+    });
 
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const registrationData: RegistrationData = await req.json();
+    
     // Get client IP for rate limiting
-    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0] || 
-                     req.headers.get('x-real-ip') || 
-                     'unknown';
+    const clientIP = req.headers.get('x-forwarded-for') || 
+                    req.headers.get('x-real-ip') || 
+                    'unknown';
 
-    console.log(`Registration attempt from IP: ${clientIP}`);
-
-    // Parse request body
-    const { name, phone, email, family_size, children_ages, comments, event_id }: RegistrationData = await req.json();
+    console.log('Registration attempt from IP:', clientIP);
 
     // Validate required fields
-    if (!name || !phone) {
-      console.log('Missing required fields');
+    if (!registrationData.name || !registrationData.phone) {
       return new Response(
-        JSON.stringify({ 
-          error: 'שם וטלפון הם שדות חובה',
-          details: 'Missing required fields: name and phone'
-        }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ error: 'שם וטלפון הם שדות חובה' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate phone format (Israeli phone number)
-    const phoneRegex = /^05\d{8}$/;
-    const cleanPhone = phone.replace(/[-\s]/g, '');
-    if (!phoneRegex.test(cleanPhone)) {
-      console.log('Invalid phone format');
+    // Validate phone number format (Israeli format)
+    const phoneRegex = /^0[5-9]\d{8}$|^\+972[5-9]\d{8}$/;
+    if (!phoneRegex.test(registrationData.phone.replace(/[-\s]/g, ''))) {
       return new Response(
-        JSON.stringify({ 
-          error: 'פורמט טלפון לא תקין. אנא הכנס מספר טלפון ישראלי תקין',
-          details: 'Invalid phone format'
-        }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ error: 'נא להזין מספר טלפון תקין' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check rate limits
+    // Check rate limiting
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-    // Check for recent registrations from same IP or phone
-    const { data: recentAttempts, error: rateCheckError } = await supabaseAdmin
+    // Check for recent attempts from same IP or phone
+    const { data: recentAttempts } = await supabase
       .from('registration_rate_limits')
       .select('*')
-      .or(`ip_address.eq.${clientIP},phone_number.eq.${cleanPhone}`)
+      .or(`ip_address.eq.${clientIP},phone_number.eq.${registrationData.phone}`)
       .gte('last_attempt', oneHourAgo.toISOString());
 
-    if (rateCheckError) {
-      console.error('Rate limit check error:', rateCheckError);
-    }
+    if (recentAttempts && recentAttempts.length > 0) {
+      const latestAttempt = recentAttempts[0];
+      
+      // If blocked, check if block period has expired
+      if (latestAttempt.blocked_until && new Date(latestAttempt.blocked_until) > now) {
+        const minutesLeft = Math.ceil((new Date(latestAttempt.blocked_until).getTime() - now.getTime()) / (1000 * 60));
+        return new Response(
+          JSON.stringify({ 
+            error: `יותר מדי ניסיונות הרשמה. נסה שוב בעוד ${minutesLeft} דקות` 
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-    // Count recent attempts
-    const recentCount = recentAttempts?.length || 0;
-    if (recentCount >= 3) {
-      console.log('Rate limit exceeded');
-      return new Response(
-        JSON.stringify({ 
-          error: 'חרגת מהמגבלה המותרת. אנא נסה שוב בעוד שעה',
-          details: 'Rate limit exceeded'
-        }),
-        { 
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      // Count attempts in last hour
+      const attempts = recentAttempts.reduce((sum, attempt) => sum + attempt.attempts, 0);
+      
+      if (attempts >= 5) {
+        // Block for 1 hour
+        const blockedUntil = new Date(now.getTime() + 60 * 60 * 1000);
+        
+        await supabase
+          .from('registration_rate_limits')
+          .upsert({
+            ip_address: clientIP,
+            phone_number: registrationData.phone,
+            email: registrationData.email,
+            attempts: attempts + 1,
+            first_attempt: latestAttempt.first_attempt,
+            last_attempt: now.toISOString(),
+            blocked_until: blockedUntil.toISOString()
+          });
+
+        return new Response(
+          JSON.stringify({ 
+            error: 'יותר מדי ניסיונות הרשמה. נסה שוב בעוד שעה' 
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Record this attempt
-    await supabaseAdmin
+    await supabase
       .from('registration_rate_limits')
-      .insert({
+      .upsert({
         ip_address: clientIP,
-        phone_number: cleanPhone,
-        email: email || null,
+        phone_number: registrationData.phone,
+        email: registrationData.email,
         attempts: 1,
         first_attempt: now.toISOString(),
         last_attempt: now.toISOString()
       });
 
-    // Check for duplicate registrations
-    const { data: existingRegistration } = await supabaseAdmin
+    // Check for duplicate registration
+    const { data: existingRegistration } = await supabase
       .from('event_registrations')
       .select('id')
-      .eq('phone', cleanPhone)
-      .eq('event_id', event_id || 'null');
+      .eq('phone', registrationData.phone)
+      .eq('event_id', registrationData.event_id || '')
+      .single();
 
-    if (existingRegistration && existingRegistration.length > 0) {
-      console.log('Duplicate registration detected');
+    if (existingRegistration) {
       return new Response(
         JSON.stringify({ 
-          error: 'כבר קיימת הרשמה עם מספר הטלפון הזה לאירוע זה',
-          details: 'Duplicate registration'
+          error: 'כבר נרשמת לאירוע זה. אם יש צורך בשינוי פרטים, נא ליצור קשר' 
         }),
-        { 
-          status: 409,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create registration record
-    const registrationData = {
-      name: name.trim(),
-      phone: cleanPhone,
-      email: email?.trim() || null,
-      family_size: family_size || 1,
-      children_ages: children_ages?.trim() || null,
-      comments: comments?.trim() || null,
-      event_id: event_id || null,
-      registration_date: now.toISOString(),
-      status: 'pending'
+    // Create the registration
+    const registrationRecord = {
+      name: registrationData.name.trim(),
+      phone: registrationData.phone.replace(/[-\s]/g, ''),
+      email: registrationData.email?.trim() || null,
+      family_size: Math.max(1, Math.min(20, registrationData.family_size || 1)),
+      children_ages: registrationData.children_ages?.trim() || null,
+      comments: registrationData.comments?.trim() || null,
+      event_id: registrationData.event_id || null,
+      status: 'pending',
+      registration_date: new Date().toISOString()
     };
 
-    console.log('Creating registration record');
-    const { data: registration, error: insertError } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('event_registrations')
-      .insert([registrationData])
+      .insert([registrationRecord])
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Registration insert error:', insertError);
+    if (error) {
+      console.error('Database error:', error);
       return new Response(
-        JSON.stringify({ 
-          error: 'שגיאה ביצירת ההרשמה. אנא נסה שוב',
-          details: insertError.message
-        }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ error: 'שגיאה בשמירת ההרשמה. נסה שוב' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Registration created successfully');
+    console.log('Registration created successfully:', data.id);
 
-    // Try to send confirmation email (optional, don't fail if this fails)
+    // Send confirmation (existing edge function)
     try {
-      if (event_id) {
-        await supabaseAdmin.functions.invoke('send-registration-confirmation', {
-          body: {
-            to_name: name,
-            to_phone: cleanPhone,
-            to_email: email || '',
-            event_id: event_id,
-            registration_id: registration.id
-          }
-        });
-      }
-    } catch (emailError) {
-      console.warn('Failed to send confirmation email:', emailError);
-      // Continue anyway - registration was successful
+      const { data: eventData } = await supabase
+        .from('events')
+        .select('title, date, location_name')
+        .eq('id', registrationData.event_id || '')
+        .single();
+
+      await supabase.functions.invoke('send-registration-confirmation', {
+        body: {
+          name: registrationRecord.name,
+          phone: registrationRecord.phone,
+          event: eventData || { title: 'אירוע קידושישי', date: 'בקרוב', location_name: 'מגדל העמק' }
+        }
+      });
+    } catch (confirmationError) {
+      console.error('Confirmation sending failed:', confirmationError);
+      // Don't fail the registration if confirmation fails
     }
 
     return new Response(
       JSON.stringify({ 
-        success: true,
-        message: 'ההרשמה בוצעה בהצלחה! נשלח אליך אישור בקרוב',
-        registration_id: registration.id
+        success: true, 
+        message: 'הרשמה התקבלה בהצלחה! נשלח אישור בהודעת וואטסאפ',
+        registration_id: data.id
       }),
-      { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'שגיאה לא צפויה. אנא נסה שוב מאוחר יותר',
-        details: error.message
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ error: 'שגיאה לא צפויה. נסה שוב מאוחר יותר' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
