@@ -1,8 +1,8 @@
 
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { updateUserRole } from "@/services/entity/users/rolesService";
 
 /**
  * Hook to check if user should have admin permissions and grant them if needed
@@ -32,26 +32,17 @@ export function useAdminCheck() {
         ];
         
         // If user has an admin email but not admin role, upgrade them
-        if (adminEmails.includes(user.email) && profile.role !== "admin") {
+        if (user.email && adminEmails.includes(user.email) && profile.role !== "admin") {
           logger.info("Upgrading user to admin", { email: user.email });
           
-          // Use type assertion for the update data
-          const updateData = {
-            role: "admin",
-            updated_at: new Date().toISOString()
-          } as any;
-          
-          const { error } = await supabase
-            .from("profiles")
-            .update(updateData)
-            .eq("id", user.id as any);
-            
-          if (error) {
-            logger.error("Failed to update user role", { error });
-          } else {
+          try {
+            // עדכון התפקיד בטבלת user_roles
+            await updateUserRole(user.id, 'admin');
             logger.info("User role updated to admin successfully");
             // Force reload to apply new permissions
             window.location.reload();
+          } catch (error) {
+            logger.error("Failed to update user role", { error });
           }
         }
       } catch (error) {

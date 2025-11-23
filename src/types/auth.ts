@@ -1,7 +1,9 @@
 
 import type { User, Session } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 import type { Json } from "@/integrations/supabase/types";
+
+// טיפוס התפקיד החדש - תואם ל-app_role enum שיצרנו
+export type AppRole = 'admin' | 'coordinator' | 'service_girl' | 'youth_volunteer' | 'volunteer';
 
 export interface Profile {
   id: string;
@@ -9,7 +11,7 @@ export interface Profile {
   email: string | null;
   phone: string | null;
   avatar_url: string | null;
-  role: Database["public"]["Enums"]["user_role"];
+  role: AppRole | null; // התפקיד עכשיו מגיע מטבלת user_roles ויכול להיות null
   created_at: string;
   updated_at: string;
   settings: Json;
