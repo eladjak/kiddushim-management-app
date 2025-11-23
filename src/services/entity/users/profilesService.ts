@@ -1,10 +1,12 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { UserProfile, RoleType } from '@/types/profile';
+import type { Profile } from '@/types/auth';
+import type { RoleType } from '@/types/profile';
+import { getUserRole } from './rolesService';
 
 /**
  * קבלת פרופיל משתמש מורחב
  */
-export async function getProfile(id: string): Promise<UserProfile> {
+export async function getProfile(id: string): Promise<Profile> {
   console.log(`Fetching user profile for id: ${id}`);
   
   const { data, error } = await supabase
@@ -18,14 +20,22 @@ export async function getProfile(id: string): Promise<UserProfile> {
     throw error;
   }
   
-  // המרה לטיפוס UserProfile עם כל השדות הנדרשים
+  // קבלת התפקיד מטבלת user_roles
+  let role: RoleType | null = null;
+  try {
+    role = await getUserRole(id);
+  } catch (err) {
+    console.error(`Error fetching role for user ${id}:`, err);
+  }
+  
+  // המרה לטיפוס Profile עם כל השדות הנדרשים
   return {
     id: data.id,
     email: data.email || null,
     name: data.name,
     avatar_url: data.avatar_url || null,
     phone: data.phone || null,
-    role: data.role,
+    role: role,
     created_at: data.created_at,
     updated_at: data.updated_at,
     settings: data.settings || {},
@@ -40,7 +50,7 @@ export async function getProfile(id: string): Promise<UserProfile> {
 /**
  * עדכון פרופיל משתמש
  */
-export async function updateProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
+export async function updateProfile(id: string, profileData: Partial<Profile>): Promise<Profile> {
   console.log(`Updating profile for user ${id}`);
   
   const { data, error } = await supabase
@@ -58,14 +68,22 @@ export async function updateProfile(id: string, profileData: Partial<UserProfile
     throw error;
   }
   
-  // המרה לטיפוס UserProfile עם כל השדות הנדרשים
+  // קבלת התפקיד מטבלת user_roles
+  let role: RoleType | null = null;
+  try {
+    role = await getUserRole(id);
+  } catch (err) {
+    console.error(`Error fetching role for user ${id}:`, err);
+  }
+  
+  // המרה לטיפוס Profile עם כל השדות הנדרשים
   return {
     id: data.id,
     email: data.email || null,
     name: data.name,
     avatar_url: data.avatar_url || null,
     phone: data.phone || null,
-    role: data.role,
+    role: role,
     created_at: data.created_at,
     updated_at: data.updated_at,
     settings: data.settings || {},
@@ -78,43 +96,17 @@ export async function updateProfile(id: string, profileData: Partial<UserProfile
 }
 
 /**
- * עדכון תפקיד משתמש
+ * עדכון תפקיד משתמש - עכשיו משתמש ב-user_roles
  */
-export async function updateRole(id: string, role: RoleType): Promise<UserProfile> {
+export async function updateRole(id: string, role: RoleType): Promise<Profile> {
   console.log(`Updating role for user ${id} to ${role}`);
   
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ 
-      role,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', id)
-    .select()
-    .single();
-    
-  if (error) {
-    console.error(`Error updating user role ${id}:`, error);
-    throw error;
-  }
+  // עדכון התפקיד בטבלת user_roles
+  const { updateUserRole } = await import('./rolesService');
+  await updateUserRole(id, role as any);
   
-  // המרה לטיפוס UserProfile עם כל השדות הנדרשים
-  return {
-    id: data.id,
-    email: data.email || null,
-    name: data.name,
-    avatar_url: data.avatar_url || null,
-    phone: data.phone || null,
-    role: data.role,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    settings: data.settings || {},
-    notification_settings: data.notification_settings || {},
-    last_active: data.last_active || null,
-    language: data.language || 'he',
-    shabbat_mode: data.shabbat_mode || false,
-    encoding_support: data.encoding_support || true
-  };
+  // קבלת הפרופיל המעודכן
+  return getProfile(id);
 }
 
 /**
