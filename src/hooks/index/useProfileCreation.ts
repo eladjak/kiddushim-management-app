@@ -17,22 +17,22 @@ export const useProfileCreation = (user: User | null) => {
 
   const createProfileManually = async () => {
     if (!user || isCreatingProfile) return;
-    
+
     try {
       setIsCreatingProfile(true);
       setCreationAttempts(prev => prev + 1);
-      
+
       // First check if profile exists
       const { data: existingProfile, error: checkError } = await supabase
         .from("profiles")
         .select("id")
         .eq("id", user.id)
         .maybeSingle();
-        
+
       if (checkError) {
         log.error("Error checking profile:", checkError);
       }
-        
+
       if (existingProfile) {
         toast({
           description: "הפרופיל כבר קיים, מרענן את הדף...",
@@ -40,19 +40,19 @@ export const useProfileCreation = (user: User | null) => {
         window.location.reload();
         return;
       }
-      
+
       const defaultRole: RoleType = 'coordinator';
-      
+
       // Get user metadata
-      const name = user.user_metadata?.name || 
-                  user.user_metadata?.full_name || 
-                  user.email?.split('@')[0] || 
+      const name = user.user_metadata?.name ||
+                  user.user_metadata?.full_name ||
+                  user.email?.split('@')[0] ||
                   'משתמש';
-      
-      const avatarUrl = user.user_metadata?.avatar_url || 
-                        user.user_metadata?.picture || 
+
+      const avatarUrl = user.user_metadata?.avatar_url ||
+                        user.user_metadata?.picture ||
                         null;
-      
+
       // Create new profile
       const { error } = await supabase
         .from("profiles")
@@ -68,7 +68,7 @@ export const useProfileCreation = (user: User | null) => {
           settings: {},
           notification_settings: {}
         });
-        
+
       if (error) {
         if (error.code === '23505') { // Duplicate key error
           toast({
@@ -82,7 +82,7 @@ export const useProfileCreation = (user: User | null) => {
         toast({
           description: "פרופיל נוצר בהצלחה, מרענן את הדף...",
         });
-        
+
         // Wait a moment for the profile to be properly saved
         setTimeout(() => {
           window.location.reload();
@@ -108,7 +108,7 @@ export const useProfileCreation = (user: User | null) => {
       // Redirect to auth page
       window.location.href = "/auth";
     } catch (error) {
-      console.error("Error signing out:", error);
+      log.error("Error signing out:", { error });
       // Force reload as a fallback
       window.location.href = "/auth";
     }

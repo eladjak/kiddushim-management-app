@@ -1,6 +1,9 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { logger } from "@/utils/logger"
+
+const log = logger.createLogger({ component: 'Image' });
 
 interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallback?: string
@@ -17,7 +20,7 @@ const Image = React.forwardRef<HTMLImageElement, ImageProps>(
     }, [props.src])
 
     const handleError = () => {
-      console.log(`Image failed to load: ${src}, using fallback: ${fallback}`);
+      log.warn(`Image failed to load, using fallback`, { src: String(src), fallback });
       if (!error) {
         setError(true)
         setSrc(fallback)

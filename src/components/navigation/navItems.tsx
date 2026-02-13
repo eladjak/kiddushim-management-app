@@ -1,70 +1,60 @@
 
-import { Calendar, Users, FileText, Settings, Wrench, BookOpen, Clock, UserCheck, Home } from "lucide-react";
+import { Calendar, Users, FileText, Wrench, BookOpen, Clock, UserCheck, Home } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-export const navItems = [
+export interface NavItem {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  adminOnly?: boolean;
+}
+
+export const navItems: NavItem[] = [
   {
-    title: "דף קידושישי",
-    href: "/landing",
-    icon: Home,
-    path: "/landing",
     label: "דף קידושישי",
-    public: true
+    path: "/landing",
+    icon: Home,
   },
   {
-    title: "אירועים",
-    href: "/events",
-    icon: Calendar,
-    path: "/events",
     label: "אירועים",
+    path: "/events",
+    icon: Calendar,
   },
   {
-    title: "לוח זמנים",
-    href: "/timeline", 
-    icon: Clock,
-    path: "/timeline",
     label: "לוח זמנים",
+    path: "/timeline",
+    icon: Clock,
   },
   {
-    title: "דיווחים",
-    href: "/reports",
-    icon: FileText,
-    path: "/reports",
     label: "דיווחים",
+    path: "/reports",
+    icon: FileText,
   },
   {
-    title: "משתמשים",
-    href: "/users",
+    label: "משתמשים",
+    path: "/users",
     icon: Users,
     adminOnly: true,
-    path: "/users",
-    label: "משתמשים",
   },
   {
-    title: "מתנדבים",
-    href: "/volunteers",
-    icon: UserCheck,
-    path: "/volunteers",
     label: "מתנדבים",
+    path: "/volunteers",
+    icon: UserCheck,
   },
   {
-    title: "ציוד",
-    href: "/equipment",
-    icon: Wrench,
-    path: "/equipment",
     label: "ציוד",
+    path: "/equipment",
+    icon: Wrench,
   },
   {
-    title: "תיעוד",
-    href: "/documentation",
-    icon: BookOpen,
-    path: "/documentation",
     label: "תיעוד",
+    path: "/documentation",
+    icon: BookOpen,
   },
 ];
 
-export const getNavItems = (isAdmin: boolean = false, isCoordinator: boolean = false) => {
+export const getNavItems = (isAdmin: boolean = false): NavItem[] => {
   return navItems.filter(item => {
-    // אם הפריט דורש הרשאות אדמין ולמשתמש אין הרשאות אדמין - לא להציג
     if (item.adminOnly && !isAdmin) {
       return false;
     }

@@ -1,11 +1,7 @@
 
-// Changing the import to avoid the "not a module" error
-import type { Json } from '../integrations/supabase/types';
+export type { AppRole } from './auth';
+export type { Profile as UserProfile } from './auth';
 
-// התפקידים זהים ל-app_role enum בבסיס הנתונים
-export type RoleType = 'admin' | 'coordinator' | 'service_girl' | 'youth_volunteer' | 'volunteer';
-
-// נשתמש ב-Profile מ-auth.ts כדי לאחד את הטיפוסים
-export type { Profile as UserProfile, AppRole } from './auth';
-
-export type UserRole = RoleType;
+// Backwards compatibility alias
+export type RoleType = import('./auth').AppRole;
+export type UserRole = import('./auth').AppRole;

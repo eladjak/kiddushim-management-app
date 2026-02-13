@@ -101,7 +101,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
             }
           })
           .catch(err => {
-            console.error('Error fetching address:', err);
+            log.error('Error fetching address', { error: err });
           });
       });
       

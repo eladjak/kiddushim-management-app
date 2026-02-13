@@ -1,6 +1,9 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { logger } from "@/utils/logger"
+
+const log = logger.createLogger({ component: 'utils' });
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -24,7 +27,7 @@ export function sanitizeHebrew(str: string): string {
     // אם אין תווים עבריים, נחזיר את המחרוזת כמו שהיא
     return str;
   } catch (e) {
-    console.error('שגיאה בטיפול במחרוזת עברית:', e);
+    log.error('שגיאה בטיפול במחרוזת עברית', { error: e });
     return str;
   }
 }

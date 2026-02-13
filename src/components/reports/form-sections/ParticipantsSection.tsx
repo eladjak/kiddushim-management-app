@@ -10,11 +10,8 @@ interface ParticipantsSectionProps {
 }
 
 export const ParticipantsSection = ({ formData, onFieldChange }: ParticipantsSectionProps) => {
-  console.log("ParticipantsSection - Form data received:", formData);
-  
   const handleCountChange = (field: keyof ReportFormData, value: string) => {
     const numValue = parseInt(value) || 0;
-    console.log(`ParticipantsSection - ${field} change:`, value, "=>", numValue);
     onFieldChange(field, numValue);
   };
 

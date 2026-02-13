@@ -2,16 +2,7 @@
 /**
  * טיפוסים עבור ישות משתמשים
  */
-import { RoleType } from './profile';
-
-// תפקידי משתמש - משמש להמרה בין enum בשכבת UI לצד lc-case בבסיס הנתונים
-export enum UserRole {
-  ADMIN = 'admin',           // מנהל מערכת
-  MANAGER = 'manager',       // מנהל
-  ORGANIZER = 'organizer',   // מארגן
-  VOLUNTEER = 'volunteer',   // מתנדב
-  PARTICIPANT = 'participant' // משתתף
-}
+import type { AppRole } from './auth';
 
 // סטטוס משתמש
 export enum UserStatus {
@@ -27,7 +18,7 @@ export interface User {
   email: string;
   full_name: string;
   phone: string;
-  role: RoleType;
+  role: AppRole;
   status: UserStatus;
   avatar_url?: string;
   created_at: string;

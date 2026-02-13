@@ -1,5 +1,8 @@
 
 import { ReportFormValues } from "@/types/reportFormTypes";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'useReportDefaultValues' });
 
 export const useReportDefaultValues = () => {
   // ערכי ברירת מחדל ריקים
@@ -24,7 +27,7 @@ export const useReportDefaultValues = () => {
     is_tzohar_representative: false,
   };
 
-  console.log("useReportDefaultValues - Default values created:", defaultValues);
+  log.debug("Default values created:", { defaultValues });
 
   return {
     defaultValues,

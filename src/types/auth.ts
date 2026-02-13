@@ -27,11 +27,11 @@ export type AuthContextType = {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  isAuthenticated?: boolean;
-  signOut?: () => void;
+  isAuthenticated: boolean;
+  signOut: () => void;
   updateAvatar: (avatarUrl: string) => Promise<void>;
-  setUser?: (user: User | null) => void;
-  setSession?: (session: Session | null) => void;
-  setProfile?: (profile: Profile | null) => void;
-  setIsLoading?: (loading: boolean) => void;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  setProfile: (profile: Profile | null) => void;
+  setIsLoading: (loading: boolean) => void;
 };

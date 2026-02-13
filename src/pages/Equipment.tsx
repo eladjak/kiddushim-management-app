@@ -127,7 +127,7 @@ const Equipment = () => {
   return (
     <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
+      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">ציוד</h1>
           <div className="flex gap-2">

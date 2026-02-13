@@ -7,6 +7,9 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'AvatarUpload' });
 
 interface AvatarUploadProps {
   onAvatarChange?: (url: string) => void;
@@ -65,7 +68,7 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
         variant: "destructive",
         description: `שגיאה בהעלאת התמונה: ${error.message}`,
       });
-      console.error("Error uploading avatar:", error);
+      log.error('Error uploading avatar', { error });
     } finally {
       setUploading(false);
       // Reset file input
@@ -138,7 +141,7 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
             "מעלה..."
           ) : (
             <>
-              <Camera className="h-4 w-4 ml-2" />
+              <Camera className="h-4 w-4 me-2" />
               {profile?.avatar_url ? "החלף תמונה" : "הוסף תמונה"}
             </>
           )}
@@ -152,7 +155,7 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
             onClick={handleDeleteAvatar} 
             disabled={uploading}
           >
-            <Trash className="h-4 w-4 ml-2" />
+            <Trash className="h-4 w-4 me-2" />
             הסר
           </Button>
         )}

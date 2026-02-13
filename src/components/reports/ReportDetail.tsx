@@ -54,9 +54,9 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
     return (
       <div className="flex items-center">
         <span className="text-sm font-medium">{rating}/10</span>
-        <div className="ml-2 w-24 bg-gray-200 rounded-full h-2.5">
-          <div 
-            className="bg-primary h-2.5 rounded-full" 
+        <div className="ms-2 w-24 bg-gray-200 rounded-full h-2.5">
+          <div
+            className="bg-primary h-2.5 rounded-full"
             style={{ width: `${(rating / 10) * 100}%` }}
           ></div>
         </div>

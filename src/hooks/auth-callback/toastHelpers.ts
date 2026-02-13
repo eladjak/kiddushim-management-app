@@ -1,5 +1,8 @@
 
 import { ToastType } from "./types";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'toastHelpers' });
 
 /**
  * הצגת הודעה למשתמש
@@ -17,6 +20,6 @@ export function showToast(toastHelper: ToastType, message: string, isError: bool
       });
     }
   } catch (err) {
-    console.error("Error showing toast:", err);
+    log.error("Error showing toast:", { error: err });
   }
 }

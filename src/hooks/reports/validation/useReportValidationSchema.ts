@@ -1,9 +1,12 @@
 
 import { reportFormSchema } from "@/types/reportFormTypes";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'useReportValidationSchema' });
 
 export const useReportValidationSchema = () => {
-  console.log("useReportValidationSchema - Schema accessed");
-  
+  log.debug("Schema accessed");
+
   return {
     reportFormSchema,
   };

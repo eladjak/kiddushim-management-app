@@ -9,6 +9,7 @@ import { logger } from "@/utils/logger";
 import { Brand } from "./navigation/Brand";
 import { DesktopNav } from "./navigation/DesktopNav";
 import { MobileNav } from "./navigation/MobileNav";
+import { SkipToContent } from "./navigation/SkipToContent";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
@@ -69,12 +70,14 @@ export const Navigation = () => {
   const isCoordinator = profile?.role === "coordinator";
 
   return (
-    <nav className="fixed top-0 right-0 left-0 bg-white shadow-sm z-50" dir="rtl">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Brand />
-          </div>
+    <>
+      <SkipToContent />
+      <nav className="fixed top-0 right-0 left-0 bg-white shadow-sm z-50" dir="rtl">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <Brand />
+            </div>
           
           {!isMobile && <DesktopNav onLogout={handleLogout} />}
 
@@ -100,6 +103,7 @@ export const Navigation = () => {
         isCoordinator={isCoordinator}
         onLogout={handleLogout}
       />
-    </nav>
+      </nav>
+    </>
   );
 };

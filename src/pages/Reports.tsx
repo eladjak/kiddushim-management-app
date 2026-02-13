@@ -12,7 +12,7 @@ const Reports = () => {
   return (
     <RTLLayout className="min-h-screen bg-secondary/30 flex flex-col">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
+      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <ReportsHeader />
         <ReportsTabs />
       </main>

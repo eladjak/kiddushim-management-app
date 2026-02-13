@@ -16,7 +16,7 @@ export const EventsPageHeader = ({
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-4 border-b">
       <div className="flex items-center mb-4 md:mb-0">
-        <Calendar className="h-6 w-6 text-primary ml-2" />
+        <Calendar className="h-6 w-6 text-primary me-2" />
         <h1 className="text-2xl font-bold">אירועים</h1>
       </div>
       

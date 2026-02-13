@@ -31,9 +31,6 @@ export const ReportFormSimplified = ({ reportType, onClose, onSuccess }: ReportF
     onSuccess
   });
 
-  console.log("ReportFormSimplified - Form data:", formData);
-  console.log("ReportFormSimplified - Events:", events);
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

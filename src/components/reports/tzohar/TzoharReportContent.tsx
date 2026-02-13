@@ -19,8 +19,7 @@ interface TzoharReportContentProps {
 
 export const TzoharReportContent = ({ events, formData, onFieldChange }: TzoharReportContentProps) => {
   const handleEventDetailsLoad = (eventDetails: any) => {
-    console.log("TzoharReportContent - Auto-filling from event details:", eventDetails);
-    
+
     if (eventDetails.title && !formData.title) {
       onFieldChange("title", `דיווח ${eventDetails.title}`);
     }

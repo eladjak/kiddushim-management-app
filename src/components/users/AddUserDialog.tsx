@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'AddUserDialog' });
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +83,7 @@ export const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
       onUserAdded();
 
     } catch (error: any) {
-      console.error("Error creating user:", error);
+      log.error('Error creating user', { error });
       toast({
         variant: "destructive",
         description: `שגיאה ביצירת משתמש: ${error.message}`,

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectOverview } from "./ProjectOverview";
 import { Timeline } from "./Timeline";
@@ -12,11 +12,6 @@ import { WorkProcesses } from "./WorkProcesses";
  */
 export const ProjectPlan = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  
-  // Track tab changes for analytics or other purposes
-  useEffect(() => {
-    console.log("Documentation tab changed:", activeTab);
-  }, [activeTab]);
 
   return (
     <div className="container mx-auto px-4 py-6 lg:py-8">

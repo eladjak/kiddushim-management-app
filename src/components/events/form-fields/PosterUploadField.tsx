@@ -7,6 +7,9 @@ import { Camera, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'PosterUploadField' });
 
 interface PosterUploadFieldProps {
   posterUrl: string;
@@ -54,7 +57,7 @@ export const PosterUploadField = ({ posterUrl, onPosterChange }: PosterUploadFie
         description: "הפוסטר הועלה בהצלחה",
       });
     } catch (error: any) {
-      console.error("Upload error:", error);
+      log.error('Upload error', { error });
       toast({
         variant: "destructive",
         description: `שגיאה בהעלאת הפוסטר: ${error.message}`,
@@ -89,6 +92,7 @@ export const PosterUploadField = ({ posterUrl, onPosterChange }: PosterUploadFie
               size="icon"
               className="absolute top-2 left-2 h-6 w-6"
               onClick={removePoster}
+              aria-label="הסר תמונת אווירה"
             >
               <X className="h-3 w-3" />
             </Button>

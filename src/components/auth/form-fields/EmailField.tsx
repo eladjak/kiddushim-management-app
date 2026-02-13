@@ -29,7 +29,7 @@ export const EmailField = ({
               <Input
                 type="email"
                 placeholder={placeholder}
-                className="pl-10 h-10 border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-200 text-sm"
+                className="ps-10 h-10 border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-200 text-sm"
                 autoFocus={autoFocus}
                 dir="ltr"
                 {...field}

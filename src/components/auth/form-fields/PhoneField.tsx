@@ -27,7 +27,7 @@ export const PhoneField = ({
               <Input
                 type="tel"
                 placeholder={placeholder}
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
+                className="ps-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
                 {...field}
               />
               <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />

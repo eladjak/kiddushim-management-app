@@ -4,6 +4,9 @@ import { authService } from '@/services/supabase/auth';
 import { toast } from '@/components/ui/use-toast';
 import { AUTH_KEYS } from './constants';
 import type { AuthCredentials } from '@/services/supabase/auth';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'useSignUp' });
 
 /**
  * הוק לביצוע הרשמה
@@ -21,7 +24,7 @@ export const useSignUp = () => {
       if (data.user) {
         queryClient.setQueryData(AUTH_KEYS.user(), data.user);
       }
-      
+
       toast({
         title: 'נרשמת בהצלחה',
         description: data.session ? 'התחברת למערכת' : 'נשלח אימייל אימות',
@@ -29,7 +32,7 @@ export const useSignUp = () => {
       });
     },
     onError: (error: Error) => {
-      console.error('Error signing up:', error);
+      log.error('Error signing up', { error });
       toast({
         title: 'שגיאה בהרשמה',
         description: error.message,

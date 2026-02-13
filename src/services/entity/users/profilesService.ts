@@ -2,32 +2,35 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/types/auth';
 import type { RoleType } from '@/types/profile';
 import { getUserRole } from './rolesService';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'ProfilesService' });
 
 /**
  * קבלת פרופיל משתמש מורחב
  */
 export async function getProfile(id: string): Promise<Profile> {
-  console.log(`Fetching user profile for id: ${id}`);
-  
+  log.debug(`Fetching user profile for id: ${id}`);
+
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', id)
     .single();
-    
+
   if (error) {
-    console.error(`Error fetching user profile ${id}:`, error);
+    log.error(`Error fetching user profile ${id}`, { error });
     throw error;
   }
-  
+
   // קבלת התפקיד מטבלת user_roles
   let role: RoleType | null = null;
   try {
     role = await getUserRole(id);
   } catch (err) {
-    console.error(`Error fetching role for user ${id}:`, err);
+    log.error(`Error fetching role for user ${id}`, { error: err });
   }
-  
+
   // המרה לטיפוס Profile עם כל השדות הנדרשים
   return {
     id: data.id,
@@ -51,8 +54,8 @@ export async function getProfile(id: string): Promise<Profile> {
  * עדכון פרופיל משתמש
  */
 export async function updateProfile(id: string, profileData: Partial<Profile>): Promise<Profile> {
-  console.log(`Updating profile for user ${id}`);
-  
+  log.debug(`Updating profile for user ${id}`, { action: 'updateProfile' });
+
   const { data, error } = await supabase
     .from('profiles')
     .update({
@@ -62,20 +65,20 @@ export async function updateProfile(id: string, profileData: Partial<Profile>): 
     .eq('id', id)
     .select()
     .single();
-    
+
   if (error) {
-    console.error(`Error updating user profile ${id}:`, error);
+    log.error(`Error updating user profile ${id}`, { error });
     throw error;
   }
-  
+
   // קבלת התפקיד מטבלת user_roles
   let role: RoleType | null = null;
   try {
     role = await getUserRole(id);
   } catch (err) {
-    console.error(`Error fetching role for user ${id}:`, err);
+    log.error(`Error fetching role for user ${id}`, { error: err });
   }
-  
+
   // המרה לטיפוס Profile עם כל השדות הנדרשים
   return {
     id: data.id,
@@ -99,12 +102,12 @@ export async function updateProfile(id: string, profileData: Partial<Profile>): 
  * עדכון תפקיד משתמש - עכשיו משתמש ב-user_roles
  */
 export async function updateRole(id: string, role: RoleType): Promise<Profile> {
-  console.log(`Updating role for user ${id} to ${role}`);
-  
+  log.debug(`Updating role for user ${id} to ${role}`, { action: 'updateRole' });
+
   // עדכון התפקיד בטבלת user_roles
   const { updateUserRole } = await import('./rolesService');
   await updateUserRole(id, role as any);
-  
+
   // קבלת הפרופיל המעודכן
   return getProfile(id);
 }
@@ -113,29 +116,29 @@ export async function updateRole(id: string, role: RoleType): Promise<Profile> {
  * בדיקה האם פרופיל קיים
  */
 export async function checkProfileExists(id: string): Promise<boolean> {
-  console.log(`Checking if profile exists for user ${id}`);
-  
+  log.debug(`Checking if profile exists for user ${id}`);
+
   try {
     const { data, error, count } = await supabase
       .from('profiles')
       .select('id', { count: 'exact' })
       .eq('id', id);
-      
+
     if (error) {
-      console.error(`Error checking if profile exists for ${id}:`, error);
+      log.error(`Error checking if profile exists for ${id}`, { error });
       // Return false for RLS-related errors to trigger attempt at profile creation
-      if (error.message?.includes('violates row-level security') || 
+      if (error.message?.includes('violates row-level security') ||
           error.code === '42501' || // permission_denied
           error.code === '403') {   // forbidden
         return false;
       }
-      
+
       throw error; // Propagate other errors
     }
-    
+
     return (count || 0) > 0;
   } catch (err) {
-    console.error(`Unexpected error checking if profile exists for ${id}:`, err);
+    log.error(`Unexpected error checking if profile exists for ${id}`, { error: err });
     // For unexpected errors, we assume the profile doesn't exist to trigger creation
     return false;
   }

@@ -136,6 +136,7 @@ export function PendingChangesDialog({
                           onClick={() => {
                             handleChangeStatus(change as any, "rejected");
                           }}
+                          aria-label="דחה שינוי"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -146,6 +147,7 @@ export function PendingChangesDialog({
                           onClick={() => {
                             handleChangeStatus(change as any, "approved");
                           }}
+                          aria-label="אשר שינוי"
                         >
                           <Check className="h-4 w-4" />
                         </Button>

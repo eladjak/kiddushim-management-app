@@ -62,14 +62,14 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div id="main-content" className="container mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">פרופיל משתמש</h1>
-      
-      <UserProfileTabs 
-        profile={profile} 
+
+      <UserProfileTabs
+        profile={profile}
         userId={user.id}
         onSaveProfile={handleUpdateProfile}
-        loading={isUpdating} 
+        loading={isUpdating}
       />
     </div>
   );

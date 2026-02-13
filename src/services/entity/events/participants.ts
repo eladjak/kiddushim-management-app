@@ -1,12 +1,15 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'EventParticipants' });
 
 /**
  * הוספת משתתף לאירוע
  */
 export async function addParticipant(eventId: string, userId: string) {
-  console.log(`Adding participant ${userId} to event ${eventId}`);
-  
+  log.debug(`Adding participant ${userId} to event ${eventId}`, { action: 'addParticipant' });
+
   try {
     const { data, error } = await supabase
       .from('event_assignments')
@@ -18,15 +21,15 @@ export async function addParticipant(eventId: string, userId: string) {
       })
       .select()
       .single();
-      
+
     if (error) {
-      console.error(`Error adding participant to event ${eventId}:`, error);
+      log.error(`Error adding participant to event ${eventId}`, { error });
       throw error;
     }
-    
+
     return data;
   } catch (error) {
-    console.error(`Error adding participant to event ${eventId}:`, error);
+    log.error(`Error adding participant to event ${eventId}`, { error });
     throw error;
   }
 }
@@ -35,22 +38,22 @@ export async function addParticipant(eventId: string, userId: string) {
  * הסרת משתתף מאירוע
  */
 export async function removeParticipant(eventId: string, userId: string) {
-  console.log(`Removing participant ${userId} from event ${eventId}`);
-  
+  log.debug(`Removing participant ${userId} from event ${eventId}`, { action: 'removeParticipant' });
+
   try {
     const { error } = await supabase
       .from('event_assignments')
       .delete()
       .match({ event_id: eventId, user_id: userId });
-      
+
     if (error) {
-      console.error(`Error removing participant from event ${eventId}:`, error);
+      log.error(`Error removing participant from event ${eventId}`, { error });
       throw error;
     }
-    
+
     return true;
   } catch (error) {
-    console.error(`Error removing participant from event ${eventId}:`, error);
+    log.error(`Error removing participant from event ${eventId}`, { error });
     throw error;
   }
 }
@@ -59,8 +62,8 @@ export async function removeParticipant(eventId: string, userId: string) {
  * קבלת רשימת משתתפים לאירוע
  */
 export async function getParticipants(eventId: string) {
-  console.log(`Fetching participants for event ${eventId}`);
-  
+  log.debug(`Fetching participants for event ${eventId}`, { action: 'getParticipants' });
+
   try {
     const { data, error } = await supabase
       .from('event_assignments')
@@ -70,12 +73,12 @@ export async function getParticipants(eventId: string) {
       `)
       .eq('event_id', eventId)
       .eq('role', 'volunteer');
-      
+
     if (error) {
-      console.error(`Error fetching participants for event ${eventId}:`, error);
+      log.error(`Error fetching participants for event ${eventId}`, { error });
       throw error;
     }
-    
+
     // המרה לפורמט האחיד
     return data.map((assignment: any) => ({
       id: assignment.id,
@@ -90,7 +93,7 @@ export async function getParticipants(eventId: string) {
       } : undefined
     }));
   } catch (error) {
-    console.error(`Error fetching participants for event ${eventId}:`, error);
+    log.error(`Error fetching participants for event ${eventId}`, { error });
     throw error;
   }
 }

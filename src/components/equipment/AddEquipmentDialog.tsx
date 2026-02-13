@@ -7,6 +7,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'AddEquipmentDialog' });
 import {
   Form,
   FormControl,
@@ -72,7 +75,7 @@ export function AddEquipmentDialog({
       
       onSubmit(equipmentData);
     } catch (error) {
-      console.error("Error preparing equipment data:", error);
+      log.error('Error preparing equipment data', { error });
       toast({
         variant: "destructive",
         description: "אירעה שגיאה בהכנת נתוני הציוד",

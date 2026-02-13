@@ -172,7 +172,7 @@ export const OnboardingTour = ({ onComplete, onSkip }: OnboardingTourProps) => {
               onClick={handlePrevious}
               disabled={currentStep === 0}
             >
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 me-2" />
               קודם
             </Button>
             

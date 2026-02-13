@@ -4,6 +4,9 @@ import { usersService } from '@/services/entity/users';
 import { toast } from '@/components/ui/use-toast';
 import { AUTH_KEYS } from './constants';
 import type { UserProfile } from '@/types/profile';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'useUpdateAvatar' });
 
 /**
  * הוק לעדכון אווטאר
@@ -23,14 +26,14 @@ export const useUpdateAvatar = (userId?: string) => {
       if (userId) {
         queryClient.setQueryData<UserProfile>(AUTH_KEYS.profile(userId), data);
       }
-      
+
       toast({
         title: 'התמונה עודכנה בהצלחה',
         variant: 'default',
       });
     },
     onError: (error: Error) => {
-      console.error('Error updating avatar:', error);
+      log.error('Error updating avatar', { error });
       toast({
         title: 'שגיאה בעדכון תמונה',
         description: error.message,

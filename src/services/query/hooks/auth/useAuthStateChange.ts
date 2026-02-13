@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/supabase/auth';
 import { AUTH_KEYS } from './constants';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'useAuthStateChange' });
 
 /**
  * הוק מאזין לשינויים במצב האימות
@@ -13,13 +16,13 @@ export const useAuthStateChange = () => {
   useEffect(() => {
     // הגדרת מאזין לשינויים באימות
     const unsubscribe = authService.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
+      log.debug('Auth state changed', { action: event, user: session?.user?.id });
+
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // עדכון מידע בקאש
         queryClient.setQueryData(AUTH_KEYS.session(), session);
         queryClient.setQueryData(AUTH_KEYS.user(), session?.user || null);
-        
+
         // אילוץ טעינה מחדש של פרופיל
         if (session?.user?.id) {
           queryClient.invalidateQueries({ queryKey: AUTH_KEYS.profile(session.user.id) });

@@ -43,7 +43,7 @@ export const EventTimeline = () => {
             
             <CardContent className="space-y-3">
               <div className="flex items-center text-sm text-gray-600">
-                <Clock className="h-4 w-4 ml-2" />
+                <Clock className="h-4 w-4 me-2" />
                 <span>{event.dayOfWeek || format(event.dateObj, "EEEE", { locale: he })}</span>
                 <span className="mr-2">•</span>
                 <span>{event.time}</span>
@@ -62,13 +62,13 @@ export const EventTimeline = () => {
               )}
               
               <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="h-4 w-4 ml-2" />
+                <MapPin className="h-4 w-4 me-2" />
                 <span>מגדל העמק</span>
               </div>
               
               {event.serviceLadiesAvailable && (
                 <div className="flex items-center text-sm text-green-600">
-                  <Users className="h-4 w-4 ml-2" />
+                  <Users className="h-4 w-4 me-2" />
                   <span>בנות שירות זמינות</span>
                 </div>
               )}

@@ -1,6 +1,9 @@
 
 import { useReportFormValidation as useBaseValidation } from "../useReportFormValidation";
 import { ReportFormData } from "./useReportFormData";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'useReportFormFieldValidation' });
 
 export const useReportFormFieldValidation = () => {
   const { reportFormSchema } = useBaseValidation();
@@ -10,7 +13,7 @@ export const useReportFormFieldValidation = () => {
       reportFormSchema.parse(formData);
       return true;
     } catch (error) {
-      console.log("Form validation failed:", error);
+      log.debug("Form validation failed:", { error });
       return false;
     }
   };

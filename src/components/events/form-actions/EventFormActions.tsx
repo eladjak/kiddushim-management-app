@@ -9,10 +9,10 @@ interface EventFormActionsProps {
 export const EventFormActions = ({ isLoading, onCancel }: EventFormActionsProps) => {
   return (
     <div className="flex justify-end pt-4">
-      <Button 
-        variant="outline" 
-        type="button" 
-        className="ml-2"
+      <Button
+        variant="outline"
+        type="button"
+        className="me-2"
         onClick={onCancel}
       >
         ביטול

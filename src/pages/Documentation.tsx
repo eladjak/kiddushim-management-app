@@ -16,7 +16,7 @@ const Documentation = () => {
   return (
     <div className="min-h-screen bg-secondary/20 flex flex-col" dir="rtl">
       <Navigation />
-      <main className="container mx-auto px-4 py-20 flex-grow">
+      <main id="main-content" className="container mx-auto px-4 py-20 flex-grow">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-center">תיעוד פרויקט קידושישי</h1>
           

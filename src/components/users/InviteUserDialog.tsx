@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'InviteUserDialog' });
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,7 +69,7 @@ export const InviteUserDialog = ({ onUserInvited }: InviteUserDialogProps) => {
       onUserInvited();
 
     } catch (error: any) {
-      console.error("Error inviting user:", error);
+      log.error('Error inviting user', { error });
       toast({
         variant: "destructive",
         description: `שגיאה בשליחת הזמנה: ${error.message}`,

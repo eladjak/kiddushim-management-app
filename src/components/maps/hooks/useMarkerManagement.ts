@@ -42,7 +42,7 @@ export const useMarkerManagement = ({ initialPosition, onLocationChange }: UseMa
           }
         })
         .catch(error => {
-          console.error("Error fetching address:", error);
+          log.error('Error fetching address', { error });
           setAddress(null);
           toast({
             title: "Error",
@@ -74,7 +74,7 @@ export const useMarkerManagement = ({ initialPosition, onLocationChange }: UseMa
         }
       })
       .catch(error => {
-        console.error("Error searching address:", error);
+        log.error('Error searching address', { error });
         toast({
           title: "Error",
           description: "Could not search for this address.",

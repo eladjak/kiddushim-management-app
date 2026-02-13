@@ -32,8 +32,8 @@ const Users = () => {
   return (
     <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
-      
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow">
+
+      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <UsersHeader onRefresh={handleRefresh} />
         
         {profile?.role !== "admin" ? (

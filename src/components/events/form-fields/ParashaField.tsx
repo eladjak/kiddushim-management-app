@@ -12,8 +12,7 @@ interface ParashaFieldProps {
 
 export const ParashaField = ({ value, onChange, onEventSelect }: ParashaFieldProps) => {
   const handleEventSelect = (eventId: string) => {
-    console.log("ParashaField - Event selected:", eventId);
-    
+
     // Import the function locally to avoid circular imports
     import("@/data/events/predefinedEvents2025-2026").then(({ getKidushishiEventById }) => {
       const selectedEvent = getKidushishiEventById(eventId);

@@ -2,6 +2,9 @@
 import React from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'MapDisplay' });
 
 interface MapDisplayProps {
   loading: boolean;
@@ -32,7 +35,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     try {
       mapInitialized(mapContainer.current);
     } catch (err) {
-      console.error("Error initializing map display", err);
+      log.error('Error initializing map display', { error: err });
     }
     
     // Only needed at component mount

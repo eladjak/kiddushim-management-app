@@ -28,7 +28,6 @@ export const TzoharReportForm = ({ eventId, onClose }: TzoharReportFormProps) =>
   });
 
   const handleFieldChange = (field: keyof TzoharReportData, value: any) => {
-    console.log(`TzoharReportForm - Field change: ${field} = ${value}`);
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -39,8 +38,7 @@ export const TzoharReportForm = ({ eventId, onClose }: TzoharReportFormProps) =>
     try {
       tzoharReportSchema.parse(formData);
       return true;
-    } catch (error) {
-      console.log("Tzohar form validation failed:", error);
+    } catch {
       return false;
     }
   };

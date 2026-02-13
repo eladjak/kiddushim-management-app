@@ -1,26 +1,29 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { 
+import {
   Event, EventCreate, EventUpdate, EventWithDetails,
   EventDB, EventCreateDB, EventUpdateDB, EventWithDetailsDB
 } from '@/types/events';
 import { convertDBEventToEvent, convertDBEventToEventWithDetails, convertDBEventsToEvents } from './converters';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'EventsCrud' });
 
 /**
  * קבלת כל האירועים
  */
 export async function getAllEvents(): Promise<Event[]> {
-  console.log('Fetching all events');
+  log.debug('Fetching all events');
   const { data, error } = await supabase
     .from('events')
     .select('*')
     .order('date', { ascending: true });
-    
+
   if (error) {
-    console.error('Error fetching events:', error);
+    log.error('Error fetching events', { error });
     throw error;
   }
-  
+
   // המרה מפורמט הדאטהבייס לפורמט האפליקציה
   return convertDBEventsToEvents(data as EventDB[]);
 }
@@ -29,7 +32,7 @@ export async function getAllEvents(): Promise<Event[]> {
  * קבלת אירוע לפי מזהה
  */
 export async function getEventById(id: string): Promise<EventWithDetails> {
-  console.log(`Fetching event with id: ${id}`);
+  log.debug(`Fetching event with id: ${id}`);
   const { data, error } = await supabase
     .from('events')
     .select(`
@@ -38,12 +41,12 @@ export async function getEventById(id: string): Promise<EventWithDetails> {
     `)
     .eq('id', id)
     .single();
-    
+
   if (error) {
-    console.error(`Error fetching event ${id}:`, error);
+    log.error(`Error fetching event ${id}`, { error });
     throw error;
   }
-  
+
   // המרה מפורמט הדאטהבייס לפורמט האפליקציה
   return convertDBEventToEventWithDetails(data as EventWithDetailsDB);
 }
@@ -52,8 +55,8 @@ export async function getEventById(id: string): Promise<EventWithDetails> {
  * יצירת אירוע חדש
  */
 export async function createEvent(event: EventCreate): Promise<Event> {
-  console.log('Creating new event:', event.title);
-  
+  log.debug('Creating new event', { action: 'create', title: event.title });
+
   // המרה מהפורמט הישן לפורמט הדאטהבייס
   const dbEvent: EventCreateDB = {
     title: event.title,
@@ -68,18 +71,18 @@ export async function createEvent(event: EventCreate): Promise<Event> {
     parasha: event.parasha,
     required_service_girls: event.max_participants || 0
   };
-  
+
   const { data, error } = await supabase
     .from('events')
     .insert(dbEvent)
     .select()
     .single();
-    
+
   if (error) {
-    console.error('Error creating event:', error);
+    log.error('Error creating event', { error });
     throw error;
   }
-  
+
   // המרה חזרה לפורמט האפליקציה
   return convertDBEventToEvent(data as EventDB);
 }
@@ -88,11 +91,11 @@ export async function createEvent(event: EventCreate): Promise<Event> {
  * עדכון אירוע קיים
  */
 export async function updateEvent(id: string, event: EventUpdate): Promise<Event> {
-  console.log(`Updating event ${id}:`, event);
-  
+  log.debug(`Updating event ${id}`, { action: 'update' });
+
   // המרה מהפורמט הישן לפורמט הדאטהבייס
   const dbEventUpdate: EventUpdateDB = {};
-  
+
   if (event.title) dbEventUpdate.title = event.title;
   if (event.date) dbEventUpdate.date = event.date;
   if (event.main_time) {
@@ -111,19 +114,19 @@ export async function updateEvent(id: string, event: EventUpdate): Promise<Event
   if (event.max_participants !== undefined) {
     dbEventUpdate.required_service_girls = event.max_participants;
   }
-  
+
   const { data, error } = await supabase
     .from('events')
     .update(dbEventUpdate)
     .eq('id', id)
     .select()
     .single();
-    
+
   if (error) {
-    console.error(`Error updating event ${id}:`, error);
+    log.error(`Error updating event ${id}`, { error });
     throw error;
   }
-  
+
   // המרה חזרה לפורמט האפליקציה
   return convertDBEventToEvent(data as EventDB);
 }
@@ -132,16 +135,16 @@ export async function updateEvent(id: string, event: EventUpdate): Promise<Event
  * מחיקת אירוע
  */
 export async function deleteEvent(id: string): Promise<boolean> {
-  console.log(`Deleting event ${id}`);
+  log.debug(`Deleting event ${id}`, { action: 'delete' });
   const { error } = await supabase
     .from('events')
     .delete()
     .eq('id', id);
-    
+
   if (error) {
-    console.error(`Error deleting event ${id}:`, error);
+    log.error(`Error deleting event ${id}`, { error });
     throw error;
   }
-  
+
   return true;
 }

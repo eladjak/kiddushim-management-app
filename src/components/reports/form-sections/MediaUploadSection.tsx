@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, X, Image, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'MediaUploadSection' });
 
 interface MediaUploadSectionProps {
   images: string[];
@@ -46,7 +49,7 @@ export const MediaUploadSection = ({ images, onImagesChange }: MediaUploadSectio
         description: `${uploadedUrls.length} קבצים הועלו בהצלחה`,
       });
     } catch (error) {
-      console.error('Error uploading files:', error);
+      log.error('Error uploading files', { error });
       toast({
         title: "שגיאה בהעלאה",
         description: "אירעה שגיאה בהעלאת הקבצים",

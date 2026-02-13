@@ -3,6 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { eventsService } from '@/services/entity/events';
 import { toast } from '@/hooks/use-toast';
 import { EVENTS_KEYS } from './eventQueryKeys';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'useEventQueries' });
 
 /**
  * הוק לקבלת כל האירועים
@@ -13,7 +16,7 @@ export const useEvents = (filters = '') => {
     queryFn: () => eventsService.getAll(),
     meta: {
       onError: (error: Error) => {
-        console.error('Error fetching events:', error);
+        log.error('Error fetching events', { error });
         toast({
           title: 'שגיאה בטעינת אירועים',
           description: error.message,
@@ -33,7 +36,7 @@ export const useUpcomingEvents = () => {
     queryFn: () => eventsService.getUpcoming(),
     meta: {
       onError: (error: Error) => {
-        console.error('Error fetching upcoming events:', error);
+        log.error('Error fetching upcoming events', { error });
         toast({
           title: 'שגיאה בטעינת אירועים עתידיים',
           description: error.message,
@@ -54,7 +57,7 @@ export const useEvent = (id: string) => {
     enabled: !!id,
     meta: {
       onError: (error: Error) => {
-        console.error(`Error fetching event ${id}:`, error);
+        log.error(`Error fetching event ${id}`, { error });
         toast({
           title: 'שגיאה בטעינת פרטי אירוע',
           description: error.message,

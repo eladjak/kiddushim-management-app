@@ -11,8 +11,7 @@ interface TzoharSectionProps {
 }
 
 export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) => {
-  console.log("TzoharSection - Form data received:", formData);
-  
+
   return (
     <Card>
       <CardHeader>
@@ -26,7 +25,6 @@ export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) =
             id="participants_gained"
             value={formData.participants_gained || ""}
             onChange={(e) => {
-              console.log("Participants gained change:", e.target.value);
               onFieldChange("participants_gained", e.target.value);
             }}
             placeholder="תאר בקצרה מה המשתתפים למדו, חוו או קיבלו מהאירוע..."
@@ -40,7 +38,6 @@ export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) =
             id="is_tzohar_representative"
             checked={formData.is_tzohar_representative || false}
             onCheckedChange={(checked) => {
-              console.log("Tzohar representative change:", checked);
               onFieldChange("is_tzohar_representative", checked);
             }}
           />

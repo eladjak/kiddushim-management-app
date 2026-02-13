@@ -3,13 +3,16 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ReportFormValues } from "@/types/reportFormTypes";
 import { useReportDefaultValues } from "../validation/useReportDefaultValues";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'useReportFormData' });
 
 export interface ReportFormData extends ReportFormValues {}
 
 export const useReportFormData = () => {
   const { profile } = useAuth();
   const { defaultValues } = useReportDefaultValues();
-  
+
   // יצירת default values עם נתוני המשתמש
   const getInitialFormData = (): ReportFormData => ({
     ...defaultValues,
@@ -21,7 +24,7 @@ export const useReportFormData = () => {
   const [currentTab, setCurrentTab] = useState("basic");
 
   const handleFieldChange = (field: keyof ReportFormData, value: any) => {
-    console.log(`Field change: ${field} = ${value}`);
+    log.debug(`Field change: ${field} = ${value}`);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

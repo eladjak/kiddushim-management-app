@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'MapboxTokenCheck' });
 
 interface MapboxTokenCheckProps {
   children: React.ReactNode;
@@ -32,7 +35,7 @@ export const MapboxTokenCheck: React.FC<MapboxTokenCheckProps> = ({ children }) 
       const response = await fetch(`https://api.mapbox.com/tokens/v2?access_token=${token}`);
       setTokenValid(response.ok);
     } catch (error) {
-      console.error('Error checking Mapbox token:', error);
+      log.error('Error checking Mapbox token', { error });
       setTokenValid(false);
     } finally {
       setIsChecking(false);

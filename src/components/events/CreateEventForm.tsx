@@ -28,7 +28,7 @@ export const CreateEventForm = () => {
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex items-center space-x-2 rtl:space-x-reverse mb-6">
-        <Calendar className="h-6 w-6 text-primary ml-2" />
+        <Calendar className="h-6 w-6 text-primary me-2" />
         <h2 className="text-2xl font-bold">יצירת אירוע חדש</h2>
       </div>
       

@@ -4,13 +4,16 @@ import { eventsService } from '@/services/entity/events';
 import { EventCreate, EventUpdate } from '@/types/events';
 import { toast } from '@/hooks/use-toast';
 import { EVENTS_KEYS } from './eventQueryKeys';
+import { logger } from '@/utils/logger';
+
+const log = logger.createLogger({ component: 'useEventMutations' });
 
 /**
  * הוק ליצירת אירוע חדש
  */
 export const useCreateEvent = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (newEvent: EventCreate) => eventsService.create(newEvent),
     onSuccess: () => {
@@ -22,7 +25,7 @@ export const useCreateEvent = () => {
       });
     },
     onError: (error: Error) => {
-      console.error('Error creating event:', error);
+      log.error('Error creating event', { error });
       toast({
         title: 'שגיאה ביצירת אירוע',
         description: error.message,
@@ -37,9 +40,9 @@ export const useCreateEvent = () => {
  */
 export const useUpdateEvent = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: EventUpdate }) => 
+    mutationFn: ({ id, data }: { id: string; data: EventUpdate }) =>
       eventsService.update(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: EVENTS_KEYS.detail(variables.id) });
@@ -51,7 +54,7 @@ export const useUpdateEvent = () => {
       });
     },
     onError: (error: Error) => {
-      console.error('Error updating event:', error);
+      log.error('Error updating event', { error });
       toast({
         title: 'שגיאה בעדכון אירוע',
         description: error.message,
@@ -66,7 +69,7 @@ export const useUpdateEvent = () => {
  */
 export const useDeleteEvent = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => eventsService.delete(id),
     onSuccess: (_, id) => {
@@ -79,7 +82,7 @@ export const useDeleteEvent = () => {
       });
     },
     onError: (error: Error) => {
-      console.error('Error deleting event:', error);
+      log.error('Error deleting event', { error });
       toast({
         title: 'שגיאה במחיקת אירוע',
         description: error.message,

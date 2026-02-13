@@ -59,12 +59,13 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
             placeholder=""
             className="flex-1"
           />
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="icon" 
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
             onClick={showOnMap}
             title="הצג על המפה"
+            aria-label="הצג כתובת על המפה"
           >
             <MapIcon className="h-4 w-4" />
           </Button>

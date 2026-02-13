@@ -55,11 +55,12 @@ export function EquipmentList({ equipment }: EquipmentListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => 
-                      isAdmin 
+                    onClick={() =>
+                      isAdmin
                         ? setEditingEquipment(item)
                         : setRequestChangeEquipment(item)
                     }
+                    aria-label={isAdmin ? `ערוך ${item.name}` : `בקש שינוי עבור ${item.name}`}
                   >
                     <Settings className="h-4 w-4" />
                   </Button>

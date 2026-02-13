@@ -7,6 +7,9 @@ import { X } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'EventImagesField' });
 
 interface EventImagesFieldProps {
   images: string[];
@@ -56,7 +59,7 @@ export const EventImagesField = ({ images, onImagesChange }: EventImagesFieldPro
         description: "התמונות הועלו בהצלחה",
       });
     } catch (error: any) {
-      console.error("Upload error:", error);
+      log.error('Upload error', { error });
       toast({
         variant: "destructive",
         description: `שגיאה בהעלאת התמונות: ${error.message}`,
@@ -113,6 +116,7 @@ export const EventImagesField = ({ images, onImagesChange }: EventImagesFieldPro
                 size="icon"
                 className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={() => removeImage(index)}
+                aria-label={`הסר תמונה ${index + 1}`}
               >
                 <X className="h-3 w-3" />
               </Button>

@@ -53,10 +53,10 @@ export const MobileNav = ({
   // Don't render at all if not on mobile
   if (!isMobile) return null;
 
-  // Animation classes
-  const animationClass = isOpen 
-    ? "translate-x-0 opacity-100" 
-    : "translate-x-full opacity-0";
+  // Animation classes - RTL: drawer comes from right, so negative translation when closed
+  const animationClass = isOpen
+    ? "translate-x-0 opacity-100"
+    : "-translate-x-full opacity-0";
 
   const getInitials = (name: string) => {
     return name
@@ -73,9 +73,9 @@ export const MobileNav = ({
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      <div 
+      <div
         ref={navRef}
-        className={`fixed top-0 left-0 bottom-0 right-0 w-3/4 max-w-xs bg-white shadow-xl transition-transform duration-300 transform ${animationClass} h-full`}
+        className={`fixed top-0 right-0 bottom-0 w-3/4 max-w-xs bg-white shadow-xl transition-transform duration-300 transform ${animationClass} h-full`}
       >
         <div className="flex flex-col h-full overflow-y-auto">
           <div className="p-4">
@@ -117,7 +117,7 @@ export const MobileNav = ({
                     to={item.path}
                     className="flex items-center py-2 px-3 rounded-md hover:bg-secondary text-base"
                   >
-                    {IconComponent && <IconComponent className="h-5 w-5 ml-2" />}
+                    {IconComponent && <IconComponent className="h-5 w-5 me-2" />}
                     {item.label}
                   </Link>
                 );
@@ -130,7 +130,7 @@ export const MobileNav = ({
               <div className="space-y-2">
                 <Link to="/notifications" className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-secondary">
                   <div className="flex items-center">
-                    <Bell className="h-5 w-5 ml-2" />
+                    <Bell className="h-5 w-5 me-2" />
                     <span>התראות</span>
                   </div>
                   {unreadCount > 0 && (
@@ -141,13 +141,13 @@ export const MobileNav = ({
                 </Link>
                 
                 <Link to="/profile" className="flex items-center py-2 px-3 rounded-md hover:bg-secondary">
-                  <User className="h-5 w-5 ml-2" />
+                  <User className="h-5 w-5 me-2" />
                   <span>פרופיל</span>
                 </Link>
                 
                 {isAdmin && (
                   <Link to="/users" className="flex items-center py-2 px-3 rounded-md hover:bg-secondary">
-                    <UserPlus className="h-5 w-5 ml-2" />
+                    <UserPlus className="h-5 w-5 me-2" />
                     <span>הוספת משתמש</span>
                   </Link>
                 )}
@@ -157,7 +157,7 @@ export const MobileNav = ({
                   className="w-full justify-start mt-2" 
                   onClick={onLogout}
                 >
-                  <LogOut className="h-5 w-5 ml-2" />
+                  <LogOut className="h-5 w-5 me-2" />
                   <span>התנתק</span>
                 </Button>
               </div>

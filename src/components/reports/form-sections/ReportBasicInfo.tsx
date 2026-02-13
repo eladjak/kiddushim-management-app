@@ -13,12 +13,8 @@ interface ReportBasicInfoProps {
 }
 
 export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasicInfoProps) => {
-  console.log("ReportBasicInfo - Events received:", events);
-  console.log("ReportBasicInfo - Form data received:", formData);
-  
   const handleEventDetailsLoad = (eventDetails: any) => {
-    console.log("ReportBasicInfo - Auto-filling from event details:", eventDetails);
-    
+
     // מילוי אוטומטי של כותרת הדיווח
     if (eventDetails.title && !formData.title) {
       onFieldChange("title", `דיווח ${eventDetails.title}`);
@@ -36,7 +32,6 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
       <ReportTitleField 
         value={formData.title || ""}
         onChange={(e) => {
-          console.log("Title field change:", e.target.value);
           onFieldChange("title", e.target.value);
         }}
       />
@@ -44,7 +39,6 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
       <ReportDescriptionField 
         value={formData.description || ""}
         onChange={(e) => {
-          console.log("Description field change:", e.target.value);
           onFieldChange("description", e.target.value);
         }}
       />
@@ -53,7 +47,6 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
         value={formData.event_id || ""}
         events={events}
         onChange={(value) => {
-          console.log("Event field change:", value);
           onFieldChange("event_id", value);
         }}
         onEventDetailsLoad={handleEventDetailsLoad}
@@ -62,7 +55,6 @@ export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasic
       <ReporterNameField 
         value={formData.reporter_name || ""}
         onChange={(e) => {
-          console.log("Reporter name field change:", e.target.value);
           onFieldChange("reporter_name", e.target.value);
         }}
       />

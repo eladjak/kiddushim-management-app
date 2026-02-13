@@ -27,7 +27,7 @@ export const EmptyEventsState = ({ canCreateEvents, onCreateEvent }: EmptyEvents
         
         {canCreateEvents && (
           <Button onClick={onCreateEvent} size="lg" className="px-6">
-            <Plus className="h-5 w-5 ml-2" />
+            <Plus className="h-5 w-5 me-2" />
             צור אירוע ראשון
           </Button>
         )}

@@ -11,13 +11,11 @@ interface ReportEventFieldProps {
 
 export const ReportEventField = ({ value, events, onChange, onEventDetailsLoad }: ReportEventFieldProps) => {
   const handleEventChange = (eventId: string) => {
-    console.log("ReportEventField - Event selected:", eventId);
     onChange(eventId);
-    
+
     // מחפש את פרטי האירוע ומעביר אותם להורה
     const selectedEvent = events.find(event => event.id === eventId);
     if (selectedEvent && onEventDetailsLoad) {
-      console.log("ReportEventField - Loading event details:", selectedEvent);
       onEventDetailsLoad(selectedEvent);
     }
   };

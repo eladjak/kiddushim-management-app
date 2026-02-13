@@ -2,19 +2,22 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getUpcomingKidushishiEvents } from "@/data/events/predefinedEvents2025-2026";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'useReportEvents' });
 
 export const useReportEvents = () => {
   const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     const loadEvents = async () => {
-      console.log("useReportEvents - Loading predefined events...");
-      
+      log.debug("Loading predefined events...");
+
       try {
         // טוען אירועים מוגדרים מראש במקום מהדאטהבייס
         const predefinedEvents = getUpcomingKidushishiEvents();
-        console.log("useReportEvents - Predefined events loaded:", predefinedEvents);
-        
+        log.debug("Predefined events loaded:", { count: predefinedEvents.length });
+
         // ממיר לפורמט הנדרש עבור הקומפוננט
         const formattedEvents = predefinedEvents.map(event => ({
           id: event.id,
@@ -24,9 +27,9 @@ export const useReportEvents = () => {
           hebrewDate: event.hebrewDate
         }));
 
-        console.log("useReportEvents - Formatted events:", formattedEvents);
+        log.debug("Formatted events:", { count: formattedEvents.length });
         setEvents(formattedEvents);
-        
+
         // בנוסף, טוען גם אירועים מהדאטהבייס במקרה שיש כאלה
         const { data: dbEvents, error } = await supabase
           .from("events")
@@ -34,13 +37,13 @@ export const useReportEvents = () => {
           .order("date", { ascending: false });
 
         if (!error && dbEvents && dbEvents.length > 0) {
-          console.log("useReportEvents - Database events found:", dbEvents);
+          log.debug("Database events found:", { count: dbEvents.length });
           const combinedEvents = [...formattedEvents, ...dbEvents];
           setEvents(combinedEvents);
         }
-        
+
       } catch (error) {
-        console.error("useReportEvents - Error loading events:", error);
+        log.error("Error loading events:", { error });
         // במקרה של שגיאה, נסה לטעון רק מהדאטהבייס
         const { data, error: dbError } = await supabase
           .from("events")
@@ -48,7 +51,7 @@ export const useReportEvents = () => {
           .order("date", { ascending: false });
 
         if (!dbError && data) {
-          console.log("useReportEvents - Fallback to database events:", data);
+          log.debug("Fallback to database events:", { count: data.length });
           setEvents(data);
         }
       }

@@ -7,6 +7,9 @@ import { X } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
+
+const log = logger.createLogger({ component: 'EventImagesUploadField' });
 
 interface EventImagesUploadFieldProps {
   images: string[];
@@ -46,7 +49,7 @@ export const EventImagesUploadField = ({ images, onImagesChange }: EventImagesUp
         description: "התמונות הועלו בהצלחה",
       });
     } catch (error: any) {
-      console.error("Upload error:", error);
+      log.error('Upload error', { error });
       toast({
         variant: "destructive",
         description: `שגיאה בהעלאת התמונות: ${error.message}`,
