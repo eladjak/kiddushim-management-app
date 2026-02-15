@@ -81,7 +81,7 @@ export function EditEquipmentForm({
       
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: "שגיאה בעדכון הציוד",
@@ -106,7 +106,7 @@ export function EditEquipmentForm({
       
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: "שגיאה במחיקת הציוד",

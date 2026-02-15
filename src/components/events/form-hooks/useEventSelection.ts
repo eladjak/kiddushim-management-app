@@ -2,12 +2,13 @@
 import { kidushishiEvents2025_2026, getKidushishiEventById } from "@/data/events/predefinedEvents2025-2026";
 import { PredefinedEvent } from "@/data/types/eventTypes";
 import { logger } from "@/utils/logger";
+import type { EventFormData } from "./useFormState";
 
 /**
  * הוק לטיפול בבחירת אירוע מתוך האירועים המוגדרים מראש
  */
 export const useEventSelection = (
-  setFormData: React.Dispatch<React.SetStateAction<any>>, 
+  setFormData: React.Dispatch<React.SetStateAction<EventFormData>>,
   setEventNotes: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const log = logger.createLogger({ component: 'useEventSelection' });

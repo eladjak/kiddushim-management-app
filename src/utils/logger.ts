@@ -17,7 +17,7 @@ interface LogContext {
   component?: string;
   user?: string | null;
   action?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Configuration options

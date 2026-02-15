@@ -81,7 +81,7 @@ export function PendingChangesDialog({
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
       queryClient.invalidateQueries({ queryKey: ["equipment_changes"] });
       queryClient.invalidateQueries({ queryKey: ["equipment_changes_count"] });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: "שגיאה בעדכון הבקשה",

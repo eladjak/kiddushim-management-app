@@ -49,7 +49,7 @@ export const useNotifications = (userId?: string) => {
       });
       
       return notifications;
-    } catch (error: any) {
+    } catch (error) {
       log.error("Failed to fetch notifications", { error });
       toast({
         variant: "destructive",
@@ -84,7 +84,7 @@ export const useNotifications = (userId?: string) => {
       });
       
       log.info("Notification marked as read", { notificationId });
-    } catch (error: any) {
+    } catch (error) {
       log.error("Failed to mark notification as read", { error, notificationId });
       toast({
         variant: "destructive",
@@ -123,7 +123,7 @@ export const useNotifications = (userId?: string) => {
       });
       
       log.info("All notifications marked as read");
-    } catch (error: any) {
+    } catch (error) {
       log.error("Failed to mark all notifications as read", { error });
       toast({
         variant: "destructive",

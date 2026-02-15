@@ -88,7 +88,7 @@ export const useProfileCreation = (user: User | null) => {
           window.location.reload();
         }, 1000);
       }
-    } catch (error: any) {
+    } catch (error) {
       log.error("Error creating profile manually:", { error });
       toast({
         variant: "destructive",

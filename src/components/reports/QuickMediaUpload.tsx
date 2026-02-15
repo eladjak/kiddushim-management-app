@@ -129,7 +129,7 @@ export const QuickMediaUpload = ({ onClose, onSuccess }: QuickMediaUploadProps) 
       ));
 
       return publicUrl;
-    } catch (error: any) {
+    } catch (error) {
       setFiles(prev => prev.map(f => 
         f.id === uploadFile.id 
           ? { ...f, error: error.message, progress: 0 }
@@ -195,7 +195,7 @@ export const QuickMediaUpload = ({ onClose, onSuccess }: QuickMediaUploadProps) 
 
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: error.message || "שגיאה בהעלאת הקבצים",

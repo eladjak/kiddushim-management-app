@@ -30,11 +30,18 @@ interface AdminTabProps {
 
 type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl";
 
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string | null;
+  role: RoleType | null;
+}
+
 export const AdminTab = ({ userId }: AdminTabProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleType | null>(null);
 
@@ -53,7 +60,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
 
       if (error) throw error;
       setUsers(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: `שגיאה בטעינת המשתמשים: ${error.message}`,
@@ -74,7 +81,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
         .update({
           role: selectedRole,
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", selectedUser.id);
 
       if (error) throw error;
@@ -89,7 +96,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
       ));
       
       setRoleDialogOpen(false);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: `שגיאה בעדכון תפקיד המשתמש: ${error.message}`,

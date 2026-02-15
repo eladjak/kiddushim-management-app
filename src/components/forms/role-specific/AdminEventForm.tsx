@@ -10,9 +10,32 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Settings, Users, MapPin, Clock, AlertCircle } from "lucide-react";
 
+interface AdminEventFormData {
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  setupTime: string;
+  cleanupTime: string;
+  locationName: string;
+  locationAddress: string;
+  maxParticipants: string;
+  requiredServiceGirls: number;
+  requiredVolunteers: number;
+  budget: string;
+  specialRequirements: string;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  sendNotifications: boolean;
+  priority: string;
+  category: string;
+  [key: string]: unknown;
+}
+
 interface AdminEventFormProps {
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: AdminEventFormData) => void;
+  initialData?: Partial<AdminEventFormData>;
   isLoading?: boolean;
 }
 

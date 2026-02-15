@@ -9,9 +9,28 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Heart, Users, Clock, CheckCircle } from "lucide-react";
 
+interface ServiceGirlFormData {
+  availableDates: string[];
+  preferredTimes: string[];
+  specialSkills: string;
+  limitations: string;
+  eventRating: string;
+  participantsFeedback: string;
+  organizationRating: string;
+  suggestions: string;
+  activitiesLed: string;
+  participantsCount: string;
+  challengesFaced: string;
+  successfulMoments: string;
+  materialsUsed: string;
+  notes: string;
+  canHelp: boolean;
+  [key: string]: unknown;
+}
+
 interface ServiceGirlFormProps {
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: ServiceGirlFormData) => void;
+  initialData?: Partial<ServiceGirlFormData>;
   isLoading?: boolean;
   formType?: "availability" | "feedback" | "activity_report";
 }

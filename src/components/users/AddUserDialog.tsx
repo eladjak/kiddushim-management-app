@@ -82,7 +82,7 @@ export const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
       setOpen(false);
       onUserAdded();
 
-    } catch (error: any) {
+    } catch (error) {
       log.error('Error creating user', { error });
       toast({
         variant: "destructive",

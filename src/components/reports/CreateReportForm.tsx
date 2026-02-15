@@ -94,7 +94,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
 
       onClose();
       navigate("/reports");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: error.message || "אירעה שגיאה ביצירת הדיווח",

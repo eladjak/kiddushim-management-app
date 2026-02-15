@@ -163,7 +163,7 @@ export const fetchReports = (toast: any) => async () => {
         return report;
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     log.error("Failed to fetch reports", { error });
     toast({
       variant: "destructive", 

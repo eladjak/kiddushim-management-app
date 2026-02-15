@@ -19,7 +19,7 @@ export const useReportFormSubmission = ({ reportType, onClose, onSuccess }: UseR
       showSuccessMessage();
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       if (error.message === "יש להתחבר כדי לשלוח דיווח") {
         showErrorMessage();
       } else {

@@ -22,8 +22,12 @@ import {
   BarChart3
 } from "lucide-react";
 
+interface RoleFormData {
+  [key: string]: unknown;
+}
+
 interface RoleBasedFormSelectorProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: RoleFormData) => void;
   isLoading?: boolean;
 }
 
@@ -56,7 +60,7 @@ export const RoleBasedFormSelector = ({ onSubmit, isLoading = false }: RoleBased
           description: "דיווח על זמינות לאירועים קרובים",
           icon: <Calendar className="h-5 w-5" />,
           color: "bg-pink-500",
-          component: (props: any) => <ServiceGirlForm {...props} formType="availability" />
+          component: (props: Omit<React.ComponentProps<typeof ServiceGirlForm>, 'formType'>) => <ServiceGirlForm {...props} formType="availability" />
         },
         {
           id: "service_feedback",
@@ -64,7 +68,7 @@ export const RoleBasedFormSelector = ({ onSubmit, isLoading = false }: RoleBased
           description: "משוב לאחר השתתפות באירוע",
           icon: <MessageSquare className="h-5 w-5" />,
           color: "bg-pink-400",
-          component: (props: any) => <ServiceGirlForm {...props} formType="feedback" />
+          component: (props: Omit<React.ComponentProps<typeof ServiceGirlForm>, 'formType'>) => <ServiceGirlForm {...props} formType="feedback" />
         },
         {
           id: "service_report",
@@ -72,7 +76,7 @@ export const RoleBasedFormSelector = ({ onSubmit, isLoading = false }: RoleBased
           description: "דיווח על פעילויות שהנחיתי",
           icon: <CheckCircle className="h-5 w-5" />,
           color: "bg-pink-600",
-          component: (props: any) => <ServiceGirlForm {...props} formType="activity_report" />
+          component: (props: Omit<React.ComponentProps<typeof ServiceGirlForm>, 'formType'>) => <ServiceGirlForm {...props} formType="activity_report" />
         }
       );
     }
@@ -85,7 +89,7 @@ export const RoleBasedFormSelector = ({ onSubmit, isLoading = false }: RoleBased
           description: "הרשמה ראשונית למערך ההתנדבות",
           icon: <UserPlus className="h-5 w-5" />,
           color: "bg-blue-500",
-          component: (props: any) => <VolunteerForm {...props} formType="registration" />
+          component: (props: Omit<React.ComponentProps<typeof VolunteerForm>, 'formType'>) => <VolunteerForm {...props} formType="registration" />
         },
         {
           id: "volunteer_availability",
@@ -93,7 +97,7 @@ export const RoleBasedFormSelector = ({ onSubmit, isLoading = false }: RoleBased
           description: "עדכון זמינות לאירועים",
           icon: <Clock className="h-5 w-5" />,
           color: "bg-blue-400",
-          component: (props: any) => <VolunteerForm {...props} formType="availability" />
+          component: (props: Omit<React.ComponentProps<typeof VolunteerForm>, 'formType'>) => <VolunteerForm {...props} formType="availability" />
         },
         {
           id: "volunteer_experience",
@@ -101,7 +105,7 @@ export const RoleBasedFormSelector = ({ onSubmit, isLoading = false }: RoleBased
           description: "משוב לאחר התנדבות באירוע",
           icon: <BarChart3 className="h-5 w-5" />,
           color: "bg-blue-600",
-          component: (props: any) => <VolunteerForm {...props} formType="experience_report" />
+          component: (props: Omit<React.ComponentProps<typeof VolunteerForm>, 'formType'>) => <VolunteerForm {...props} formType="experience_report" />
         }
       );
     }

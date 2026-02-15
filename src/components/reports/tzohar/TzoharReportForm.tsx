@@ -85,7 +85,7 @@ export const TzoharReportForm = ({ eventId, onClose }: TzoharReportFormProps) =>
 
       onClose();
       navigate("/reports");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: error.message || "אירעה שגיאה ביצירת הדיווח",

@@ -68,7 +68,7 @@ export const InviteUserDialog = ({ onUserInvited }: InviteUserDialogProps) => {
       setOpen(false);
       onUserInvited();
 
-    } catch (error: any) {
+    } catch (error) {
       log.error('Error inviting user', { error });
       toast({
         variant: "destructive",

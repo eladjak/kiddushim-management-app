@@ -22,7 +22,7 @@ export const useReportFormFieldValidation = () => {
     try {
       reportFormSchema.parse(formData);
       return {};
-    } catch (error: any) {
+    } catch (error) {
       const fieldErrors: Record<string, string> = {};
       if (error.errors) {
         error.errors.forEach((err: any) => {

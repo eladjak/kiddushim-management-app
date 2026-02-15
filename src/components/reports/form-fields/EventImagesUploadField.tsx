@@ -48,7 +48,7 @@ export const EventImagesUploadField = ({ images, onImagesChange }: EventImagesUp
       toast({
         description: "התמונות הועלו בהצלחה",
       });
-    } catch (error: any) {
+    } catch (error) {
       log.error('Upload error', { error });
       toast({
         variant: "destructive",

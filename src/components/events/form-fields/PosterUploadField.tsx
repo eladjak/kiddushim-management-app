@@ -56,7 +56,7 @@ export const PosterUploadField = ({ posterUrl, onPosterChange }: PosterUploadFie
       toast({
         description: "הפוסטר הועלה בהצלחה",
       });
-    } catch (error: any) {
+    } catch (error) {
       log.error('Upload error', { error });
       toast({
         variant: "destructive",

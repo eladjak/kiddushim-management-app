@@ -115,7 +115,7 @@ export function AssignUsersDialog({
 
       queryClient.invalidateQueries({ queryKey: ["event_assignments"] });
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: "שגיאה בשיוך המשתמשים",

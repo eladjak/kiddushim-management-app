@@ -104,9 +104,9 @@ export const LoginForm = ({
         navigate("/", { replace: true });
       }, 500);
       
-    } catch (error: any) {
+    } catch (error) {
       // הטיפול בשגיאות מתבצע בהוק useSignIn
-      log.error("Login submission error:", error);
+      log.error("Login submission error:", { error });
       setIsRedirecting(false);
     }
   };

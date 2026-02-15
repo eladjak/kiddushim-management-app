@@ -2,10 +2,10 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Lock } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { FieldValues, UseFormReturn } from "react-hook-form";
 
-interface PasswordFieldProps {
-  form: UseFormReturn<any>;
+interface PasswordFieldProps<T extends FieldValues = FieldValues> {
+  form: UseFormReturn<T>;
   label?: string;
 }
 

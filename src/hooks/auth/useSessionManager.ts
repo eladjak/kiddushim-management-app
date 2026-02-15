@@ -33,7 +33,7 @@ export function useSessionManager() {
       
       log.info("Session retrieved successfully");
       return data.session;
-    } catch (error: any) {
+    } catch (error) {
       log.error("Unexpected error getting session:", { error });
       setError(error.message || "שגיאה לא צפויה בקבלת נתוני משתמש");
       return null;

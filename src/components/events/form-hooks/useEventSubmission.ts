@@ -6,6 +6,7 @@ import { logger } from "@/utils/logger";
 import { createNotification } from "@/utils/notificationUtils";
 import { useCreateEvent } from "@/services/query/hooks/useEvents";
 import { EventFormData } from "./useFormState";
+import type { EventCreate } from "@/types/events";
 
 /**
  * הוק לטיפול בשליחת טופס האירוע
@@ -71,10 +72,10 @@ export const useEventSubmission = (
 
       logger.info("Submitting event data:", { event: JSON.stringify(eventData) });
 
-      createEventMutation.mutate(eventData as any, {
+      createEventMutation.mutate(eventData as EventCreate, {
         onSuccess: (data) => {
           logger.info("Event created successfully", { eventId: data.id });
-          
+
           if (user.id && data.id) {
             createNotification({
               userId: user.id,
@@ -84,16 +85,16 @@ export const useEventSubmission = (
               metadata: { eventId: data.id }
             });
           }
-          
+
           toast({
             description: "האירוע נוצר בהצלחה",
           });
-          
+
           navigate("/events");
         },
-        onError: (error: any) => {
-          logger.error("Failed to create event", { error });
-          
+        onError: (error: Error) => {
+          logger.error("Failed to create event", { error: error.message });
+
           toast({
             variant: "destructive",
             description: error.message || "אירעה שגיאה ביצירת האירוע",
@@ -103,13 +104,14 @@ export const useEventSubmission = (
           setIsLoading(false);
         }
       });
-      
-    } catch (error: any) {
-      logger.error("Failed to create event", { error });
-      
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "אירעה שגיאה ביצירת האירוע";
+      logger.error("Failed to create event", { error: message });
+
       toast({
         variant: "destructive",
-        description: error.message || "אירעה שגיאה ביצירת האירוע",
+        description: message,
       });
       setIsLoading(false);
     }

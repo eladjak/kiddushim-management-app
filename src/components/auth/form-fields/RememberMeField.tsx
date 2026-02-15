@@ -1,10 +1,10 @@
 
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UseFormReturn } from "react-hook-form";
+import { FieldValues, UseFormReturn } from "react-hook-form";
 
-interface RememberMeFieldProps {
-  form: UseFormReturn<any>;
+interface RememberMeFieldProps<T extends FieldValues = FieldValues> {
+  form: UseFormReturn<T>;
 }
 
 export const RememberMeField = ({ form }: RememberMeFieldProps) => {

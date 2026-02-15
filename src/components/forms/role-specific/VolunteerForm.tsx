@@ -10,9 +10,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Users, Star, Zap, Calendar } from "lucide-react";
 
+interface VolunteerFormData {
+  age: string;
+  school: string;
+  interests: string[];
+  experience: string;
+  availableDays: string[];
+  preferredTasks: string[];
+  canLead: boolean;
+  tasksCompleted: string;
+  helpfulnessFeedback: string;
+  learningExperience: string;
+  recommendToFriends: string;
+  notes: string;
+  excited: boolean;
+  [key: string]: unknown;
+}
+
 interface VolunteerFormProps {
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: VolunteerFormData) => void;
+  initialData?: Partial<VolunteerFormData>;
   isLoading?: boolean;
   formType?: "registration" | "availability" | "experience_report";
 }

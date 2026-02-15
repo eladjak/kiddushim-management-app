@@ -132,20 +132,21 @@ export const GoogleAuthButton = () => {
       // מעבר לכתובת האימות של Google
       window.location.href = data.url;
       
-    } catch (error: any) {
-      log.error("שגיאה באימות Google:", { error });
-      
-      let errorMessage = `שגיאה בהתחברות עם Google: ${error.message}`;
-      
-      if (error.message && error.message.includes("redirect_uri_mismatch")) {
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "שגיאה לא ידועה";
+      log.error("שגיאה באימות Google:", { error: errorMsg });
+
+      let errorMessage = `שגיאה בהתחברות עם Google: ${errorMsg}`;
+
+      if (errorMsg.includes("redirect_uri_mismatch")) {
         errorMessage = `שגיאה: אי התאמה בכתובת ההפניה. יש לוודא שהכתובת ${getRedirectUrl()} מוגדרת ב-Google Cloud Console`;
       }
-      
+
       toast({
         variant: "destructive",
         description: errorMessage,
       });
-      
+
       // איפוס המצב
       setIsLoading(false);
       authInProgressRef.current = false;

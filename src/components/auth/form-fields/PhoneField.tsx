@@ -2,10 +2,10 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Phone } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { FieldValues, UseFormReturn } from "react-hook-form";
 
-interface PhoneFieldProps {
-  form: UseFormReturn<any>;
+interface PhoneFieldProps<T extends FieldValues = FieldValues> {
+  form: UseFormReturn<T>;
   label?: string;
   placeholder?: string;
 }

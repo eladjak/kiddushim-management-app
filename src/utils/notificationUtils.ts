@@ -42,7 +42,7 @@ export const createNotification = async ({
     });
     
     return { success: true, notification: data?.[0] };
-  } catch (error: any) {
+  } catch (error) {
     log.error("Error creating notification", { error, userId });
     return { success: false, error };
   }

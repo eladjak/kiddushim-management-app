@@ -33,7 +33,7 @@ export const useUsersData = (searchTerm: string, toast: any) => {
       );
       
       setFilteredUsers(filtered);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: `שגיאה בטעינת המשתמשים: ${error.message}`,
@@ -93,7 +93,7 @@ export const useUsersData = (searchTerm: string, toast: any) => {
       );
       setFilteredUsers(filtered);
       
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: `שגיאה בעדכון תפקיד המשתמש: ${error.message}`,

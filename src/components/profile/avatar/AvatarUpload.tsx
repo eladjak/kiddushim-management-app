@@ -63,7 +63,7 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
       toast({
         description: "התמונה הועלתה בהצלחה",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: `שגיאה בהעלאת התמונה: ${error.message}`,
@@ -98,7 +98,7 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
         onAvatarChange("");
       }
       
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         description: `שגיאה בהסרת התמונה: ${error.message}`,

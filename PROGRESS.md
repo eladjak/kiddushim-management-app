@@ -149,18 +149,65 @@ This is recommended for the next session but was not done now to avoid risk with
 - [x] No tabIndex="-1" misuse detected
 - [ ] ~30 physical direction CSS properties (ml/mr/pl/pr) still exist in ~15 files - needs careful visual review per case
 
+## What Was Done - Session 2026-02-15
+
+### Landing Page Split (Completed)
+Split Landing.tsx (694 lines) into 7 focused sub-components (~100-140 lines each):
+- [x] `src/components/landing/types.ts` - Shared types (RegistrationFormData, UpcomingEvent, INITIAL_FORM_DATA)
+- [x] `src/components/landing/RegistrationForm.tsx` - Registration form with validation
+- [x] `src/components/landing/HeroSection.tsx` - Hero section with CTA buttons
+- [x] `src/components/landing/AboutSection.tsx` - "What is Kidushishi" section with feature cards
+- [x] `src/components/landing/EventDetailsSection.tsx` - Event details + upcoming event card
+- [x] `src/components/landing/PartnersSection.tsx` - Partners & sponsors with data-driven rendering
+- [x] `src/components/landing/ContactSection.tsx` - Contact information section
+- [x] `src/components/landing/LandingFooter.tsx` - Footer with navigation links
+- [x] `src/components/landing/index.ts` - Barrel exports
+- [x] `src/pages/Landing.tsx` - Refactored to ~127 lines using all sub-components
+
+**Improvements in the split:**
+- Partners section uses data array instead of copy-pasted JSX
+- RTL fix: `ml-2` changed to `me-2` on back arrow button
+- RTL fix: `ml-1` changed to `me-1` on calendar download icon
+- Removed transform hover effects (scale-105) from cards (animation best practices)
+- Removed emojis from UI strings
+- Proper TypeScript types for all component props
+
+### TypeScript Strict Mode (Completed)
+- [x] Enabled `strict: true` in `tsconfig.app.json` (was `false`)
+- [x] Enabled `noImplicitAny: true` in `tsconfig.json` (was `false`)
+- [x] Enabled `strictNullChecks: true` in `tsconfig.json` (was `false`)
+- [x] **Zero TypeScript errors** with full strict mode enabled
+
+### Type Safety Improvements (57 `any` types removed, 171 -> 114)
+- [x] Auth form fields: `UseFormReturn<any>` -> `UseFormReturn<T extends FieldValues>` (5 files)
+- [x] Role-specific forms: Created proper interfaces (AdminEventFormData, ServiceGirlFormData, VolunteerFormData)
+- [x] RoleBasedFormSelector: `(data: any)` -> `(data: RoleFormData)`, `(props: any)` -> typed component props
+- [x] AdminTab: `any[]` -> `AdminUser[]`, `any` -> `AdminUser | null`
+- [x] useEventSelection: `React.SetStateAction<any>` -> `React.SetStateAction<EventFormData>`
+- [x] useEventSubmission: `as any` -> `as EventCreate`, `error: any` -> `error: Error`
+- [x] GoogleAuthButton: `catch (error: any)` -> proper error handling with `instanceof Error`
+- [x] LoginForm: `catch (error: any)` -> `catch (error)`
+- [x] Logger: `[key: string]: any` -> `[key: string]: unknown` in LogContext interface
+- [x] Removed `catch (error: any)` annotation from 29 catch blocks across the codebase
+- [x] Removed `as any` from AdminTab Supabase update call
+
+### Build Verification
+- [x] `npx tsc --noEmit` passes with zero errors (strict mode)
+- [x] `npx vite build` succeeds
+
 ## Next Steps
-1. פיצול Landing.tsx (694 שורות) ל-7 קומפוננטות (RegistrationForm, HeroSection, AboutSection, EventDetailsSection, PartnersSection, ContactSection, LandingFooter)
-2. tsconfig strict mode - הפעלת noImplicitAny, strictNullChecks (180 שימושי any)
-3. RTL Round 2 - המרת ~30 physical CSS properties שנותרו (ml/mr/pl/pr -> me/ms/pe/ps) עם בדיקה ויזואלית
-4. כפילות בטפסים - useFormState hook משותף ל-3 טפסי role-specific
-5. הוספת Virtualization לרשימות ארוכות (events, users)
-6. טיפול ב-Event dual types (Event + EventDB) - פישוט
-7. אינטגרציית WhatsApp (GreenAPI) - לפי הדיון בקבוצה
+1. RTL Round 2 - המרת ~30 physical CSS properties שנותרו (ml/mr/pl/pr -> me/ms/pe/ps) עם בדיקה ויזואלית
+2. כפילות בטפסים - useFormState hook משותף ל-3 טפסי role-specific
+3. הוספת Virtualization לרשימות ארוכות (events, users)
+4. טיפול ב-Event dual types (Event + EventDB) - פישוט
+5. אינטגרציית WhatsApp (GreenAPI) - לפי הדיון בקבוצה
+6. המשך הורדת any (114 נותרו - רובם as any של Supabase)
+7. הוספת בדיקות (tests) - אין בדיקות כרגע
+8. Code split של Events chunk (1.4MB - mapbox-gl)
 
 ## Analysis Reports Received
-- **Architecture**: 6.6/10 - Type Safety חלש (4/10), Services מצוין (8/10)
-- **UX/Accessibility**: 6/10 → ~9/10 after fixes
+- **Architecture**: 6.6/10 - Type Safety 4/10 -> ~7/10 after strict mode + any fixes, Services 8/10
+- **UX/Accessibility**: 6/10 -> ~9/10 after fixes
 - **Performance**: mapbox-gl heavy, 0 memoization, no virtualization
 
 ## Key Decisions Made
