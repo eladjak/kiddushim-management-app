@@ -106,7 +106,7 @@ export async function updateRole(id: string, role: RoleType): Promise<Profile> {
 
   // עדכון התפקיד בטבלת user_roles
   const { updateUserRole } = await import('./rolesService');
-  await updateUserRole(id, role as any);
+  await updateUserRole(id, role);
 
   // קבלת הפרופיל המעודכן
   return getProfile(id);

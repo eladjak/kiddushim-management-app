@@ -10,10 +10,24 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 
-type EquipmentChange = Database["public"]["Tables"]["equipment_changes"]["Row"];
 type ChangeStatus = Database["public"]["Enums"]["change_status"];
+
+interface EquipmentChangeWithRelations {
+  id: string;
+  equipment_id: string | null;
+  requested_by: string;
+  change_type: Database["public"]["Enums"]["equipment_change_type"];
+  changes: Json;
+  notes: string | null;
+  status: ChangeStatus;
+  created_at: string;
+  updated_at: string;
+  approved_by: string | null;
+  equipment: { name: string } | null;
+  requested_by_profile: { name: string } | null;
+}
 
 interface PendingChangesDialogProps {
   open: boolean;
@@ -41,23 +55,26 @@ export function PendingChangesDialog({
             name
           )
         `)
-        .eq("status", "pending" as any)
+        .eq("status", "pending" as ChangeStatus)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as unknown as EquipmentChangeWithRelations[];
     },
     enabled: open,
   });
 
-  async function handleChangeStatus(changeItem: any, status: 'approved' | 'rejected') {
+  async function handleChangeStatus(changeItem: EquipmentChangeWithRelations, status: 'approved' | 'rejected') {
     try {
-      if (status === 'approved') {
+      if (status === 'approved' && changeItem.changes) {
         // First update the equipment
+        const changesObj = typeof changeItem.changes === 'object' && changeItem.changes !== null
+          ? changeItem.changes as Record<string, unknown>
+          : {};
         const { error: equipmentError } = await supabase
           .from("equipment")
-          .update(changeItem.changes as any)
-          .eq("id", changeItem.equipment_id as any);
+          .update(changesObj as Database["public"]["Tables"]["equipment"]["Update"])
+          .eq("id", changeItem.equipment_id || "");
 
         if (equipmentError) throw equipmentError;
       }
@@ -68,8 +85,8 @@ export function PendingChangesDialog({
         .update({
           status: status as ChangeStatus,
           approved_by: (await supabase.auth.getUser()).data.user?.id,
-        } as any)
-        .eq("id", changeItem.id as any);
+        })
+        .eq("id", changeItem.id);
 
       if (statusError) throw statusError;
 
@@ -103,22 +120,18 @@ export function PendingChangesDialog({
           ) : (
             <div className="space-y-4">
               {pendingChanges.map((change) => {
-                // Type guard to ensure change is not null
-                if (!change) return null;
-                
-                // Safely extract properties with type assertions
-                const changeId = (change as any)?.id;
-                if (!changeId) return null;
-                
-                // Access properties safely after type checking
-                const requestedByName = (change as any)?.requested_by?.name || 'משתמש לא ידוע';
-                const equipmentName = (change as any)?.equipment?.name || 'ציוד לא ידוע';
-                const changeNotes = (change as any)?.notes || '';
-                const changeChanges = (change as any)?.changes || {};
+                if (!change?.id) return null;
+
+                const requestedByName = change.requested_by_profile?.name || 'משתמש לא ידוע';
+                const equipmentName = change.equipment?.name || 'ציוד לא ידוע';
+                const changeNotes = change.notes || '';
+                const changeChanges = (typeof change.changes === 'object' && change.changes !== null
+                  ? change.changes
+                  : {}) as Record<string, unknown>;
 
                 return (
                   <div
-                    key={changeId}
+                    key={change.id}
                     className="p-4 border rounded-lg space-y-2"
                   >
                     <div className="flex justify-between items-start">
@@ -134,7 +147,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            handleChangeStatus(change as any, "rejected");
+                            handleChangeStatus(change, "rejected");
                           }}
                           aria-label="דחה שינוי"
                         >
@@ -145,7 +158,7 @@ export function PendingChangesDialog({
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            handleChangeStatus(change as any, "approved");
+                            handleChangeStatus(change, "approved");
                           }}
                           aria-label="אשר שינוי"
                         >
@@ -154,7 +167,7 @@ export function PendingChangesDialog({
                       </div>
                     </div>
                     <div className="bg-muted p-2 rounded text-sm space-y-1">
-                      {Object.entries(changeChanges as any).map(([key, value]) => (
+                      {Object.entries(changeChanges).map(([key, value]) => (
                         <div key={key} className="flex justify-between">
                           <span>{key}:</span>
                           <span>{String(value)}</span>

@@ -7,15 +7,16 @@ import { FeedbackSection } from "../form-sections/FeedbackSection";
 import { MediaUploadSection } from "../form-sections/MediaUploadSection";
 import { TzoharSection } from "../form-sections/TzoharSection";
 import { ReportFormData } from "@/hooks/reports/useReportFormState";
+import type { ReportEvent } from "@/hooks/reports/useReportEvents";
 
 interface ReportFormContentProps {
-  events: any[];
+  events: ReportEvent[];
   formData: ReportFormData;
   images: string[];
   currentTab: string;
   reportType: string;
   onTabChange: (tab: string) => void;
-  onFieldChange: (field: keyof ReportFormData, value: any) => void;
+  onFieldChange: (field: keyof ReportFormData, value: string | number | boolean) => void;
   onImagesChange: (images: string[]) => void;
 }
 

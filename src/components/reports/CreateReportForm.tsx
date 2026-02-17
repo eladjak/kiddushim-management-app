@@ -39,7 +39,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
     is_tzohar_representative: false,
   });
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

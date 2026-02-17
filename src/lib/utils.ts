@@ -35,28 +35,28 @@ export function sanitizeHebrew(str: string): string {
 /**
  * מעבד אובייקט לשימוש בטוח ב-API עם תווים עבריים
  */
-export function sanitizeObjectForAPI(obj: any): any {
+export function sanitizeObjectForAPI(obj: unknown): unknown {
   if (!obj) return obj;
-  
+
   // אם זה מחרוזת, נטפל בה ישירות
   if (typeof obj === 'string') {
     return sanitizeHebrew(obj);
   }
-  
+
   // אם זה מערך, נעבד כל פריט בנפרד
   if (Array.isArray(obj)) {
     return obj.map(item => sanitizeObjectForAPI(item));
   }
-  
+
   // אם זה אובייקט, נעבד כל שדה בנפרד
   if (typeof obj === 'object' && obj !== null) {
-    const result: Record<string, any> = {};
+    const result: Record<string, unknown> = {};
     Object.keys(obj).forEach(key => {
-      result[key] = sanitizeObjectForAPI(obj[key]);
+      result[key] = sanitizeObjectForAPI((obj as Record<string, unknown>)[key]);
     });
     return result;
   }
-  
+
   // ערכים אחרים (מספרים, בוליאנים וכו') נחזיר כפי שהם
   return obj;
 }
@@ -64,8 +64,8 @@ export function sanitizeObjectForAPI(obj: any): any {
 /**
  * ממיר אובייקט לפורמט URL בטוח (query params)
  */
-export function objectToUrlParams(obj: Record<string, any>): string {
-  const sanitizedObj = sanitizeObjectForAPI(obj);
+export function objectToUrlParams(obj: Record<string, unknown>): string {
+  const sanitizedObj = sanitizeObjectForAPI(obj) as Record<string, unknown>;
   const params = new URLSearchParams();
   
   Object.entries(sanitizedObj).forEach(([key, value]) => {

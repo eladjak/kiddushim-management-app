@@ -1,17 +1,17 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useUsersData } from "@/hooks/users/useUsersData";
 import { UsersTable } from "./UsersTable";
 import { UserRoleDialog } from "./UserRoleDialog";
+import type { Tables } from "@/integrations/supabase/types";
 
 export const UsersContent = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<Tables<"profiles"> | null>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   
   const { 

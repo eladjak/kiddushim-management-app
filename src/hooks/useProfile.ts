@@ -48,25 +48,22 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
       if (profileData) {
         // Type guard to check if profileData has necessary properties
         if (typeof profileData === 'object' && profileData !== null) {
-          // Type assertion to treat profileData as Profile
-          const typedProfile = profileData as any;
-          
           // Ensure all required fields have valid values
           const normalizedProfile: Profile = {
-            id: typedProfile.id,
-            name: typedProfile.name,
-            email: typedProfile.email ?? null,
-            phone: typedProfile.phone ?? null,
-            avatar_url: typedProfile.avatar_url ?? null,
-            role: typedProfile.role,
-            created_at: typedProfile.created_at,
-            updated_at: typedProfile.updated_at,
-            settings: typedProfile.settings ?? {},
-            notification_settings: typedProfile.notification_settings ?? {},
-            last_active: typedProfile.last_active ?? null,
-            language: typedProfile.language ?? 'he',
-            shabbat_mode: typedProfile.shabbat_mode ?? false,
-            encoding_support: typedProfile.encoding_support ?? true
+            id: profileData.id,
+            name: profileData.name,
+            email: profileData.email ?? null,
+            phone: profileData.phone ?? null,
+            avatar_url: profileData.avatar_url ?? null,
+            role: profileData.role,
+            created_at: profileData.created_at,
+            updated_at: profileData.updated_at,
+            settings: profileData.settings ?? {},
+            notification_settings: profileData.notification_settings ?? {},
+            last_active: profileData.last_active ?? null,
+            language: profileData.language ?? 'he',
+            shabbat_mode: profileData.shabbat_mode ?? false,
+            encoding_support: profileData.encoding_support ?? true
           };
           
           // Update profile with Google avatar if available and profile doesn't have one
@@ -100,25 +97,22 @@ export function useProfile(user: User | null, setIsLoading: (value: boolean) => 
         if (!mountedRef.current) return;
         
         if (createdProfile) {
-          // Type assertion to treat createdProfile as Profile
-          const typedProfile = createdProfile as any;
-          
           // Ensure all required fields have valid values
           const normalizedProfile: Profile = {
-            id: typedProfile.id,
-            name: typedProfile.name,
-            email: typedProfile.email ?? null,
-            phone: typedProfile.phone ?? null,
-            avatar_url: typedProfile.avatar_url ?? null,
-            role: typedProfile.role,
-            created_at: typedProfile.created_at,
-            updated_at: typedProfile.updated_at,
-            settings: typedProfile.settings ?? {},
-            notification_settings: typedProfile.notification_settings ?? {},
-            last_active: typedProfile.last_active ?? null,
-            language: typedProfile.language ?? 'he',
-            shabbat_mode: typedProfile.shabbat_mode ?? false,
-            encoding_support: typedProfile.encoding_support ?? true
+            id: createdProfile.id,
+            name: createdProfile.name,
+            email: createdProfile.email ?? null,
+            phone: createdProfile.phone ?? null,
+            avatar_url: createdProfile.avatar_url ?? null,
+            role: createdProfile.role,
+            created_at: createdProfile.created_at,
+            updated_at: createdProfile.updated_at,
+            settings: createdProfile.settings ?? {},
+            notification_settings: createdProfile.notification_settings ?? {},
+            last_active: createdProfile.last_active ?? null,
+            language: createdProfile.language ?? 'he',
+            shabbat_mode: createdProfile.shabbat_mode ?? false,
+            encoding_support: createdProfile.encoding_support ?? true
           };
           
           setProfile(normalizedProfile);

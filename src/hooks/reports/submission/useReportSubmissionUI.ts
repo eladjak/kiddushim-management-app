@@ -12,7 +12,7 @@ export const useReportSubmissionUI = () => {
     });
   };
 
-  const showErrorMessage = (error?: any) => {
+  const showErrorMessage = (error?: unknown) => {
     log.error("Error submitting report:", { error });
     toast({
       title: "שגיאה בשליחת הדיווח",

@@ -9,7 +9,7 @@ import { UserProfile } from "@/types/profile";
 interface UserProfileTabsProps {
   profile: UserProfile;
   loading: boolean;
-  onSaveProfile: (values: any) => Promise<void>;
+  onSaveProfile: (values: Record<string, unknown>) => Promise<void>;
   userId?: string; // Making userId optional
 }
 

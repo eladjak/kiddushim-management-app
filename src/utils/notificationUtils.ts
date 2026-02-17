@@ -7,7 +7,7 @@ export interface CreateNotificationParams {
   content: string;
   type: 'event' | 'assignment' | 'report' | 'system' | 'alert';
   link?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export const createNotification = async ({

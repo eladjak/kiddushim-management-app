@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import type { User } from "@supabase/supabase-js";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
-export function useAvatarUpdater(user: any) {
+export function useAvatarUpdater(user: User | null) {
   const [isUpdating, setIsUpdating] = useState(false);
   const log = logger.createLogger({ component: 'useAvatarUpdater' });
 
@@ -14,13 +16,14 @@ export function useAvatarUpdater(user: any) {
     try {
       log.info("Updating profile with Google avatar:", { userId, avatarUrl });
       
-      const { error } = await supabase
-        .from("profiles")
-        .update({
+      const updateData: TablesUpdate<"profiles"> = {
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString()
-        } as any)
-        .eq("id", userId as any);
+        };
+      const { error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", userId);
       
       if (error) {
         log.error("Error updating avatar from Google:", { error });
@@ -49,13 +52,14 @@ export function useAvatarUpdater(user: any) {
     try {
       log.info("Updating avatar:", { userId: user.id, url });
       
-      const { error } = await supabase
-        .from("profiles")
-        .update({
+      const updateData: TablesUpdate<"profiles"> = {
           avatar_url: url,
           updated_at: new Date().toISOString()
-        } as any)
-        .eq("id", user.id as any);
+        };
+      const { error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", user.id);
       
       if (error) {
         log.error("Error updating avatar:", { error });

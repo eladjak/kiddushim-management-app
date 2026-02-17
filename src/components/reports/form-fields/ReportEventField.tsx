@@ -1,12 +1,13 @@
 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { ReportEvent } from "@/hooks/reports/useReportEvents";
 
 interface ReportEventFieldProps {
   value: string;
-  events: any[];
+  events: ReportEvent[];
   onChange: (value: string) => void;
-  onEventDetailsLoad?: (eventDetails: any) => void;
+  onEventDetailsLoad?: (eventDetails: ReportEvent) => void;
 }
 
 export const ReportEventField = ({ value, events, onChange, onEventDetailsLoad }: ReportEventFieldProps) => {

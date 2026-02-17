@@ -15,7 +15,7 @@ import { Report, ReportContent } from "./ReportsList";
 interface SupabaseReport {
   id: string;
   type: string;
-  content: any;
+  content: ReportContent;
   event_id: string;
   reporter_id: string;
   created_at: string;

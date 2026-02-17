@@ -17,7 +17,7 @@ export interface ReportContent {
   status: string;
   severity?: string;
   description?: string;
-  [key: string]: any; // For any other fields that might be in the content
+  [key: string]: unknown; // For any other fields that might be in the content
 }
 
 export interface Report {
@@ -39,7 +39,7 @@ export interface Report {
 interface SupabaseReport {
   id: string;
   type: string;
-  content: any;
+  content: ReportContent;
   event_id: string;
   reporter_id: string;
   created_at: string;

@@ -1,13 +1,20 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
 
 type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl";
 
-export const useUsersData = (searchTerm: string, toast: any) => {
+type ProfileRow = Tables<"profiles">;
+
+interface ToastFn {
+  (props: { variant?: "destructive"; description: string }): void;
+}
+
+export const useUsersData = (searchTerm: string, toast: ToastFn) => {
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<ProfileRow[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<ProfileRow[]>([]);
 
   // Fetch users
   const fetchUsers = useCallback(async () => {
@@ -19,9 +26,8 @@ export const useUsersData = (searchTerm: string, toast: any) => {
         .order("name");
 
       if (error) throw error;
-      
-      // Safe data access with type assertion
-      const usersData = data as any[] || [];
+
+      const usersData = data || [];
       setUsers(usersData);
 
       // Apply initial filtering with safe property access
@@ -31,12 +37,13 @@ export const useUsersData = (searchTerm: string, toast: any) => {
           user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user?.phone?.includes(searchTerm)
       );
-      
+
       setFilteredUsers(filtered);
     } catch (error) {
+      const message = error instanceof Error ? error.message : "שגיאה לא ידועה";
       toast({
         variant: "destructive",
-        description: `שגיאה בטעינת המשתמשים: ${error.message}`,
+        description: `שגיאה בטעינת המשתמשים: ${message}`,
       });
     } finally {
       setLoading(false);
@@ -60,30 +67,29 @@ export const useUsersData = (searchTerm: string, toast: any) => {
   const updateUserRole = async (userId: string, role: RoleType) => {
     try {
       setLoading(true);
-      
-      // Use type assertion for update data
-      const updateData = {
+
+      const updateData: TablesUpdate<"profiles"> = {
         role: role,
         updated_at: new Date().toISOString(),
-      } as any;
-      
+      };
+
       const { error } = await supabase
         .from("profiles")
         .update(updateData)
-        .eq("id", userId as any);
+        .eq("id", userId);
 
       if (error) throw error;
-      
+
       toast({
         description: "תפקיד המשתמש עודכן בהצלחה",
       });
-      
+
       // Update local state
-      const updatedUsers = users.map(u => 
+      const updatedUsers = users.map(u =>
         u.id === userId ? { ...u, role: role } : u
       );
-      setUsers(updatedUsers);
-      
+      setUsers(updatedUsers as ProfileRow[]);
+
       // Re-apply filtering
       const filtered = updatedUsers.filter(
         (user) =>
@@ -91,12 +97,13 @@ export const useUsersData = (searchTerm: string, toast: any) => {
           user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user?.phone?.includes(searchTerm)
       );
-      setFilteredUsers(filtered);
-      
+      setFilteredUsers(filtered as ProfileRow[]);
+
     } catch (error) {
+      const message = error instanceof Error ? error.message : "שגיאה לא ידועה";
       toast({
         variant: "destructive",
-        description: `שגיאה בעדכון תפקיד המשתמש: ${error.message}`,
+        description: `שגיאה בעדכון תפקיד המשתמש: ${message}`,
       });
     } finally {
       setLoading(false);

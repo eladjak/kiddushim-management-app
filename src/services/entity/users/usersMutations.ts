@@ -61,7 +61,7 @@ export async function update(id: string, userData: UserUpdate) {
   log.debug(`Updating user ${id}`, { action: 'update' });
 
   // המרה משדות User לשדות המתאימים לטבלת profiles
-  const profileData: Record<string, any> = {};
+  const profileData: Record<string, unknown> = {};
 
   if (userData.full_name) profileData.name = userData.full_name;
   if (userData.email) profileData.email = userData.email;

@@ -11,7 +11,7 @@ export async function handleAuthCode(
   code: string, 
   source: string,
   navigate: NavigateFunction, 
-  toastHelper: any
+  toastHelper: { toast: (props: { variant?: "destructive"; description: string }) => void }
 ): Promise<boolean> {
   const log = logger.createLogger({ component: 'handleAuthCode' });
   

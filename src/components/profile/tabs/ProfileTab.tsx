@@ -27,7 +27,7 @@ import { AvatarUpload } from "../avatar/AvatarUpload";
 interface ProfileTabProps {
   profile: UserProfile;
   loading: boolean;
-  onSaveProfile: (values: any) => Promise<void>;
+  onSaveProfile: (values: Record<string, unknown>) => Promise<void>;
 }
 
 const profileFormSchema = z.object({

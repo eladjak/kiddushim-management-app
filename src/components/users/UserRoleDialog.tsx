@@ -19,10 +19,12 @@ import { useState, useEffect } from "react";
 
 type RoleType = "admin" | "coordinator" | "youth_volunteer" | "service_girl";
 
+import type { Tables } from "@/integrations/supabase/types";
+
 interface UserRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedUser: any;
+  selectedUser: Tables<"profiles"> | null;
   onSave: (userId: string, role: RoleType) => Promise<void>;
   loading: boolean;
 }

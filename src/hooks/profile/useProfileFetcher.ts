@@ -18,7 +18,7 @@ export function useProfileFetcher(user: User | null, setIsLoading: (value: boole
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId as any)
+        .eq("id", userId)
         .maybeSingle();
 
       if (error) {

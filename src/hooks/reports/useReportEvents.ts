@@ -6,8 +6,16 @@ import { logger } from "@/utils/logger";
 
 const log = logger.createLogger({ component: 'useReportEvents' });
 
+export interface ReportEvent {
+  id: string;
+  title: string;
+  date: string;
+  parasha?: string;
+  hebrewDate?: string;
+}
+
 export const useReportEvents = () => {
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<ReportEvent[]>([]);
 
   useEffect(() => {
     const loadEvents = async () => {

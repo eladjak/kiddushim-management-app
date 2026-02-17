@@ -115,7 +115,7 @@ const Equipment = () => {
       });
       setIsAddDialogOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       log.error("Failed to add equipment", { error });
       toast({
         variant: "destructive",

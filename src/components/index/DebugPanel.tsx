@@ -8,7 +8,7 @@ interface DebugPanelProps {
     hasSession: boolean;
     userId: string | null;
     loading: boolean;
-    error: any | null;
+    error: Error | null;
   };
   onSignOut: () => void;
   onExitDebugMode: () => void;

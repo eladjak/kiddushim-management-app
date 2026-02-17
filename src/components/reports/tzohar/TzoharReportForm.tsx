@@ -27,7 +27,7 @@ export const TzoharReportForm = ({ eventId, onClose }: TzoharReportFormProps) =>
     reporter_name: profile?.name || "",
   });
 
-  const handleFieldChange = (field: keyof TzoharReportData, value: any) => {
+  const handleFieldChange = (field: keyof TzoharReportData, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

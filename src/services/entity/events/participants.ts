@@ -80,7 +80,7 @@ export async function getParticipants(eventId: string) {
     }
 
     // המרה לפורמט האחיד
-    return data.map((assignment: any) => ({
+    return data.map((assignment: Record<string, unknown> & { id: string; event_id: string; user_id: string; status: string | null; created_at: string; profiles?: { id: string; name: string; avatar_url: string | null } }) => ({
       id: assignment.id,
       event_id: assignment.event_id,
       user_id: assignment.user_id,

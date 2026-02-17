@@ -6,7 +6,7 @@ import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface EventRatingSectionProps {
   formData: ReportFormData;
-  onFieldChange: (field: keyof ReportFormData, value: any) => void;
+  onFieldChange: (field: keyof ReportFormData, value: string | number | boolean) => void;
 }
 
 export const EventRatingSection = ({ formData, onFieldChange }: EventRatingSectionProps) => {

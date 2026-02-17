@@ -6,7 +6,7 @@ import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface ParticipantsSectionProps {
   formData: ReportFormData;
-  onFieldChange: (field: keyof ReportFormData, value: any) => void;
+  onFieldChange: (field: keyof ReportFormData, value: string | number | boolean) => void;
 }
 
 export const ParticipantsSection = ({ formData, onFieldChange }: ParticipantsSectionProps) => {

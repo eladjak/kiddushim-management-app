@@ -2,6 +2,7 @@
 import { useReportFormValidation as useBaseValidation } from "../useReportFormValidation";
 import { ReportFormData } from "./useReportFormData";
 import { logger } from "@/utils/logger";
+import { z } from "zod";
 
 const log = logger.createLogger({ component: 'useReportFormFieldValidation' });
 
@@ -24,8 +25,8 @@ export const useReportFormFieldValidation = () => {
       return {};
     } catch (error) {
       const fieldErrors: Record<string, string> = {};
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
           if (err.path && err.path.length > 0) {
             fieldErrors[err.path[0]] = err.message;
           }

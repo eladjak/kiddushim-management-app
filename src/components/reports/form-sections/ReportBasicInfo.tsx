@@ -4,16 +4,17 @@ import { ReportDescriptionField } from "../form-fields/ReportDescriptionField";
 import { ReportEventField } from "../form-fields/ReportEventField";
 import { ReporterNameField } from "../form-fields/ReporterNameField";
 import { ReportFormData } from "@/hooks/reports/useReportFormState";
+import type { ReportEvent } from "@/hooks/reports/useReportEvents";
 
 interface ReportBasicInfoProps {
-  events: any[];
+  events: ReportEvent[];
   formData: ReportFormData;
   reportType: string;
-  onFieldChange: (field: keyof ReportFormData, value: any) => void;
+  onFieldChange: (field: keyof ReportFormData, value: string | number | boolean) => void;
 }
 
 export const ReportBasicInfo = ({ events, formData, onFieldChange }: ReportBasicInfoProps) => {
-  const handleEventDetailsLoad = (eventDetails: any) => {
+  const handleEventDetailsLoad = (eventDetails: ReportEvent) => {
 
     // מילוי אוטומטי של כותרת הדיווח
     if (eventDetails.title && !formData.title) {

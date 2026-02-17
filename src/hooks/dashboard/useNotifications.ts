@@ -29,7 +29,7 @@ export const useNotifications = (userId?: string) => {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", userId as any)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
       if (error) {
@@ -70,9 +70,9 @@ export const useNotifications = (userId?: string) => {
       
       const { error } = await supabase
         .from("notifications")
-        .update({ read: true } as any)
-        .eq("id", notificationId as any)
-        .eq("user_id", userId as any);
+        .update({ read: true })
+        .eq("id", notificationId)
+        .eq("user_id", userId);
       
       if (error) {
         throw error;
@@ -104,9 +104,9 @@ export const useNotifications = (userId?: string) => {
       
       const { error } = await supabase
         .from("notifications")
-        .update({ read: true } as any)
-        .eq("user_id", userId as any)
-        .eq("read", false as any);
+        .update({ read: true })
+        .eq("user_id", userId)
+        .eq("read", false);
       
       if (error) {
         throw error;

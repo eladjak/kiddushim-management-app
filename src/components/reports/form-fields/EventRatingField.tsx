@@ -1,10 +1,10 @@
 
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, FieldValues } from "react-hook-form";
 import { Slider } from "@/components/ui/slider";
 
 interface EventRatingFieldProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<FieldValues>;
   name: string;
   label: string;
 }

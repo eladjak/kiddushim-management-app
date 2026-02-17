@@ -32,7 +32,7 @@ export interface User {
 // פרופיל משתמש מורחב
 export interface UserProfile extends User {
   bio?: string;
-  preferences?: Record<string, any>;
+  preferences?: Record<string, unknown>;
   emergency_contact?: {
     name: string;
     phone: string;
@@ -59,6 +59,6 @@ export interface UserPermission {
   user_id: string;
   resource: string;
   action: 'create' | 'read' | 'update' | 'delete' | 'manage';
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
   created_at: string;
 } 

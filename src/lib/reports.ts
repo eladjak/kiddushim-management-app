@@ -5,10 +5,10 @@ import { logger } from "@/utils/logger";
 /**
  * Encode content for storage in reports table
  */
-export function encodeContentForStorage(content: Record<string, any>) {
+export function encodeContentForStorage(content: Record<string, unknown>) {
   try {
     // עיבוד כל מחרוזת בתוכן להבטחת תאימות עם API
-    const processedContent: Record<string, any> = {};
+    const processedContent: Record<string, unknown> = {};
     
     for (const [key, value] of Object.entries(content)) {
       // אם הערך הוא מחרוזת, נטפל בו בצורה בטוחה
@@ -37,11 +37,11 @@ export function encodeContentForStorage(content: Record<string, any>) {
 /**
  * Decode content from storage in reports table
  */
-export function decodeContentFromStorage(content: any) {
+export function decodeContentFromStorage(content: unknown): Record<string, unknown> | string {
   // If content is already in the right format, return it
   if (typeof content === 'object' && content !== null) {
     // עיבוד כל שדה בנפרד
-    const processedContent: Record<string, any> = {};
+    const processedContent: Record<string, unknown> = {};
     
     for (const [key, value] of Object.entries(content)) {
       // אם הערך הוא מחרוזת, ננסה לפענח אותו במידת הצורך
@@ -109,7 +109,11 @@ export function decodeContentFromStorage(content: any) {
 /**
  * Fetch reports from the database
  */
-export const fetchReports = (toast: any) => async () => {
+interface ToastFn {
+  (props: { variant?: "destructive"; description: string }): void;
+}
+
+export const fetchReports = (toast: ToastFn) => async () => {
   const log = logger.createLogger({ component: 'fetchReports' });
   
   try {
@@ -131,13 +135,12 @@ export const fetchReports = (toast: any) => async () => {
     log.info(`Fetched ${data?.length || 0} reports`);
     
     // Safely process and return the reports data with type assertions
-    const safeData = (data || []) as any[];
-    
+    const safeData = data || [];
+
     // Process each report to ensure content is properly formatted
     return safeData.map(report => {
       try {
-        // Use type assertion for safer access
-        const reportData = report as any;
+        const reportData = report;
         
         // עיבוד תוכן הדיווח
         let processedContent = reportData.content;
@@ -165,9 +168,10 @@ export const fetchReports = (toast: any) => async () => {
     });
   } catch (error) {
     log.error("Failed to fetch reports", { error });
+    const message = error instanceof Error ? error.message : "שגיאה לא ידועה";
     toast({
-      variant: "destructive", 
-      description: `שגיאה בטעינת הדיווחים: ${error.message}`
+      variant: "destructive",
+      description: `שגיאה בטעינת הדיווחים: ${message}`
     });
     return [];
   }

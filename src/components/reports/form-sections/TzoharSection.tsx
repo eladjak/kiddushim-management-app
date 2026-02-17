@@ -7,7 +7,7 @@ import { ReportFormData } from "@/hooks/reports/useReportFormState";
 
 interface TzoharSectionProps {
   formData: ReportFormData;
-  onFieldChange: (field: keyof ReportFormData, value: any) => void;
+  onFieldChange: (field: keyof ReportFormData, value: string | number | boolean) => void;
 }
 
 export const TzoharSection = ({ formData, onFieldChange }: TzoharSectionProps) => {

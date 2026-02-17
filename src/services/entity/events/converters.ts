@@ -17,7 +17,7 @@ export function convertDBEventToEvent(dbEvent: EventDB): Event {
     main_time: dbEvent.main_time,
     time_start: dbEvent.main_time,
     time_end: dbEvent.cleanup_time,
-    status: (dbEvent.status as any) || 'draft',
+    status: dbEvent.status || 'draft',
     type: EventType.KIDUSH, // Default type
     max_participants: dbEvent.required_service_girls || 0,
     created_at: dbEvent.created_at,

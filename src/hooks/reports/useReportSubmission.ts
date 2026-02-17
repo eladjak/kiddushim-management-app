@@ -55,7 +55,7 @@ export const useReportSubmission = () => {
         event_id: values.event_id || 'no-events',
         reporter_id: userId,
         type: reportType,
-      } as any;
+      };
 
       // Log the data being sent for debugging
       log.info("Submitting Tzohar report data:", { report: JSON.stringify(reportData) });
@@ -70,10 +70,10 @@ export const useReportSubmission = () => {
         throw error;
       }
 
-      const reportId = data && data.length > 0 ? (data[0] as any).id : undefined;
+      const reportId = data && data.length > 0 ? data[0].id : undefined;
       log.info("Tzohar report submitted successfully:", { reportId });
 
-      return data?.[0] as any;
+      return data?.[0];
     } catch (error) {
       log.error("Error in submitReport:", { error });
       throw error;

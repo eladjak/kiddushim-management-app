@@ -9,7 +9,7 @@ export interface DirectSessionInfo {
   hasSession: boolean;
   userId: string | null;
   loading: boolean;
-  error: any | null;
+  error: Error | null;
 }
 
 export function useDirectSessionCheck(user: User | null) {
@@ -60,7 +60,7 @@ export function useDirectSessionCheck(user: User | null) {
           hasSession: false,
           userId: null,
           loading: false,
-          error: err,
+          error: err instanceof Error ? err : new Error(String(err)),
         });
       }
     }

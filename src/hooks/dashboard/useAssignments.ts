@@ -16,7 +16,7 @@ export const useAssignments = (userId?: string) => {
         const { data, error } = await supabase
           .from('event_assignments')
           .select('*')
-          .eq('user_id', userId as any)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;

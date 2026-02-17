@@ -12,7 +12,7 @@ export interface Notification {
   content: string;
   type: NotificationType;
   link?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   read: boolean;
   created_at: string;
 }
@@ -30,7 +30,7 @@ export interface CreateNotificationParams {
   content: string;
   type: NotificationType;
   link?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   read?: boolean;
 }
 

@@ -30,7 +30,7 @@ export function useCallbackCleanup() {
   }, [navigate, log]);
 
   // פונקציה לטיפול בשגיאות חמורות
-  const handleCriticalError = (error: any) => {
+  const handleCriticalError = (error: unknown) => {
     log.error("🚨 שגיאה חמורה בקולבק, מנקה ומפנה מחדש:", error);
     
     try {

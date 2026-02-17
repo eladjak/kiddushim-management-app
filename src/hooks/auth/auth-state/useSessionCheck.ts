@@ -22,7 +22,7 @@ export function useSessionCheck() {
       }
     };
     
-    const updateSession = (session: any) => {
+    const updateSession = (session: import("@supabase/supabase-js").Session | null) => {
       if (typeof auth.setSession === 'function') {
         auth.setSession(session);
       }

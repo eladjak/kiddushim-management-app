@@ -23,7 +23,7 @@ export const useReportFormData = () => {
   const [images, setImages] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState("basic");
 
-  const handleFieldChange = (field: keyof ReportFormData, value: any) => {
+  const handleFieldChange = (field: keyof ReportFormData, value: ReportFormData[keyof ReportFormData]) => {
     log.debug(`Field change: ${field} = ${value}`);
     setFormData(prev => ({ ...prev, [field]: value }));
   };

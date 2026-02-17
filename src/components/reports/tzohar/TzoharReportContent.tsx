@@ -10,15 +10,16 @@ import { FeedbackField } from "../form-fields/FeedbackField";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ReportEvent } from "@/hooks/reports/useReportEvents";
 
 interface TzoharReportContentProps {
-  events: any[];
+  events: ReportEvent[];
   formData: TzoharReportData;
-  onFieldChange: (field: keyof TzoharReportData, value: any) => void;
+  onFieldChange: (field: keyof TzoharReportData, value: string | number | boolean) => void;
 }
 
 export const TzoharReportContent = ({ events, formData, onFieldChange }: TzoharReportContentProps) => {
-  const handleEventDetailsLoad = (eventDetails: any) => {
+  const handleEventDetailsLoad = (eventDetails: ReportEvent) => {
 
     if (eventDetails.title && !formData.title) {
       onFieldChange("title", `דיווח ${eventDetails.title}`);

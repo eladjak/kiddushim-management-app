@@ -39,7 +39,7 @@ export function AssignUsersDialog({
       const { data, error } = await supabase
         .from("profiles")
         .select("id, name")
-        .eq("role", role as any);
+        .eq("role", role);
 
       if (error) throw error;
       return data || [];
@@ -54,8 +54,8 @@ export function AssignUsersDialog({
       const { data, error } = await supabase
         .from("event_assignments")
         .select("user_id")
-        .eq("event_id", eventId as any)
-        .eq("role", role as any);
+        .eq("event_id", eventId)
+        .eq("role", role);
 
       if (error) throw error;
       return data || [];
@@ -89,13 +89,13 @@ export function AssignUsersDialog({
         .match({
           event_id: eventId,
           role: role,
-        } as any);
+        });
 
       if (deleteError) throw deleteError;
 
       // Then, insert new assignments if there are any selected users
       if (selectedUsers.length > 0) {
-        const assignments = selectedUsers.map((userId) => ({
+        const assignments: Database["public"]["Tables"]["event_assignments"]["Insert"][] = selectedUsers.map((userId) => ({
           event_id: eventId,
           user_id: userId,
           role: role,
@@ -104,7 +104,7 @@ export function AssignUsersDialog({
 
         const { error: insertError } = await supabase
           .from("event_assignments")
-          .insert(assignments as any);
+          .insert(assignments);
 
         if (insertError) throw insertError;
       }
@@ -136,7 +136,7 @@ export function AssignUsersDialog({
             <>
               {roleUsers && roleUsers.length > 0 ? (
                 <div className="space-y-2">
-                  {roleUsers.map((user: any) => {
+                  {roleUsers.map((user) => {
                     // Ensure user has id and name properties
                     if (!user || typeof user !== 'object') return null;
                     const userId = user.id;

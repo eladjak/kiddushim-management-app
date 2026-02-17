@@ -16,7 +16,7 @@ import { UserProfile } from "@/types/profile";
 interface SettingsTabProps {
   profile: UserProfile;
   loading: boolean;
-  onSaveProfile: (values: any) => Promise<void>;
+  onSaveProfile: (values: Record<string, unknown>) => Promise<void>;
 }
 
 const settingsFormSchema = z.object({

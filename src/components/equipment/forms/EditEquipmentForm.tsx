@@ -70,8 +70,8 @@ export function EditEquipmentForm({
       // Use explicit casting for Supabase
       const { error } = await supabase
         .from("equipment")
-        .update(updateValues as any)
-        .eq("id", equipment.id as any);
+        .update(updateValues)
+        .eq("id", equipment.id);
 
       if (error) throw error;
 
@@ -96,7 +96,7 @@ export function EditEquipmentForm({
       const { error } = await supabase
         .from("equipment")
         .delete()
-        .eq("id", equipment.id as any);
+        .eq("id", equipment.id);
 
       if (error) throw error;
 

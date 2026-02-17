@@ -7,14 +7,14 @@ export type LogContext = {
   component?: string;
   user?: string;
   action?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export type LoggerType = {
-  debug: (message: string, context?: LogContext) => any;
-  info: (message: string, context?: LogContext) => any;
-  warn: (message: string, context?: LogContext) => any;
-  error: (message: string, context?: LogContext) => any;
+  debug: (message: string, context?: LogContext) => void;
+  info: (message: string, context?: LogContext) => void;
+  warn: (message: string, context?: LogContext) => void;
+  error: (message: string, context?: LogContext) => void;
   createLogger: (options: { component: string }) => LoggerType;
 };
 
@@ -36,7 +36,7 @@ export interface DebugPanelProps {
     hasSession: boolean;
     userId: string | null;
     loading: boolean;
-    error: any | null;
+    error: Error | null;
   };
   onSignOut: () => void;
   onExitDebugMode: () => void;
