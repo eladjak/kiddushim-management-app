@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
+import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { HelpButton } from "@/components/onboarding/HelpButton";
 import { useOnboarding } from "@/hooks/onboarding/useOnboarding";
@@ -49,7 +50,12 @@ export const Dashboard = () => {
           <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">
             שלום {profile?.name || 'משתמש'}
           </h1>
-          
+
+          <DashboardSummaryCards
+            events={eventsData || []}
+            isLoading={eventsLoading}
+          />
+
           <StatusBanner isAllDataLoaded={isAllDataLoaded} />
           
           {isMobile ? (

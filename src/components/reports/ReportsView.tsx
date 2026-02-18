@@ -10,6 +10,7 @@ import { ReportsEmptyState } from "./ReportsEmptyState";
 import { ReportsLoading } from "./ReportsLoading";
 import { ReportsError } from "./ReportsError";
 import { Report, ReportContent } from "./ReportsList";
+import { ExportButton } from "./ExportButton";
 
 // Define a type for reports coming from Supabase
 interface SupabaseReport {
@@ -79,29 +80,34 @@ export const ReportsView = ({ activeTab, viewMode }: ReportsViewProps) => {
   }
 
   return (
-    <Dialog>
-      {viewMode === "grid" ? (
-        <ReportsGrid 
-          reports={filteredReports} 
-          activeTab={activeTab}
-          formatReportType={formatReportType}
-          onViewReport={setSelectedReport}
-        />
-      ) : (
-        <ReportsTable 
-          reports={filteredReports} 
-          activeTab={activeTab}
-          formatReportType={formatReportType}
-          onViewReport={setSelectedReport}
-        />
-      )}
-      
-      {selectedReport && (
-        <ReportDetail 
-          report={selectedReport} 
-          formatReportType={formatReportType} 
-        />
-      )}
-    </Dialog>
+    <>
+      <div className="flex justify-end mb-3">
+        <ExportButton reports={filteredReports} />
+      </div>
+      <Dialog>
+        {viewMode === "grid" ? (
+          <ReportsGrid
+            reports={filteredReports}
+            activeTab={activeTab}
+            formatReportType={formatReportType}
+            onViewReport={setSelectedReport}
+          />
+        ) : (
+          <ReportsTable
+            reports={filteredReports}
+            activeTab={activeTab}
+            formatReportType={formatReportType}
+            onViewReport={setSelectedReport}
+          />
+        )}
+
+        {selectedReport && (
+          <ReportDetail
+            report={selectedReport}
+            formatReportType={formatReportType}
+          />
+        )}
+      </Dialog>
+    </>
   );
 };
