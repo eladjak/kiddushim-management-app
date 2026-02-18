@@ -1,5 +1,5 @@
 
-import { Event } from "@/types/events";
+import type { Event } from "@/types/events";
 
 // טיפוס עבור אירועים מוגדרים מראש לתכנון
 export interface PredefinedEvent {
@@ -19,28 +19,30 @@ export interface PredefinedEvent {
 // המרה מאירוע מוגדר מראש לאירוע רגיל
 export function convertPredefinedToEvent(predefined: PredefinedEvent): Event {
   const now = new Date().toISOString();
-  
+
   return {
     id: predefined.id,
     title: `קידושישי - ${predefined.parasha}`,
-    description: `קבלת שבת קהילתית - פרשת ${predefined.parasha}`,
     date: predefined.date,
-    time: predefined.time,
+    setup_time: predefined.setupTime,
     main_time: predefined.mainTime,
-    setupTime: predefined.setupTime,
-    location: "מגדל העמק",
+    cleanup_time: predefined.mainTime,
     location_name: "מגדל העמק",
-    hebrewDate: predefined.hebrewDate,
-    parasha: predefined.parasha,
-    dayOfWeek: predefined.dayOfWeek,
-    serviceLadiesAvailable: predefined.serviceLadiesAvailable,
-    notes: predefined.notes,
+    location_address: "",
     created_at: now,
     updated_at: now,
     created_by: "system",
     status: "draft",
-    time_start: predefined.mainTime,
-    time_end: predefined.mainTime,
-    type: "kidush"
+    parasha: predefined.parasha,
+    // UI-only fields for display
+    description: `קבלת שבת קהילתית - פרשת ${predefined.parasha}`,
+    time: predefined.time,
+    location: "מגדל העמק",
+    hebrewDate: predefined.hebrewDate,
+    dayOfWeek: predefined.dayOfWeek,
+    serviceLadiesAvailable: predefined.serviceLadiesAvailable,
+    notes: predefined.notes,
+    setupTime: predefined.setupTime,
+    type: "kidush",
   };
 }

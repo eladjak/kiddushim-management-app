@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -71,23 +71,23 @@ export const ReportsList = ({ activeTab }: ReportsListProps) => {
     }
   });
 
-  // Filter reports based on active tab
-  const filteredReports = reports?.filter(report => {
+  // Filter reports based on active tab (memoized to avoid re-computation)
+  const filteredReports = useMemo(() => reports?.filter(report => {
     if (activeTab === "event_reports") return report.type === "event_report";
     if (activeTab === "feedback") return report.type === "feedback";
     if (activeTab === "issues") return report.type === "issue";
     return true;
-  });
+  }), [reports, activeTab]);
 
-  // Format report type in Hebrew
-  const formatReportType = (type: string) => {
+  // Format report type in Hebrew (memoized callback for child components)
+  const formatReportType = useCallback((type: string) => {
     switch (type) {
       case "event_report": return "דיווח אירוע";
       case "feedback": return "משוב";
       case "issue": return "תקלה";
       default: return type;
     }
-  };
+  }, []);
 
   if (isLoading) {
     return <ReportsLoading />;

@@ -13,16 +13,16 @@ export const eventsService = {
   create: createEvent,
   update: updateEvent,
   delete: deleteEvent,
-  
+
   // Upcoming Events
   getUpcoming: getUpcomingEvents,
-  
+
   // Participants
   addParticipant,
   removeParticipant,
   getParticipants,
-  
-  // Converters
+
+  // Converters (backward compatibility)
   convertDBEventToEvent,
   convertDBEventToEventWithDetails,
   convertDBEventsToEvents

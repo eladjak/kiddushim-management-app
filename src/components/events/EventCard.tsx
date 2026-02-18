@@ -1,4 +1,5 @@
 
+import { memo, useMemo } from "react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -18,11 +19,11 @@ interface EventCardProps {
   isInBreakPeriod: boolean;
 }
 
-export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
-  const log = logger.createLogger({ component: 'EventCard' });
-  
+const log = logger.createLogger({ component: 'EventCard' });
+
+export const EventCard = memo(({ event, isInBreakPeriod }: EventCardProps) => {
   // Handle potential date formatting issues
-  const formatEventDate = () => {
+  const formattedDate = useMemo(() => {
     try {
       if (!event.main_time) return "תאריך לא זמין";
       return format(new Date(event.main_time), "EEEE, d בMMMM", { locale: he });
@@ -30,11 +31,11 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
       log.error("Error formatting date", { error, date: event.main_time });
       return "תאריך לא זמין";
     }
-  };
-  
-  const title = safeDecodeHebrew(event.title);
-  const parasha = event.parasha ? safeDecodeHebrew(event.parasha) : null;
-  const location = safeDecodeHebrew(event.location_name);
+  }, [event.main_time]);
+
+  const title = useMemo(() => safeDecodeHebrew(event.title), [event.title]);
+  const parasha = useMemo(() => event.parasha ? safeDecodeHebrew(event.parasha) : null, [event.parasha]);
+  const location = useMemo(() => safeDecodeHebrew(event.location_name), [event.location_name]);
 
   return (
     <div 
@@ -47,7 +48,7 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
     >
       <div className="text-right">
         <div className="text-sm text-accent font-medium mb-2">
-          {formatEventDate()}
+          {formattedDate}
           {isInBreakPeriod && (
             <span className="text-red-600 me-2 font-bold">(בתקופת הפסקה)</span>
           )}
@@ -87,4 +88,6 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
       </div>
     </div>
   );
-};
+});
+
+EventCard.displayName = "EventCard";

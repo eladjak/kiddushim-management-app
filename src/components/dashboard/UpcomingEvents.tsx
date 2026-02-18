@@ -9,15 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRegisterParticipant } from "@/services/query/hooks/useEvents";
 import { Badge } from "@/components/ui/badge";
 import { logger } from "@/utils/logger";
-
-interface Event {
-  id: string;
-  title: string;
-  main_time: string;
-  location_name: string;
-  parasha?: string;
-  status?: string;
-}
+import type { Event } from "@/types/events";
 
 interface UpcomingEventsProps {
   events: Event[] | null;
