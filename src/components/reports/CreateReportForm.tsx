@@ -115,7 +115,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <ScrollArea className="max-h-[60vh] overflow-y-auto">
-          <div className="space-y-6 pr-4">
+          <div className="space-y-6 pe-4">
             <ReportBasicInfo 
               events={events}
               formData={formData}

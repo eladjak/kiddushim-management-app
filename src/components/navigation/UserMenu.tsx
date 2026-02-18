@@ -68,7 +68,7 @@ export const UserMenu = ({ onLogout }: UserMenuProps) => {
         
         <Link to="/profile">
           <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
+            <User className="me-2 h-4 w-4" />
             <span>פרופיל</span>
           </DropdownMenuItem>
         </Link>
@@ -77,7 +77,7 @@ export const UserMenu = ({ onLogout }: UserMenuProps) => {
           <DropdownMenuItem>
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
-                <Bell className="mr-2 h-4 w-4" />
+                <Bell className="me-2 h-4 w-4" />
                 <span>התראות</span>
               </div>
               {unreadCount > 0 && (
@@ -94,7 +94,7 @@ export const UserMenu = ({ onLogout }: UserMenuProps) => {
             <DropdownMenuSeparator />
             <Link to="/users">
               <DropdownMenuItem>
-                <UserPlus className="mr-2 h-4 w-4" />
+                <UserPlus className="me-2 h-4 w-4" />
                 <span>הוספת משתמש</span>
               </DropdownMenuItem>
             </Link>
@@ -104,7 +104,7 @@ export const UserMenu = ({ onLogout }: UserMenuProps) => {
         <DropdownMenuSeparator />
         
         <DropdownMenuItem onClick={onLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="me-2 h-4 w-4" />
           <span>התנתק</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

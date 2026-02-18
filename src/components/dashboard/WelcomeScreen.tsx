@@ -54,7 +54,7 @@ export const WelcomeScreen = () => {
             
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <a href="https://kidushishi.tzohar.org.il/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                <ExternalLink className="h-4 w-4 ml-1" />
+                <ExternalLink className="h-4 w-4 ms-1" />
                 למידע נוסף על פרויקט קידושישי
               </a>
             </Button>

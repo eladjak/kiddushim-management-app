@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Navigation } from "@/components/Navigation";
 import { CreateEventForm } from "@/components/events/CreateEventForm";
 import { useAuth } from "@/context/AuthContext";
@@ -9,10 +9,13 @@ import { EmptyEventsState } from "@/components/events/EmptyEventsState";
 import { EventsPageHeader } from "@/components/events/EventsPageHeader";
 import { EventsLoadingState } from "@/components/events/EventsLoadingState";
 import { EventsList } from "@/components/events/EventsList";
-import { EventLocationMap } from "@/components/events/EventLocationMap";
 import { useEvents } from "@/services/query/hooks/useEvents";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarRange, MapPin } from "lucide-react";
+
+const EventLocationMap = lazy(() =>
+  import("@/components/events/EventLocationMap").then((m) => ({ default: m.EventLocationMap }))
+);
 
 const Events = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -88,10 +91,16 @@ const Events = () => {
                   <TabsContent value="map" className="mt-4">
                     <div className="bg-white rounded-lg shadow-sm p-6">
                       <h2 className="text-xl font-semibold mb-4 pb-2 border-b">מפת אירועים</h2>
-                      <EventLocationMap 
-                        events={events} 
-                        onSelectEvent={handleSelectEventOnMap} 
-                      />
+                      <Suspense fallback={
+                        <div className="h-[400px] flex items-center justify-center" role="status" aria-live="polite">
+                          <p className="text-gray-500">טוען מפה...</p>
+                        </div>
+                      }>
+                        <EventLocationMap
+                          events={events}
+                          onSelectEvent={handleSelectEventOnMap}
+                        />
+                      </Suspense>
                       <p className="text-sm text-gray-500 mt-3 text-center">
                         לחץ על סמן כדי לראות פרטים נוספים על האירוע
                       </p>

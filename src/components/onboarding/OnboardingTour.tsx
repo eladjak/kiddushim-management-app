@@ -152,14 +152,14 @@ export const OnboardingTour = ({ onComplete, onSkip }: OnboardingTourProps) => {
                 <Link to={currentStepData.action.url}>
                   <Button variant="outline" className="w-full">
                     {currentStepData.action.label}
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="h-4 w-4 ms-2" />
                   </Button>
                 </Link>
               ) : (
                 <a href={currentStepData.action.url} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="w-full">
                     {currentStepData.action.label}
-                    <ExternalLink className="h-4 w-4 mr-2" />
+                    <ExternalLink className="h-4 w-4 ms-2" />
                   </Button>
                 </a>
               )}
@@ -183,7 +183,7 @@ export const OnboardingTour = ({ onComplete, onSkip }: OnboardingTourProps) => {
               <Button onClick={handleNext}>
                 {currentStep === onboardingSteps.length - 1 ? 'סיום' : 'הבא'}
                 {currentStep < onboardingSteps.length - 1 && (
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-4 w-4 ms-2" />
                 )}
               </Button>
             </div>

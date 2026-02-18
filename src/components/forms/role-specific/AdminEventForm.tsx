@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { Settings, Users, MapPin, Clock, AlertCircle } from "lucide-react";
+import { useFormState } from "@/hooks/forms/useFormState";
 
 interface AdminEventFormData {
   title: string;
@@ -39,42 +38,32 @@ interface AdminEventFormProps {
   isLoading?: boolean;
 }
 
+const getInitialState = (initialData: Partial<AdminEventFormData>): AdminEventFormData => ({
+  title: initialData.title || "",
+  description: initialData.description || "",
+  date: initialData.date || "",
+  startTime: initialData.startTime || "",
+  endTime: initialData.endTime || "",
+  setupTime: initialData.setupTime || "",
+  cleanupTime: initialData.cleanupTime || "",
+  locationName: initialData.locationName || "",
+  locationAddress: initialData.locationAddress || "",
+  maxParticipants: initialData.maxParticipants || "",
+  requiredServiceGirls: initialData.requiredServiceGirls || 0,
+  requiredVolunteers: initialData.requiredVolunteers || 0,
+  budget: initialData.budget || "",
+  specialRequirements: initialData.specialRequirements || "",
+  isPublic: initialData.isPublic ?? true,
+  requiresApproval: initialData.requiresApproval || false,
+  sendNotifications: initialData.sendNotifications ?? true,
+  priority: initialData.priority || "medium",
+  category: initialData.category || "kidush",
+  ...initialData,
+});
+
 export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }: AdminEventFormProps) => {
-  const [formData, setFormData] = React.useState({
-    title: initialData.title || "",
-    description: initialData.description || "",
-    date: initialData.date || "",
-    startTime: initialData.startTime || "",
-    endTime: initialData.endTime || "",
-    setupTime: initialData.setupTime || "",
-    cleanupTime: initialData.cleanupTime || "",
-    locationName: initialData.locationName || "",
-    locationAddress: initialData.locationAddress || "",
-    maxParticipants: initialData.maxParticipants || "",
-    requiredServiceGirls: initialData.requiredServiceGirls || 0,
-    requiredVolunteers: initialData.requiredVolunteers || 0,
-    budget: initialData.budget || "",
-    specialRequirements: initialData.specialRequirements || "",
-    isPublic: initialData.isPublic || true,
-    requiresApproval: initialData.requiresApproval || false,
-    sendNotifications: initialData.sendNotifications || true,
-    priority: initialData.priority || "medium",
-    category: initialData.category || "kidush",
-    ...initialData
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSwitchChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({ ...prev, [name]: checked }));
-  };
+  const { formData, handleInputChange, handleSelectChange, handleSwitchChange } =
+    useFormState<AdminEventFormData>(getInitialState(initialData));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +93,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="category">קטגוריה *</Label>
               <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
@@ -157,7 +146,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="startTime">שעת התחלה *</Label>
               <Input
@@ -169,7 +158,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="endTime">שעת סיום *</Label>
               <Input
@@ -194,7 +183,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 onChange={handleInputChange}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="cleanupTime">שעת סיום וניקיון</Label>
               <Input
@@ -230,7 +219,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="locationAddress">כתובת מלאה *</Label>
               <Input
@@ -267,7 +256,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 placeholder="100"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="requiredServiceGirls">בנות שירות נדרשות</Label>
               <Input
@@ -279,7 +268,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 placeholder="2"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="requiredVolunteers">מתנדבים נדרשים</Label>
               <Input
@@ -291,7 +280,7 @@ export const AdminEventForm = ({ onSubmit, initialData = {}, isLoading = false }
                 placeholder="3"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="budget">תקציב (₪)</Label>
               <Input

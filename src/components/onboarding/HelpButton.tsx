@@ -32,13 +32,13 @@ export const HelpButton = ({ onStartTour }: HelpButtonProps) => {
         <DropdownMenuSeparator />
         
         <DropdownMenuItem onClick={onStartTour}>
-          <RotateCcw className="mr-2 h-4 w-4" />
+          <RotateCcw className="me-2 h-4 w-4" />
           <span>הדרכה מחדש</span>
         </DropdownMenuItem>
         
         <DropdownMenuItem asChild>
           <a href="https://kidushishi.tzohar.org.il/" target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="mr-2 h-4 w-4" />
+            <ExternalLink className="me-2 h-4 w-4" />
             <span>אתר קידושישי</span>
           </a>
         </DropdownMenuItem>

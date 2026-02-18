@@ -104,7 +104,7 @@ export const ReportsTable = ({
                       className="flex items-center gap-1"
                       onClick={() => onViewReport(report)}
                     >
-                      <Eye className="h-4 w-4 ml-1" />
+                      <Eye className="h-4 w-4 ms-1" />
                       צפה בפרטים
                     </Button>
                   </DialogTrigger>

@@ -52,7 +52,7 @@ export const CreateEventForm = () => {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <ScrollArea className="max-h-[70vh] overflow-y-auto">
-          <div className="space-y-6 pr-4">
+          <div className="space-y-6 pe-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-6">
                 <EventBasicInfoSection 

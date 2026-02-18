@@ -1,12 +1,13 @@
 
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MapPin, Map as MapIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import LocationMap from "@/components/maps/LocationMap";
 import { logger } from "@/utils/logger";
+
+const LocationMap = lazy(() => import("@/components/maps/LocationMap"));
 
 interface LocationFieldsProps {
   formData: {
@@ -93,10 +94,16 @@ export const LocationFields = ({ formData, onChange }: LocationFieldsProps) => {
             <DialogTitle>בחר מיקום במפה</DialogTitle>
           </DialogHeader>
           <div className="flex-1 h-full min-h-[400px]">
-            <LocationMap 
-              address={formData.locationAddress} 
-              onChange={handleLocationSelect}
-            />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-full" role="status" aria-live="polite">
+                <p className="text-gray-500">טוען מפה...</p>
+              </div>
+            }>
+              <LocationMap
+                address={formData.locationAddress}
+                onChange={handleLocationSelect}
+              />
+            </Suspense>
           </div>
         </DialogContent>
       </Dialog>

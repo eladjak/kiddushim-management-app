@@ -92,7 +92,7 @@ export const ReportsGrid = ({
     return (
       <Badge 
         variant="outline" 
-        className={`${variants[severity as keyof typeof variants]} text-xs px-2 py-1 mr-2`}
+        className={`${variants[severity as keyof typeof variants]} text-xs px-2 py-1 me-2`}
       >
         {labels[severity as keyof typeof labels]}
       </Badge>

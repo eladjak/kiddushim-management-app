@@ -31,7 +31,7 @@ export const BudgetAndLogistics = () => {
                   <TableCell>1,000 ₪ לאירוע</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
-                      <Info className="h-3 w-3 mr-1" />
+                      <Info className="h-3 w-3 me-1" />
                       התשלום מגיע חודש-חודשיים אחרי האירוע
                     </Badge>
                   </TableCell>

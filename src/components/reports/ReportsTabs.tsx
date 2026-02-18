@@ -28,7 +28,7 @@ export const ReportsTabs = () => {
         <h2 className="text-xl font-semibold">הדיווחים שלי</h2>
         <RTLFlex className="items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCw className="h-4 w-4 ml-1" />
+            <RefreshCw className="h-4 w-4 ms-1" />
             רענן
           </Button>
           

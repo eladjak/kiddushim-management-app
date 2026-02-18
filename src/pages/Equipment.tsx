@@ -132,7 +132,7 @@ const Equipment = () => {
           <h1 className="text-3xl font-bold">ציוד</h1>
           <div className="flex gap-2">
             <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="ml-2" />
+              <Plus className="ms-2" />
               הוסף ציוד
             </Button>
             {isAdmin && pendingChangesCount > 0 && (

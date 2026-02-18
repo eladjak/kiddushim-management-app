@@ -49,7 +49,7 @@ export const EventCard = ({ event, isInBreakPeriod }: EventCardProps) => {
         <div className="text-sm text-accent font-medium mb-2">
           {formatEventDate()}
           {isInBreakPeriod && (
-            <span className="text-red-600 mr-2 font-bold">(בתקופת הפסקה)</span>
+            <span className="text-red-600 me-2 font-bold">(בתקופת הפסקה)</span>
           )}
         </div>
         <h3 className="text-lg font-semibold mb-2">{title}</h3>

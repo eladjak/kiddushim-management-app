@@ -72,7 +72,7 @@ export const UpcomingEvents = ({ events, isLoading }: UpcomingEventsProps) => {
         <h2 className="text-2xl font-semibold text-right">אירועים קרובים</h2>
         <Link to="/events">
           <Button variant="ghost" size="sm" className="text-primary">
-            <Calendar className="h-4 w-4 ml-1" />
+            <Calendar className="h-4 w-4 ms-1" />
             כל האירועים
           </Button>
         </Link>

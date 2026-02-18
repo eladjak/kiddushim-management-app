@@ -304,14 +304,14 @@ export const QuickMediaUpload = ({ onClose, onSuccess }: QuickMediaUploadProps) 
                 <div className="flex-shrink-0 flex items-center gap-2">
                   {file.uploaded && (
                     <Badge variant="outline" className="bg-green-50 text-green-700">
-                      <Check className="h-3 w-3 ml-1" />
+                      <Check className="h-3 w-3 ms-1" />
                       הועלה
                     </Badge>
                   )}
                   
                   {file.error && (
                     <Badge variant="outline" className="bg-red-50 text-red-700">
-                      <AlertCircle className="h-3 w-3 ml-1" />
+                      <AlertCircle className="h-3 w-3 ms-1" />
                       שגיאה
                     </Badge>
                   )}

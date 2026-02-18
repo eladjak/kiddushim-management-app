@@ -85,7 +85,7 @@ export const Timeline = () => {
                       </div>
                       {event.hasBanotSherut && (
                         <div className="mt-2 flex items-center text-xs text-green-600">
-                          <Check className="h-3 w-3 mr-1" />
+                          <Check className="h-3 w-3 me-1" />
                           בנות שירות זמינות
                         </div>
                       )}

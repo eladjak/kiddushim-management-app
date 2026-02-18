@@ -1,8 +1,10 @@
+import { ReportsGridSkeleton } from "@/components/skeletons/ReportCardSkeleton";
 
 export const ReportsLoading = () => {
   return (
-    <div className="text-center py-12 bg-white rounded-md shadow animate-pulse">
-      <p className="text-lg text-gray-500" role="status" aria-live="polite">טוען דיווחים...</p>
+    <div role="status" aria-live="polite">
+      <span className="sr-only">טוען דיווחים...</span>
+      <ReportsGridSkeleton />
     </div>
   );
 };

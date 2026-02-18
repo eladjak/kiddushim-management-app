@@ -35,7 +35,7 @@ export const EventTimeline = () => {
                   קידושישי - פרשת {event.parasha}
                 </CardTitle>
                 <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="h-4 w-4 ml-1" />
+                  <Calendar className="h-4 w-4 ms-1" />
                   {format(event.dateObj, "d/M", { locale: he })}
                 </div>
               </div>
@@ -45,7 +45,7 @@ export const EventTimeline = () => {
               <div className="flex items-center text-sm text-gray-600">
                 <Clock className="h-4 w-4 me-2" />
                 <span>{event.dayOfWeek || format(event.dateObj, "EEEE", { locale: he })}</span>
-                <span className="mr-2">•</span>
+                <span className="me-2">•</span>
                 <span>{event.time}</span>
               </div>
               

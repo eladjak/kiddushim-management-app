@@ -47,7 +47,7 @@ export const ProfileCreationScreen: React.FC<ProfileCreationScreenProps> = ({
           >
             {isCreatingProfile ? (
               <>
-                <Spinner className="mr-2 h-4 w-4" /> יוצר פרופיל...
+                <Spinner className="me-2 h-4 w-4" /> יוצר פרופיל...
               </>
             ) : (
               "צור פרופיל באופן ידני"

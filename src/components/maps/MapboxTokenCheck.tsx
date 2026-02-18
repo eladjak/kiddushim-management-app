@@ -51,7 +51,7 @@ export const MapboxTokenCheck: React.FC<MapboxTokenCheckProps> = ({ children }) 
   if (tokenValid === null || isChecking) {
     return (
       <div className="flex items-center justify-center p-8">
-        <RefreshCw className="animate-spin h-6 w-6 mr-2" />
+        <RefreshCw className="animate-spin h-6 w-6 me-2" />
         <span>בודק תקינות Mapbox token...</span>
       </div>
     );
