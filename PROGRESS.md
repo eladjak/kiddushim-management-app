@@ -473,18 +473,58 @@ Added 35 new tests across 4 new test files:
 - [x] `npx vitest run` - **160/160 tests passing**, 17 test files
 - [x] E2E tests: 6 spec files, ~30 tests (require running dev server for execution)
 
+## What Was Done - Session 2026-02-18 (Round 6) - Visual Redesign
+
+### Task 1: Dark Mode (COMPLETED)
+- [x] `src/components/theme/ThemeProvider.tsx` - context with system/light/dark + localStorage
+- [x] `src/components/ui/theme-toggle.tsx` - Sun/Moon toggle button (icon + menu-item variants)
+- [x] Integrated in App.tsx, DesktopNav.tsx, UserMenu.tsx
+- [x] dark: variants added to ~15 components (Dashboard, Events, Reports, Users, Navigation)
+- [x] Color palette fixed: consistent CSS variables + Tailwind tokens
+
+### Task 2: Animation System (COMPLETED)
+- [x] 5 new keyframe animations in tailwind.config.ts (fade-in-up/down, scale-in, slide-in-left/right)
+- [x] `src/hooks/useAnimateOnScroll.ts` - IntersectionObserver hook with prefers-reduced-motion
+- [x] `src/styles/animations.css` - stagger utilities, scroll triggers, reduced-motion support
+- [x] `src/components/PageTransition.tsx` - page entrance animation wrapper
+- [x] Applied to: Landing page (all 5 sections), Dashboard, Events, Reports, Equipment, Users pages
+
+### Task 3: Landing Page Redesign (COMPLETED)
+- [x] HeroSection: glass-morphism overlay, backdrop-blur, rich gradient, orange glow CTA
+- [x] AboutSection: colored shadows, hover lift, decorative gradient orbs
+- [x] EventDetailsSection: gradient mesh card, icon hover transitions
+- [x] PartnersSection: grayscale→color logos on hover, elevated cards
+- [x] ContactSection: decorative orbs, glass contact cards, green WhatsApp accent
+- [x] LandingFooter: gradient bg (gray-900→gray-950), dynamic copyright year
+- [x] RegistrationForm: gradient header, polished focus states, form group dividers
+
+### Task 4: Dashboard + Cards + Empty States (COMPLETED)
+- [x] Dashboard: time-based Hebrew greeting (בוקר טוב/ערב טוב), gradient background
+- [x] DashboardSummaryCards: colored border-s-4 per card type, colored icon circles
+- [x] EventCard: status-based colored start borders + dot indicators in badges
+- [x] ReportsGrid: severity-based colored start borders + lift hover
+- [x] `src/components/ui/EmptyState.tsx` - reusable with 5 SVG illustrations (events, reports, users, search, general)
+- [x] Badge redesign: rounded-full pills with gap for dot indicators
+
+### Verification
+- [x] `npx tsc --noEmit` - zero errors
+- [x] `npx vitest run` - 160/160 tests passing
+- [x] git commit: `74e94b8`
+
 ## Next Steps
 1. אינטגרציית כפתור WhatsApp לדפי אירועים (EventCard / Events page)
 2. הוספת env variables ל-GreenAPI (VITE_GREEN_API_INSTANCE_ID, VITE_GREEN_API_TOKEN)
-3. טסטים ל-WhatsApp service + hook
+3. טסטים ל-WhatsApp service + hook + EmptyState + ThemeProvider
 4. הרצת E2E tests עם dev server (`npx playwright test`)
 5. Performance profiling לוידוא שיפורי memoization
+6. Dark mode fine-tuning - בדיקה ויזואלית של כל הדפים במצב כהה
 
 ## Analysis Reports Received
 - **Architecture**: 6.6/10 -> **8.5/10** (unified types, no dual interfaces, memoization)
 - **UX/Accessibility**: 6/10 -> ~9/10 -> **9.5/10** (full RTL, ARIA table roles, Hebrew labels)
 - **Performance**: mapbox-gl heavy -> **code-split + virtualized + memoized** (VirtualList + React.memo + useMemo/useCallback)
 - **Testing**: 0/10 -> **9/10** (160 unit tests + 30 E2E tests across 23 files)
+- **Visual Design**: 6.2/10 -> **8.5/10** (dark mode, animations, glass-morphism, status borders, empty state illustrations)
 
 ## Key Decisions Made
 - AppRole הוא מקור האמת לטיפוסי תפקידים
