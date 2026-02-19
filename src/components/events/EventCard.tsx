@@ -19,6 +19,42 @@ interface EventCardProps {
   isInBreakPeriod: boolean;
 }
 
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  planned: "border-s-4 border-blue-400",
+  published: "border-s-4 border-blue-400",
+  ongoing: "border-s-4 border-green-400",
+  completed: "border-s-4 border-gray-300",
+  canceled: "border-s-4 border-red-300",
+  draft: "border-s-4 border-amber-300",
+};
+
+const STATUS_DOT_COLORS: Record<string, string> = {
+  planned: "bg-blue-400",
+  published: "bg-green-500",
+  ongoing: "bg-green-400",
+  completed: "bg-gray-400",
+  canceled: "bg-red-400",
+  draft: "bg-amber-400",
+};
+
+const STATUS_BADGE_COLORS: Record<string, string> = {
+  published: "bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-200",
+  draft: "bg-muted text-muted-foreground",
+  planned: "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
+  ongoing: "bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-200",
+  completed: "bg-muted text-muted-foreground",
+  canceled: "bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-200",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  published: "פורסם",
+  draft: "טיוטה",
+  planned: "מתוכנן",
+  ongoing: "מתרחש",
+  completed: "הושלם",
+  canceled: "בוטל",
+};
+
 const log = logger.createLogger({ component: 'EventCard' });
 
 export const EventCard = memo(({ event, isInBreakPeriod }: EventCardProps) => {
@@ -37,44 +73,47 @@ export const EventCard = memo(({ event, isInBreakPeriod }: EventCardProps) => {
   const parasha = useMemo(() => event.parasha ? safeDecodeHebrew(event.parasha) : null, [event.parasha]);
   const location = useMemo(() => safeDecodeHebrew(event.location_name), [event.location_name]);
 
+  const statusBorder = isInBreakPeriod
+    ? "border-s-4 border-red-300"
+    : (event.status ? STATUS_BORDER_COLORS[event.status] ?? "" : "");
+
   return (
-    <div 
+    <div
       id={`event-${event.id}`}
-      className={`p-4 rounded-md border transition-all ${
-        isInBreakPeriod 
-          ? 'border-red-200 bg-red-50' 
-          : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+      className={`p-4 rounded-md border bg-card text-card-foreground transition-all duration-200 ${statusBorder} ${
+        isInBreakPeriod
+          ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+          : 'border-border hover:shadow-lg hover:-translate-y-0.5'
       } highlight-event:border-primary highlight-event:bg-primary/5 highlight-event:shadow-md`}
     >
       <div className="text-right">
-        <div className="text-sm text-accent font-medium mb-2">
+        <div className="text-sm text-accent font-medium mb-3">
           {formattedDate}
           {isInBreakPeriod && (
-            <span className="text-red-600 me-2 font-bold">(בתקופת הפסקה)</span>
+            <span className="text-red-600 dark:text-red-400 me-2 font-bold">(בתקופת הפסקה)</span>
           )}
         </div>
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        
+
         {parasha && (
-          <div className="text-sm text-gray-700 mb-1">פרשת {parasha}</div>
+          <div className="text-sm text-muted-foreground mb-1">פרשת {parasha}</div>
         )}
-        
-        <p className="text-sm text-gray-600 mb-4">{location}</p>
-        
+
+        <p className="text-sm text-muted-foreground mb-4">{location}</p>
+
         <div className="flex flex-wrap gap-2 mb-4">
           {event.status && (
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              event.status === 'published' ? 'bg-green-100 text-green-800' : 
-              event.status === 'draft' ? 'bg-gray-100 text-gray-800' : 
-              'bg-yellow-100 text-yellow-800'
+            <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${
+              STATUS_BADGE_COLORS[event.status] ?? "bg-yellow-50 text-yellow-700"
             }`}>
-              {event.status === 'published' ? 'פורסם' : 
-               event.status === 'draft' ? 'טיוטה' : 
-               'ממתין לאישור'}
+              <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+                STATUS_DOT_COLORS[event.status] ?? "bg-yellow-400"
+              }`} aria-hidden="true" />
+              {STATUS_LABELS[event.status] ?? "ממתין לאישור"}
             </span>
           )}
         </div>
-        
+
         <div className="flex justify-end gap-2">
           <Link to={`/events/${event.id}`}>
             <Button variant="outline" size="sm">

@@ -31,7 +31,7 @@ export const QuickActions = ({
   const LoadingBadge = () => <Skeleton className="h-4 w-4 rounded-full" />;
 
   return (
-    <Card>
+    <Card className="animate-scale-in">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
@@ -41,9 +41,9 @@ export const QuickActions = ({
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link to="/landing">
-            <Button variant="outline" className="w-full h-16 flex flex-col gap-1 bg-gradient-to-br from-blue-50 to-orange-50 hover:from-blue-100 hover:to-orange-100 border-blue-200">
-              <Globe className="h-5 w-5 text-blue-600" />
-              <span className="text-xs text-blue-700 font-medium">דף קידושישי</span>
+            <Button variant="outline" className="w-full h-16 flex flex-col gap-1 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-900/30 dark:to-orange-900/30 hover:from-blue-100 hover:to-orange-100 dark:hover:from-blue-900/50 dark:hover:to-orange-900/50 border-blue-200 dark:border-blue-800">
+              <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">דף קידושישי</span>
             </Button>
           </Link>
           <Link to="/events">

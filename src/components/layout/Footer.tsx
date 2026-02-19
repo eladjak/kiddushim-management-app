@@ -3,7 +3,7 @@ import { Image } from "@/components/ui/image";
 
 export const Footer = () => {
   return (
-    <footer className="bg-white shadow-sm py-4 mt-auto">
+    <footer className="bg-background border-t border-border shadow-sm py-4 mt-auto">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground text-center md:text-right">

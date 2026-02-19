@@ -11,6 +11,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Footer } from "@/components/layout/Footer";
+import { PageTransition } from "@/components/PageTransition";
 import type { Database } from "@/integrations/supabase/types";
 import { logger } from "@/utils/logger";
 
@@ -128,6 +129,7 @@ const Equipment = () => {
     <div className="min-h-screen bg-secondary/30 flex flex-col" dir="rtl">
       <Navigation />
       <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow">
+        <PageTransition>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">ציוד</h1>
           <div className="flex gap-2">
@@ -165,6 +167,7 @@ const Equipment = () => {
             onOpenChange={setIsPendingChangesOpen}
           />
         )}
+        </PageTransition>
       </main>
       <Footer />
     </div>

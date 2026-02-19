@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { User, Settings, Bell, LogOut, UserPlus } from "lucide-react";
 import { useNotifications } from "@/hooks/dashboard/useNotifications";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface UserMenuProps {
   onLogout: () => Promise<void>;
@@ -102,7 +103,13 @@ export const UserMenu = ({ onLogout }: UserMenuProps) => {
         )}
         
         <DropdownMenuSeparator />
-        
+
+        <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+          <ThemeToggle variant="menu-item" />
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
         <DropdownMenuItem onClick={onLogout}>
           <LogOut className="me-2 h-4 w-4" />
           <span>התנתק</span>

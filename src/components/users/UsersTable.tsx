@@ -22,7 +22,7 @@ const roleLabels: Record<string, string> = {
 /** Single user row -- memoized to avoid re-renders in virtual list */
 const UserRow = memo(({ user, onChangeRole }: { user: ProfileRow; onChangeRole: (user: ProfileRow) => void }) => (
   <div
-    className="grid grid-cols-6 items-center gap-2 border-b py-3 px-2 hover:bg-gray-50 text-sm"
+    className="grid grid-cols-6 items-center gap-2 border-b dark:border-gray-700 py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
     role="row"
     aria-label={`משתמש ${user.name}`}
   >
@@ -66,7 +66,7 @@ export const UsersTable = memo(({ users, onChangeRole }: UsersTableProps) => {
     <div className="overflow-x-auto" role="table" aria-label="טבלת משתמשים">
       {/* Header row */}
       <div
-        className="grid grid-cols-6 gap-2 border-b-2 py-2 px-2 font-medium text-sm text-right"
+        className="grid grid-cols-6 gap-2 border-b-2 dark:border-gray-700 py-2 px-2 font-medium text-sm text-right"
         role="row"
       >
         <div role="columnheader">שם</div>

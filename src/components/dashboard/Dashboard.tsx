@@ -15,6 +15,15 @@ import { logger } from "@/utils/logger";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+/** Returns a Hebrew time-based greeting. */
+const getTimeGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "בוקר טוב";
+  if (hour >= 12 && hour < 17) return "צהריים טובים";
+  if (hour >= 17 && hour < 21) return "ערב טוב";
+  return "לילה טוב";
+};
+
 export const Dashboard = () => {
   const { user, profile } = useAuth();
   const log = logger.createLogger({ component: 'Dashboard' });
@@ -44,12 +53,15 @@ export const Dashboard = () => {
   }, [user, profile, eventsLoading, assignmentsLoading, notificationsLoading]);
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 to-secondary/10">
-      <div id="main-content" className="container mx-auto px-4 py-4">
+    <div className="bg-gradient-to-br from-muted via-background to-muted min-h-screen">
+      <div id="main-content" className="container mx-auto px-4 py-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">
-            שלום {profile?.name || 'משתמש'}
-          </h1>
+          <div className="mb-4 md:mb-6 animate-fade-in-up">
+            <p className="text-sm text-muted-foreground mb-1">{getTimeGreeting()}</p>
+            <h1 className="text-2xl md:text-3xl font-bold">
+              שלום, {profile?.name || 'משתמש'} 👋
+            </h1>
+          </div>
 
           <DashboardSummaryCards
             events={eventsData || []}

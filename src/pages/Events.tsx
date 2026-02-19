@@ -11,6 +11,7 @@ import { EventsLoadingState } from "@/components/events/EventsLoadingState";
 import { EventsList } from "@/components/events/EventsList";
 import { EventExportButton } from "@/components/events/EventExportButton";
 import { EventDateRangeFilter } from "@/components/events/EventDateRangeFilter";
+import { PageTransition } from "@/components/PageTransition";
 import { useEvents } from "@/services/query/hooks/useEvents";
 import { filterByDateRange } from "@/utils/csvExport";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -66,6 +67,7 @@ const Events = () => {
     <div className="min-h-screen bg-secondary/20 flex flex-col" dir="rtl">
       <Navigation />
       <main id="main-content" className="container mx-auto px-4 py-20 flex-grow">
+        <PageTransition>
         <div className="max-w-5xl mx-auto">
           <EventsPageHeader
             canCreateEvents={canCreateEvents}
@@ -75,7 +77,7 @@ const Events = () => {
 
           <div className="space-y-6">
             {showCreateForm ? (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/20 p-6">
                 <CreateEventForm />
               </div>
             ) : isLoading ? (
@@ -122,11 +124,11 @@ const Events = () => {
                   </TabsContent>
 
                   <TabsContent value="map" className="mt-4">
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                      <h2 className="text-xl font-semibold mb-4 pb-2 border-b">מפת אירועים</h2>
+                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/20 p-6">
+                      <h2 className="text-xl font-semibold mb-4 pb-2 border-b dark:border-gray-700">מפת אירועים</h2>
                       <Suspense fallback={
                         <div className="h-[400px] flex items-center justify-center" role="status" aria-live="polite">
-                          <p className="text-gray-500">טוען מפה...</p>
+                          <p className="text-gray-500 dark:text-gray-400">טוען מפה...</p>
                         </div>
                       }>
                         <EventLocationMap
@@ -134,7 +136,7 @@ const Events = () => {
                           onSelectEvent={handleSelectEventOnMap}
                         />
                       </Suspense>
-                      <p className="text-sm text-gray-500 mt-3 text-center">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
                         לחץ על סמן כדי לראות פרטים נוספים על האירוע
                       </p>
                     </div>
@@ -144,6 +146,7 @@ const Events = () => {
             )}
           </div>
         </div>
+        </PageTransition>
       </main>
       <Footer />
     </div>

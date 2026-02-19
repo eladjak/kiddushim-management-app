@@ -24,26 +24,26 @@ export const WelcomeScreen = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-10">
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md text-center">
-              <Image 
-                src="/lovable-uploads/bed6aebb-e440-45d6-8d39-a58ed7b49c49.png" 
-                alt="אורות יהודה" 
-                className="h-16 md:h-20 w-auto mx-auto mb-3 md:mb-4" 
+            <div className="bg-white dark:bg-gray-900 p-4 md:p-6 rounded-lg shadow-md dark:shadow-gray-900/20 text-center">
+              <Image
+                src="/lovable-uploads/bed6aebb-e440-45d6-8d39-a58ed7b49c49.png"
+                alt="אורות יהודה"
+                className="h-16 md:h-20 w-auto mx-auto mb-3 md:mb-4"
                 fallback="/placeholder.svg"
               />
               <h2 className="text-lg md:text-xl font-bold mb-1 md:mb-2">גרעין תורני אורות יהודה</h2>
-              <p className="text-gray-600 text-sm md:text-base">גרעין תורני מגדל העמק</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">גרעין תורני מגדל העמק</p>
             </div>
-            
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md text-center">
-              <Image 
-                src="/lovable-uploads/a762c5ca-232e-44ef-a39c-d59a900550bd.png" 
-                alt="ארגון רבני צהר" 
-                className="h-16 md:h-20 w-auto mx-auto mb-3 md:mb-4" 
+
+            <div className="bg-white dark:bg-gray-900 p-4 md:p-6 rounded-lg shadow-md dark:shadow-gray-900/20 text-center">
+              <Image
+                src="/lovable-uploads/a762c5ca-232e-44ef-a39c-d59a900550bd.png"
+                alt="ארגון רבני צהר"
+                className="h-16 md:h-20 w-auto mx-auto mb-3 md:mb-4"
                 fallback="/placeholder.svg"
               />
               <h2 className="text-lg md:text-xl font-bold mb-1 md:mb-2">ארגון רבני צהר</h2>
-              <p className="text-gray-600 text-sm md:text-base">היהדות של כולנו</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">היהדות של כולנו</p>
             </div>
           </div>
           

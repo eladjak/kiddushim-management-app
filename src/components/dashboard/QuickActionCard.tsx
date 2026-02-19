@@ -17,7 +17,7 @@ export const QuickActionCard = ({
   iconBgColor,
 }: QuickActionCardProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
       <div className="flex items-start gap-4 rtl:flex-row-reverse">
         <div className={`${iconBgColor} p-3 rounded-full shrink-0`}>
           <Icon className={`h-6 w-6 ${iconColor}`} />

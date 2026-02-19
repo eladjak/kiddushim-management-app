@@ -64,8 +64,8 @@ export const EventsList = ({ events }: EventsListProps) => {
 
   if (monthGroups.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-        <p className="text-gray-500">לא נמצאו אירועים</p>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/20 p-6 text-center">
+        <p className="text-gray-500 dark:text-gray-400">לא נמצאו אירועים</p>
       </div>
     );
   }
@@ -80,8 +80,8 @@ export const EventsList = ({ events }: EventsListProps) => {
       className="space-y-8"
       getItemKey={(group) => group.monthKey}
       renderItem={(group) => (
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 pb-2 border-b">{group.monthLabel}</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/20 p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4 pb-2 border-b dark:border-gray-700">{group.monthLabel}</h2>
           <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
             {group.events.map(event => {
               const inBreakPeriod = isDateInBreakPeriod(event.main_time || event.date);

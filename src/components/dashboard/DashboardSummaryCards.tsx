@@ -32,18 +32,18 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  planned: "bg-blue-100 text-blue-800",
-  ongoing: "bg-yellow-100 text-yellow-800",
-  completed: "bg-green-100 text-green-800",
-  canceled: "bg-red-100 text-red-800",
-  draft: "bg-gray-100 text-gray-800",
-  published: "bg-green-100 text-green-800",
-  pending: "bg-orange-100 text-orange-800",
-  unknown: "bg-gray-100 text-gray-600",
+  planned: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  ongoing: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  completed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  canceled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  published: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  pending: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  unknown: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
 };
 
 const CardSkeleton = () => (
-  <Card>
+  <Card className="border-s-4 border-gray-200 dark:border-gray-700">
     <CardHeader className="pb-2">
       <Skeleton className="h-4 w-24" />
     </CardHeader>
@@ -76,10 +76,12 @@ export const DashboardSummaryCards = ({ events, isLoading }: DashboardSummaryCar
       {/* Statistics cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total */}
-        <Card>
+        <Card className="border-s-4 border-blue-500 hover:shadow-lg transition-all duration-200 animate-fade-in-up stagger-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">סך הכל אירועים</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="rounded-full bg-blue-50 dark:bg-blue-900/30 p-2">
+              <Calendar className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.total}</div>
@@ -88,37 +90,43 @@ export const DashboardSummaryCards = ({ events, isLoading }: DashboardSummaryCar
         </Card>
 
         {/* Active */}
-        <Card>
+        <Card className="border-s-4 border-green-500 hover:shadow-lg transition-all duration-200 animate-fade-in-up stagger-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">אירועים פעילים</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
+            <div className="rounded-full bg-green-50 dark:bg-green-900/30 p-2">
+              <Clock className="h-4 w-4 text-green-500 dark:text-green-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{activeCount}</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{activeCount}</div>
             <p className="text-xs text-muted-foreground mt-1">מתוכנן + מתרחש</p>
           </CardContent>
         </Card>
 
         {/* Completed */}
-        <Card>
+        <Card className="border-s-4 border-purple-500 hover:shadow-lg transition-all duration-200 animate-fade-in-up stagger-3">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">הושלמו</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <div className="rounded-full bg-purple-50 dark:bg-purple-900/30 p-2">
+              <CheckCircle className="h-4 w-4 text-purple-500 dark:text-purple-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{completedCount}</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{completedCount}</div>
             <p className="text-xs text-muted-foreground mt-1">אירועים שהסתיימו</p>
           </CardContent>
         </Card>
 
         {/* Draft / Pending */}
-        <Card>
+        <Card className="border-s-4 border-amber-500 hover:shadow-lg transition-all duration-200 animate-fade-in-up stagger-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">ממתינים</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-500" />
+            <div className="rounded-full bg-amber-50 dark:bg-amber-900/30 p-2">
+              <AlertCircle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{pendingCount}</div>
             <p className="text-xs text-muted-foreground mt-1">טיוטות וממתינים</p>
           </CardContent>
         </Card>

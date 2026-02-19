@@ -110,7 +110,7 @@ const Landing = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+    <div className="min-h-dvh bg-gradient-to-br from-blue-50 via-white to-orange-50 dark:from-background dark:via-background dark:to-background">
       <HeroSection onRegisterClick={() => setShowRegistration(true)} />
       <AboutSection />
       <EventDetailsSection

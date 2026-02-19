@@ -1,4 +1,5 @@
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
+import { useAnimateOnScroll } from "@/hooks/useAnimateOnScroll";
 
 import kidushishiOfficialLogo from "/lovable-uploads/c53fe31c-08ad-433e-83bb-0046039b3fb9.png";
 import tzoharShabbatLogo from "/lovable-uploads/f2c17f54-6797-468f-9aaf-dccb20f6dd77.png";
@@ -42,53 +43,58 @@ const PARTNER_LINKS: PartnerLink[] = [
 ];
 
 export const PartnersSection = () => {
+  const sectionRef = useAnimateOnScroll<HTMLElement>();
+
   return (
-    <section className="py-16 px-4 bg-gray-50">
+    <section ref={sectionRef} className="py-16 md:py-24 px-4 bg-gradient-to-b from-gray-50 to-white animate-on-scroll">
       <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
           מי מאחורי הפרויקט?
         </h2>
+        <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full mx-auto mb-10" />
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <Card className="p-6 text-center shadow-lg">
+        <div className="grid md:grid-cols-2 gap-8 mb-14">
+          <Card className="p-6 text-center bg-white/80 backdrop-blur-sm border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1 animate-on-scroll stagger-1">
             <div className="mb-4">
               <a
                 href="https://www.tzohar.org.il/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
+                aria-label="ארגון רבני צהר - אתר חיצוני"
               >
                 <img
                   src={tzoharShabbatLogo}
                   alt="ארגון רבני צהר"
-                  className="h-24 mx-auto mb-4 hover:scale-105 transition-transform"
+                  className="h-24 mx-auto mb-4 hover:scale-105 transition-transform duration-200"
                 />
               </a>
             </div>
             <CardTitle className="mb-2">ארגון רבני צהר</CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-base leading-relaxed">
               ארגון רבני צהר תומך בפרויקט במסגרת הפעילות הקהילתית להנגשת שירותי הדת לכלל החברה.
               הארגון מספק ליווי רוחני ומקצועי ותמיכה כלכלית לפרויקט.
             </CardDescription>
           </Card>
 
-          <Card className="p-6 text-center shadow-lg">
+          <Card className="p-6 text-center bg-white/80 backdrop-blur-sm border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1 animate-on-scroll stagger-2">
             <div className="mb-4">
               <a
                 href="https://kidushishi.tzohar.org.il/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
+                aria-label="קידושישי מגדל העמק - אתר חיצוני"
               >
                 <img
                   src={kidushishiOfficialLogo}
                   alt="קידושישי מגדל העמק"
-                  className="h-24 mx-auto mb-4 hover:scale-105 transition-transform"
+                  className="h-24 mx-auto mb-4 hover:scale-105 transition-transform duration-200"
                 />
               </a>
             </div>
             <CardTitle className="mb-2">הגרעין התורני מגדל העמק</CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-base leading-relaxed">
               הגרעין התורני במגדל העמק הוא השותף המקומי המוביל בפרויקט.
               הגרעין מספק ניהול שוטף, תמיכה לוגיסטית ומעורבות קהילתית עמוקה.
             </CardDescription>
@@ -97,21 +103,22 @@ export const PartnersSection = () => {
 
         <div>
           <h3 className="text-xl font-semibold text-gray-700 mb-6">שותפים ותומכים</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            {PARTNER_LINKS.map((partner) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {PARTNER_LINKS.map((partner, index) => (
               <a
                 key={partner.href}
                 href={partner.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                aria-label={`${partner.label} - אתר חיצוני`}
+                className={`flex flex-col items-center p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 group animate-on-scroll stagger-${index + 3}`}
               >
                 <img
                   src={partner.logo}
                   alt={partner.alt}
-                  className="h-16 w-auto mb-2 object-contain"
+                  className="h-16 w-auto mb-3 object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
-                <span className="text-sm text-gray-600 text-center">{partner.label}</span>
+                <span className="text-sm text-gray-600 text-center font-medium">{partner.label}</span>
               </a>
             ))}
           </div>

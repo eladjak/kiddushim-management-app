@@ -4,6 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/layout/Footer";
+import { PageTransition } from "@/components/PageTransition";
 import { useNavigate } from "react-router-dom";
 import { UsersHeader } from "@/components/users/UsersHeader";
 import { UsersContent } from "@/components/users/UsersContent";
@@ -34,15 +35,17 @@ const Users = () => {
       <Navigation />
 
       <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow">
-        <UsersHeader onRefresh={handleRefresh} />
-        
-        {profile?.role !== "admin" ? (
-          <div className="text-center py-12">
-            <p className="text-lg">אין לך הרשאות לצפות בדף זה</p>
-          </div>
-        ) : (
-          <UsersContent key={refreshTrigger} />
-        )}
+        <PageTransition>
+          <UsersHeader onRefresh={handleRefresh} />
+
+          {profile?.role !== "admin" ? (
+            <div className="text-center py-12">
+              <p className="text-lg">אין לך הרשאות לצפות בדף זה</p>
+            </div>
+          ) : (
+            <UsersContent key={refreshTrigger} />
+          )}
+        </PageTransition>
       </main>
       
       <Footer />

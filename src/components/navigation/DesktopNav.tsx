@@ -4,6 +4,7 @@ import { getNavItems } from "./navItems";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DesktopNavProps {
   onLogout: () => Promise<void>;
@@ -34,6 +35,7 @@ export const DesktopNav = ({ onLogout }: DesktopNavProps) => {
       </nav>
       
       <div className="flex items-center space-x-4 rtl:space-x-reverse">
+        <ThemeToggle />
         {user ? (
           <UserMenu onLogout={onLogout} />
         ) : (

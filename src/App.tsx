@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -43,41 +44,43 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-              {/* דפים ציבוריים */}
-              <Route path="/" element={<Index />} />
-              <Route path="/landing" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
+    <ThemeProvider defaultTheme="system">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* דפים ציבוריים */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/landing" element={<Landing />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
 
-              {/* דפים מוגנים - דורשים אימות */}
-              <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-              <Route path="/equipment" element={<ProtectedRoute><Equipment /></ProtectedRoute>} />
-              <Route path="/documentation" element={<ProtectedRoute><Documentation /></ProtectedRoute>} />
-              <Route path="/timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
-              <Route path="/timeline-pdf" element={<ProtectedRoute><TimelinePDF /></ProtectedRoute>} />
-              <Route path="/volunteers" element={<ProtectedRoute><Volunteers /></ProtectedRoute>} />
+                  {/* דפים מוגנים - דורשים אימות */}
+                  <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+                  <Route path="/equipment" element={<ProtectedRoute><Equipment /></ProtectedRoute>} />
+                  <Route path="/documentation" element={<ProtectedRoute><Documentation /></ProtectedRoute>} />
+                  <Route path="/timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
+                  <Route path="/timeline-pdf" element={<ProtectedRoute><TimelinePDF /></ProtectedRoute>} />
+                  <Route path="/volunteers" element={<ProtectedRoute><Volunteers /></ProtectedRoute>} />
 
-              {/* דפים לאדמין בלבד */}
-              <Route path="/users" element={<ProtectedRoute requiredRoles={['admin']}><Users /></ProtectedRoute>} />
+                  {/* דפים לאדמין בלבד */}
+                  <Route path="/users" element={<ProtectedRoute requiredRoles={['admin']}><Users /></ProtectedRoute>} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            </Suspense>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ThemeProvider>
   </ErrorBoundary>
 );
 

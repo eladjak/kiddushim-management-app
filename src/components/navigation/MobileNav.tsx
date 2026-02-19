@@ -75,7 +75,7 @@ export const MobileNav = ({
     >
       <div
         ref={navRef}
-        className={`fixed top-0 right-0 bottom-0 w-3/4 max-w-xs bg-white shadow-xl transition-transform duration-300 transform ${animationClass} h-full`}
+        className={`fixed top-0 right-0 bottom-0 w-3/4 max-w-xs bg-background shadow-xl transition-transform duration-300 transform ${animationClass} h-full`}
       >
         <div className="flex flex-col h-full overflow-y-auto">
           <div className="p-4">
