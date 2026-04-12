@@ -136,3 +136,9 @@ npm run test:coverage
 ---
 
 פותח עבור ארגון קידושישי ©️ 2024
+
+---
+
+⭐ If you find this useful, please star the repo!
+
+*[README בעברית](README.he.md)*
