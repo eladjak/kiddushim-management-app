@@ -1,7 +1,51 @@
 # kidushishi-menegment-app - Progress
 
-## Status: Active
-## Last Updated: 2026-02-18
+## Status: Active · event ended but development continues
+## Last Updated: 2026-04-18 (Sprint 6.5 polish round shipped)
+
+## Sprint 6.5 — Apr 18, 2026 (commit `06a62c7`)
+
+### ✅ Pushed to `origin/main`
+
+**Bundle + runtime**
+- Vite manual chunks: `vendor-react / query / supabase / date / icons / forms / charts / radix`
+  — better long-term caching. Rebuilding one feature re-downloads one chunk, not everything.
+- `ReactQueryDevtools` lazy-imported + gated on `import.meta.env.DEV` → zero devtools bytes in production
+- `EventsList` memoized + `useCallback` on render/key → fewer parent-triggered re-renders
+- `GreenAPI` validates env at module load (loud warn) instead of silent per-request failure
+
+**RBAC**
+- `EventsList` gates WhatsApp actions on `profile.role in ['admin','coordinator']`
+
+**Tests (`bun run test` → 196/196 passing across 20 files, ~5s)**
+- `components/theme/__tests__/ThemeProvider.test.tsx` — 13 tests (system pref, localStorage, matchMedia listeners)
+- `components/ui/__tests__/EmptyState.test.tsx`
+- `services/whatsapp/__tests__/greenApi.test.ts` — env validation, request shape, error paths
+
+**DX**
+- `package.json` scripts: `typecheck`, `test`, `test:watch`, `test:ui` (previously missing, vitest had no run script)
+- `.gitignore`: `.env*` / `.claude/` / `playwright-report/` / `test-results/`
+- `.github/workflows/ci.yml`: Ubuntu + Bun · typecheck → vitest → build → upload dist/ artifact · runs on every push/PR
+
+**Tracked new files**
+- `screenshots/` (784KB, 5 PNGs)
+- `.npmrc`
+
+### Verified
+- `bunx tsc --noEmit`: clean (strict TypeScript, 114 `any` already eliminated in earlier commit `c9962b0`)
+- `bun run test`: 196 pass
+- `bun run build`: 9.4s, chunks split cleanly. Largest is mapbox-gl at 1.77MB gzipped to 489KB (acceptable, lazy-loaded)
+
+### Repository note
+- GitHub remote redirects `kidushishi-menegment-app` → `kiddushim-management-app` (someone renamed it, probably via Lovable).
+  Push still works via redirect. Origin URL on local repo is unchanged — can update later with `git remote set-url origin https://github.com/eladjak/kiddushim-management-app.git`
+
+### Deferred to Sprint 6.6
+- **Vercel deploy** — needs Elad to create project on Vercel dashboard + paste VITE_SUPABASE_* envs. Skipped this sprint.
+- Kidushishi 2025 event is over, but the app is worth keeping as a live portfolio + template for similar community apps.
+
+---
+
 
 ## Current State
 אפליקציית ניהול קידושים/אירועים קהילתיים. React 18 + TypeScript + Vite + Tailwind + shadcn/ui + Supabase.
