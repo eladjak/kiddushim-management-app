@@ -34,43 +34,43 @@ export const EventDetailsSection = ({
   };
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-24 px-4 bg-gradient-to-b from-white to-gray-50/50 animate-on-scroll">
+    <section ref={sectionRef} className="py-16 md:py-24 px-4 bg-gradient-to-b from-white to-gray-50/50 dark:from-background dark:to-background animate-on-scroll">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">
               איך נראה אירוע קידושישי?
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full mb-8" />
 
             <div className="space-y-6">
               <div className="flex items-start gap-4 group animate-on-scroll stagger-1">
-                <div className="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors duration-200">
-                  <Clock className="h-5 w-5 text-blue-600" />
+                <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/60 transition-colors duration-200">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">משך האירוע</h3>
-                  <p className="text-gray-600 leading-relaxed">כשעתיים של חוויה מלאה - מקבלת שבת ועד פעילויות משותפות</p>
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">כשעתיים של חוויה מלאה - מקבלת שבת ועד פעילויות משותפות</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4 group animate-on-scroll stagger-2">
-                <div className="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-orange-200 transition-colors duration-200">
-                  <MapPin className="h-5 w-5 text-orange-600" />
+                <div className="w-11 h-11 bg-orange-100 dark:bg-orange-900/40 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-orange-200 dark:group-hover:bg-orange-900/60 transition-colors duration-200">
+                  <MapPin className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">מיקומים מרכזיים</h3>
-                  <p className="text-gray-600 leading-relaxed">פארקים ציבוריים ומרכזים קהילתיים נגישים במגדל העמק</p>
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">פארקים ציבוריים ומרכזים קהילתיים נגישים במגדל העמק</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4 group animate-on-scroll stagger-3">
-                <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-green-200 transition-colors duration-200">
-                  <BookOpen className="h-5 w-5 text-green-600" />
+                <div className="w-11 h-11 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-green-200 dark:group-hover:bg-green-900/60 transition-colors duration-200">
+                  <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">תוכן מגוון</h3>
-                  <p className="text-gray-600 leading-relaxed">שירה, לימוד, פעילויות יצירה לילדים ושיח קהילתי</p>
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">שירה, לימוד, פעילויות יצירה לילדים ושיח קהילתי</p>
                 </div>
               </div>
             </div>

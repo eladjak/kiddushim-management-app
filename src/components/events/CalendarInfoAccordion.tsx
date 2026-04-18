@@ -8,7 +8,7 @@ export const CalendarInfoAccordion = () => {
   const { holidays, fasts, breakPeriods } = specialDates;
   
   return (
-    <Accordion type="single" collapsible className="bg-white rounded-lg shadow-sm p-4 mb-6">
+    <Accordion type="single" collapsible className="bg-white dark:bg-card rounded-lg shadow-sm p-4 mb-6">
       <AccordionItem value="events-calendar">
         <AccordionTrigger className="text-lg font-medium">
           לוח שנתי - מידע חשוב

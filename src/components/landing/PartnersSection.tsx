@@ -46,15 +46,15 @@ export const PartnersSection = () => {
   const sectionRef = useAnimateOnScroll<HTMLElement>();
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-24 px-4 bg-gradient-to-b from-gray-50 to-white animate-on-scroll">
+    <section ref={sectionRef} className="py-16 md:py-24 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-background dark:to-background animate-on-scroll">
       <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
           מי מאחורי הפרויקט?
         </h2>
         <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full mx-auto mb-10" />
 
         <div className="grid md:grid-cols-2 gap-8 mb-14">
-          <Card className="p-6 text-center bg-white/80 backdrop-blur-sm border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1 animate-on-scroll stagger-1">
+          <Card className="p-6 text-center bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-100 dark:border-border shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1 animate-on-scroll stagger-1">
             <div className="mb-4">
               <a
                 href="https://www.tzohar.org.il/"
@@ -77,7 +77,7 @@ export const PartnersSection = () => {
             </CardDescription>
           </Card>
 
-          <Card className="p-6 text-center bg-white/80 backdrop-blur-sm border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1 animate-on-scroll stagger-2">
+          <Card className="p-6 text-center bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-100 dark:border-border shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1 animate-on-scroll stagger-2">
             <div className="mb-4">
               <a
                 href="https://kidushishi.tzohar.org.il/"
@@ -102,7 +102,7 @@ export const PartnersSection = () => {
         </div>
 
         <div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-6">שותפים ותומכים</h3>
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-6">שותפים ותומכים</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {PARTNER_LINKS.map((partner, index) => (
               <a
@@ -111,14 +111,14 @@ export const PartnersSection = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${partner.label} - אתר חיצוני`}
-                className={`flex flex-col items-center p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 group animate-on-scroll stagger-${index + 3}`}
+                className={`flex flex-col items-center p-6 bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl border border-gray-100 dark:border-border shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 group animate-on-scroll stagger-${index + 3}`}
               >
                 <img
                   src={partner.logo}
                   alt={partner.alt}
                   className="h-16 w-auto mb-3 object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
-                <span className="text-sm text-gray-600 text-center font-medium">{partner.label}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400 text-center font-medium">{partner.label}</span>
               </a>
             ))}
           </div>

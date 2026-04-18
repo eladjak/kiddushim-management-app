@@ -25,7 +25,7 @@ export const DebugPanel = ({
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">מצב דיאגנוסטיקה</h1>
-      <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+      <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-secondary">
         <div>
           <h2 className="font-bold">מידע מקונטקסט האימות:</h2>
           <p>מצב טעינה: {authLoading ? "טוען" : "סיים טעינה"}</p>

@@ -169,7 +169,9 @@ export const EmptyState = ({
 
   return (
     <div className="flex flex-col items-center py-12 px-4" role="status" aria-label={title}>
-      <Illustration />
+      <div className="dark:opacity-80 dark:brightness-90">
+        <Illustration />
+      </div>
       <h2 className="text-xl font-semibold mt-6 mb-2 text-center">{title}</h2>
       {description && (
         <p className="text-sm text-muted-foreground mb-6 text-center max-w-md">

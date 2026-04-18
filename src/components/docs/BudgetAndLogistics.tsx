@@ -11,7 +11,7 @@ export const BudgetAndLogistics = () => {
     <div className="space-y-6 lg:space-y-8 py-4 lg:py-6">
       <h2 className="text-3xl font-bold text-right">תקציב ולוגיסטיקה - קידושישי 2025</h2>
       
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm">
         <h3 className="text-xl font-semibold mb-4 text-right">מבנה תקציבי</h3>
         
         <div className="space-y-6">
@@ -30,7 +30,7 @@ export const BudgetAndLogistics = () => {
                   <TableCell className="font-medium">תקציב צהר</TableCell>
                   <TableCell>1,000 ₪ לאירוע</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                    <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
                       <Info className="h-3 w-3 me-1" />
                       התשלום מגיע חודש-חודשיים אחרי האירוע
                     </Badge>
@@ -45,8 +45,8 @@ export const BudgetAndLogistics = () => {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="border rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100">מודל מלא</Badge>
-                  <span className="text-sm text-gray-500">כשיש תקציב/שותפים</span>
+                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300">מודל מלא</Badge>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">כשיש תקציב/שותפים</span>
                 </div>
                 <Table>
                   <TableBody>
@@ -68,10 +68,10 @@ export const BudgetAndLogistics = () => {
               
               <div className="border rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">מודל חסכוני</Badge>
-                  <span className="text-sm text-gray-500">כשאין תקציב מיידי</span>
+                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300">מודל חסכוני</Badge>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">כשאין תקציב מיידי</span>
                 </div>
-                <ul className="space-y-2 text-gray-600 text-right text-sm">
+                <ul className="space-y-2 text-gray-600 dark:text-gray-400 text-right text-sm">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     <span>שימוש בציוד אישי קיים</span>
@@ -92,12 +92,12 @@ export const BudgetAndLogistics = () => {
       </div>
       
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4 text-right">ציוד בסיסי (קיים)</h3>
           <div className="space-y-4">
             <div>
               <h4 className="text-primary font-medium mb-2 text-right">ציוד אישי</h4>
-              <ul className="space-y-2 text-gray-600 text-right">
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400 text-right">
                 <li className="flex items-center justify-end gap-2">
                   <span>בידורית ניידת</span>
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -119,7 +119,7 @@ export const BudgetAndLogistics = () => {
             
             <div>
               <h4 className="text-primary font-medium mb-2 text-right">מתכלים בסיסיים</h4>
-              <ul className="space-y-2 text-gray-600 text-right">
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400 text-right">
                 <li className="flex items-center justify-end gap-2">
                   <span>מפות אלבד</span>
                   <CircleDashed className="h-4 w-4 text-amber-600" />
@@ -137,12 +137,12 @@ export const BudgetAndLogistics = () => {
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4 text-right">שותפים וחומרים</h3>
           <div className="space-y-4">
             <div>
               <h4 className="text-primary font-medium mb-2 text-right">חומרים מצהר</h4>
-              <ul className="space-y-2 text-gray-600 text-right">
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400 text-right">
                 <li className="flex items-center justify-end gap-2">
                   <span>שירונים</span>
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -168,7 +168,7 @@ export const BudgetAndLogistics = () => {
             
             <div>
               <h4 className="text-primary font-medium mb-2 text-right">שותפים פוטנציאליים</h4>
-              <ul className="space-y-2 text-gray-600 text-right">
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400 text-right">
                 <li>גרעין תורני מגדל העמק</li>
                 <li>החברה למתנ"סים</li>
                 <li>עיריית מגדל העמק</li>

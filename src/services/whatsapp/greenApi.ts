@@ -16,15 +16,37 @@ import { NotificationType } from '@/types/whatsapp';
 
 const log = logger.createLogger({ component: 'GreenApiService' });
 
+// ─── Environment Validation ─────────────────────────────────────
+
+function validateEnv(): void {
+  const missing: string[] = [];
+
+  if (!import.meta.env.VITE_GREEN_API_INSTANCE_ID) {
+    missing.push('VITE_GREEN_API_INSTANCE_ID');
+  }
+  if (!import.meta.env.VITE_GREEN_API_TOKEN) {
+    missing.push('VITE_GREEN_API_TOKEN');
+  }
+
+  if (missing.length > 0) {
+    log.warn(
+      `GreenAPI environment variables missing: ${missing.join(', ')}. ` +
+      'WhatsApp integration will not function. ' +
+      'See .env.example for required variables.',
+    );
+  } else {
+    log.info('GreenAPI environment variables loaded successfully.');
+  }
+}
+
+// Run validation on module load
+validateEnv();
+
 // ─── Configuration ──────────────────────────────────────────────
 
 function getConfig(): WhatsAppConfig {
   const instanceId = import.meta.env.VITE_GREEN_API_INSTANCE_ID ?? '';
   const apiToken = import.meta.env.VITE_GREEN_API_TOKEN ?? '';
-
-  if (!instanceId || !apiToken) {
-    log.warn('GreenAPI credentials not configured. Set VITE_GREEN_API_INSTANCE_ID and VITE_GREEN_API_TOKEN.');
-  }
 
   return {
     instanceId,

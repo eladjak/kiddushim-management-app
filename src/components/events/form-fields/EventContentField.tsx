@@ -11,8 +11,8 @@ export const EventContentField = ({ value, onChange }: EventContentFieldProps) =
   return (
     <div className="space-y-2">
       <Label htmlFor="eventContent">תוכן המפגש בהקשר לשבת (עבור צוות קידושישי בלבד, לא יתפרסם באתר) *</Label>
-      <p className="text-sm text-gray-500">פרטו את תוכן המפגש בהקשר לשבת:</p>
-      <p className="text-sm text-gray-500">אם יש טקס- פרטו את חלקיו ומשך הזמן, אם יש תוכן עיקרי פרטו כיצד עוסק בנושא וכו'</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">פרטו את תוכן המפגש בהקשר לשבת:</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">אם יש טקס- פרטו את חלקיו ומשך הזמן, אם יש תוכן עיקרי פרטו כיצד עוסק בנושא וכו'</p>
       <Textarea
         id="eventContent"
         name="eventContent"

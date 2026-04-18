@@ -16,7 +16,7 @@ export const EventsListSkeleton = () => (
   <div className="space-y-8">
     {/* Month group skeleton */}
     {[1, 2].map((group) => (
-      <div key={group} className="bg-white rounded-lg shadow-sm p-6">
+      <div key={group} className="bg-white dark:bg-card rounded-lg shadow-sm p-6">
         <Skeleton className="h-7 w-40 mb-4" />
         <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
           {[1, 2, 3, 4].map((i) => (

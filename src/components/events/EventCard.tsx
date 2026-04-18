@@ -5,18 +5,18 @@ import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
+import { WhatsAppNotifyButton } from "@/components/whatsapp/WhatsAppNotifyButton";
+import type { Event } from "@/types/events";
 import { logger } from "@/utils/logger";
 
+/** מזהה צ'אט ברירת מחדל עבור קבוצת WhatsApp */
+const DEFAULT_WHATSAPP_CHAT_ID = import.meta.env.VITE_WHATSAPP_DEFAULT_CHAT_ID ?? '';
+
 interface EventCardProps {
-  event: {
-    id: string;
-    title: string;
-    main_time: string;
-    location_name: string;
-    parasha?: string;
-    status?: string;
-  };
+  event: Event;
   isInBreakPeriod: boolean;
+  /** האם להציג כפתור התראת WhatsApp (מנהלים/רכזים בלבד) */
+  showWhatsApp?: boolean;
 }
 
 const STATUS_BORDER_COLORS: Record<string, string> = {
@@ -57,7 +57,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const log = logger.createLogger({ component: 'EventCard' });
 
-export const EventCard = memo(({ event, isInBreakPeriod }: EventCardProps) => {
+export const EventCard = memo(({ event, isInBreakPeriod, showWhatsApp = false }: EventCardProps) => {
   // Handle potential date formatting issues
   const formattedDate = useMemo(() => {
     try {
@@ -104,7 +104,7 @@ export const EventCard = memo(({ event, isInBreakPeriod }: EventCardProps) => {
         <div className="flex flex-wrap gap-2 mb-4">
           {event.status && (
             <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${
-              STATUS_BADGE_COLORS[event.status] ?? "bg-yellow-50 text-yellow-700"
+              STATUS_BADGE_COLORS[event.status] ?? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
             }`}>
               <span className={`inline-block h-1.5 w-1.5 rounded-full ${
                 STATUS_DOT_COLORS[event.status] ?? "bg-yellow-400"
@@ -115,6 +115,15 @@ export const EventCard = memo(({ event, isInBreakPeriod }: EventCardProps) => {
         </div>
 
         <div className="flex justify-end gap-2">
+          {showWhatsApp && DEFAULT_WHATSAPP_CHAT_ID && (
+            <WhatsAppNotifyButton
+              event={event}
+              chatId={DEFAULT_WHATSAPP_CHAT_ID}
+              variant="ghost"
+              size="sm"
+              className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-950"
+            />
+          )}
           <Link to={`/events/${event.id}`}>
             <Button variant="outline" size="sm">
               פרטים נוספים

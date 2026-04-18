@@ -113,7 +113,7 @@ const Volunteers = () => {
             {isLoading ? (
               <div className="text-center py-6">טוען מתנדבים...</div>
             ) : filteredVolunteers && filteredVolunteers.length > 0 ? (
-              <div className="bg-white rounded-md shadow overflow-hidden">
+              <div className="bg-white dark:bg-card rounded-md shadow overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>

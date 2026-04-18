@@ -16,7 +16,7 @@ export const EventTitleField = ({
   return (
     <div className="space-y-2">
       <Label htmlFor="title">שם האירוע *</Label>
-      <p className="text-sm text-gray-500">למשל: קבלת שבת קהילתית / מוזיקלית / משפחתית…</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">למשל: קבלת שבת קהילתית / מוזיקלית / משפחתית…</p>
       <Input 
         id="title" 
         name="title" 

@@ -28,14 +28,9 @@ test.describe("View Reports (Protected Route)", () => {
     // Wait for the page to finish loading
     await page.waitForLoadState("domcontentloaded");
 
-    // Check that the HTML element or a container has dir="rtl"
-    const htmlElement = page.locator("html");
-    const htmlDir = await htmlElement.getAttribute("dir");
-    const rtlContainer = page.locator("[dir='rtl']").first();
-
-    const hasRtl =
-      htmlDir === "rtl" || (await rtlContainer.isVisible().catch(() => false));
-    expect(hasRtl).toBeTruthy();
+    // Check that the page has RTL direction via html[dir="rtl"] or any container with dir="rtl"
+    const rtlElement = page.locator("[dir='rtl']").first();
+    await expect(rtlElement).toBeAttached({ timeout: 10_000 });
   });
 
   test("should not render a blank page", async ({ page }) => {

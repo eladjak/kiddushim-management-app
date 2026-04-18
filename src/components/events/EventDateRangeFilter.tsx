@@ -25,7 +25,7 @@ export const EventDateRangeFilter = ({
   const hasFilter = fromDate !== "" || toDate !== "";
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4">
+    <div className="bg-white dark:bg-card rounded-lg shadow-sm p-4">
       <div className="flex flex-wrap items-end gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="filter-from" className="text-sm font-medium">

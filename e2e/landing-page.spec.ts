@@ -150,8 +150,8 @@ test.describe("Landing Page (/landing)", () => {
       .first()
       .click();
 
-    // Back button should be visible
-    const backButton = page.getByRole("button", { name: "חזרה" });
+    // Back button should be visible (aria-label is "חזרה לעמוד הראשי")
+    const backButton = page.getByRole("button", { name: "חזרה לעמוד הראשי" });
     await expect(backButton).toBeVisible();
 
     // Click back to return to landing page
@@ -177,20 +177,13 @@ test.describe("Landing Page (/landing)", () => {
   });
 
   test("should have proper RTL layout", async ({ page }) => {
-    // Check that the page or a container uses RTL direction
-    const htmlElement = page.locator("html");
-    const htmlDir = await htmlElement.getAttribute("dir");
-    const rtlContainer = page.locator("[dir='rtl']").first();
+    // Check that the page has RTL direction via html[dir="rtl"] or any container with dir="rtl"
+    const rtlElement = page.locator("[dir='rtl']").first();
+    await expect(rtlElement).toBeAttached({ timeout: 10_000 });
 
-    const hasRtl =
-      htmlDir === "rtl" || (await rtlContainer.isVisible().catch(() => false));
-
-    // Even if no explicit dir attribute, the locale is he-IL so RTL is expected
-    // The page should at least render content in Hebrew
-    const hebrewContent = page.getByText("קידושישי מגדל העמק");
-    await expect(hebrewContent.first()).toBeVisible();
-
-    // RTL attribute or Hebrew content confirms the layout
-    expect(hasRtl || (await hebrewContent.first().isVisible())).toBeTruthy();
+    // The page should render content in Hebrew
+    await expect(
+      page.getByText("קידושישי מגדל העמק").first()
+    ).toBeVisible();
   });
 });

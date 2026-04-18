@@ -61,8 +61,8 @@ export const EventBasicInfoSection = ({
 
       <div className="space-y-2">
         <h3 className="font-medium">קהלי יעד *</h3>
-        <p className="text-sm text-gray-500">נא לבחור את כל האפשרויות הרלוונטיות</p>
-        <div className="bg-gray-50 p-3 rounded text-sm">
+        <p className="text-sm text-gray-500 dark:text-gray-400">נא לבחור את כל האפשרויות הרלוונטיות</p>
+        <div className="bg-gray-50 dark:bg-secondary p-3 rounded text-sm">
           בחירה
         </div>
       </div>

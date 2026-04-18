@@ -23,18 +23,18 @@ export const ProjectPlan = () => {
         onValueChange={setActiveTab}
       >
         <div className="flex justify-center mb-6">
-          <div className="bg-white rounded-lg shadow p-1">
+          <div className="bg-white dark:bg-card rounded-lg shadow p-1">
             <div className="flex space-x-2 rtl:space-x-reverse">
-              <TabsTrigger value="overview" className="px-4 py-2 rounded hover:bg-gray-100">סקירה כללית</TabsTrigger>
-              <TabsTrigger value="timeline" className="px-4 py-2 rounded hover:bg-gray-100">לוח זמנים</TabsTrigger>
-              <TabsTrigger value="team" className="px-4 py-2 rounded hover:bg-gray-100">מבנה צוות</TabsTrigger>
-              <TabsTrigger value="budget" className="px-4 py-2 rounded hover:bg-gray-100">תקציב ולוגיסטיקה</TabsTrigger>
-              <TabsTrigger value="processes" className="px-4 py-2 rounded hover:bg-gray-100">תהליכי עבודה</TabsTrigger>
+              <TabsTrigger value="overview" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">סקירה כללית</TabsTrigger>
+              <TabsTrigger value="timeline" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">לוח זמנים</TabsTrigger>
+              <TabsTrigger value="team" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">מבנה צוות</TabsTrigger>
+              <TabsTrigger value="budget" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">תקציב ולוגיסטיקה</TabsTrigger>
+              <TabsTrigger value="processes" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">תהליכי עבודה</TabsTrigger>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white dark:bg-card rounded-lg shadow-sm p-6">
           <TabsContent value="overview">
             <ProjectOverview />
           </TabsContent>

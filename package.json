@@ -8,7 +8,15 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "bunx tsc --noEmit",
+    "test": "bunx vitest run",
+    "test:watch": "bunx vitest",
+    "test:ui": "bunx vitest --ui",
+    "test:e2e": "bunx playwright test",
+    "test:e2e:ui": "bunx playwright test --ui",
+    "test:e2e:headed": "bunx playwright test --headed",
+    "test:e2e:report": "bunx playwright show-report"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

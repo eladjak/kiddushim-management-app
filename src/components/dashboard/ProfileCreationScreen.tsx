@@ -34,8 +34,8 @@ export const ProfileCreationScreen: React.FC<ProfileCreationScreenProps> = ({
       
       <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-8"></div>
       
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        <div className="text-sm text-gray-600 mb-6">
+      <div className="bg-white dark:bg-card p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-6">
           מזהה שלך ({creationAttempts === 0 ? "ראשון" : creationAttempts >= 2 ? `${creationAttempts} ניסיונות` : "שני"} ניסיונות)
         </div>
         

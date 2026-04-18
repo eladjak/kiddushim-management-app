@@ -21,13 +21,13 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "new":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">חדש</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">חדש</Badge>;
       case "in_progress":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">בטיפול</Badge>;
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">בטיפול</Badge>;
       case "resolved":
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">טופל</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">טופל</Badge>;
       case "closed":
-        return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">סגור</Badge>;
+        return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">סגור</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -37,13 +37,13 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
       case "low":
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">נמוכה</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">נמוכה</Badge>;
       case "medium":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">בינונית</Badge>;
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">בינונית</Badge>;
       case "high":
-        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">גבוהה</Badge>;
+        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800">גבוהה</Badge>;
       case "critical":
-        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">קריטית</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800">קריטית</Badge>;
       default:
         return null;
     }
@@ -103,22 +103,22 @@ export const ReportDetail = ({ report, formatReportType }: ReportDetailProps) =>
 
         {report.content.ratings && (
           <Card className="p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">דירוגים</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">דירוגים</h3>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">כללי:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">כללי:</span>
                 {formatRating(report.content.ratings.overall)}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">חווית הקהל:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">חווית הקהל:</span>
                 {formatRating(report.content.ratings.audience)}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">רמת הארגון:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">רמת הארגון:</span>
                 {formatRating(report.content.ratings.organization)}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">לוגיסטיקה:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">לוגיסטיקה:</span>
                 {formatRating(report.content.ratings.logistics)}
               </div>
             </div>

@@ -155,7 +155,7 @@ export const AdminTab = ({ userId }: AdminTabProps) => {
                 </thead>
                 <tbody>
                   {users.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-gray-50">
+                    <tr key={user.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="p-2">{user.name}</td>
                       <td className="p-2">{user.email}</td>
                       <td className="p-2">

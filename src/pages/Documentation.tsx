@@ -22,23 +22,23 @@ const Documentation = () => {
           
           <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab}>
             <div className="flex justify-center mb-8">
-              <div className="bg-white rounded-lg shadow p-1">
+              <div className="bg-white dark:bg-card rounded-lg shadow p-1">
                 <div className="flex space-x-2 rtl:space-x-reverse">
-                  <TabsTrigger value="timeline" className="px-4 py-2 rounded hover:bg-gray-100">לוח זמנים</TabsTrigger>
-                  <TabsTrigger value="overview" className="px-4 py-2 rounded hover:bg-gray-100">סקירה כללית</TabsTrigger>
-                  <TabsTrigger value="team" className="px-4 py-2 rounded hover:bg-gray-100">מבנה צוות</TabsTrigger>
-                  <TabsTrigger value="plan" className="px-4 py-2 rounded hover:bg-gray-100">תכנית עבודה</TabsTrigger>
-                  <TabsTrigger value="budget" className="px-4 py-2 rounded hover:bg-gray-100">תקציב ולוגיסטיקה</TabsTrigger>
-                  <TabsTrigger value="process" className="px-4 py-2 rounded hover:bg-gray-100">תהליכי עבודה</TabsTrigger>
+                  <TabsTrigger value="timeline" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">לוח זמנים</TabsTrigger>
+                  <TabsTrigger value="overview" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">סקירה כללית</TabsTrigger>
+                  <TabsTrigger value="team" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">מבנה צוות</TabsTrigger>
+                  <TabsTrigger value="plan" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">תכנית עבודה</TabsTrigger>
+                  <TabsTrigger value="budget" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">תקציב ולוגיסטיקה</TabsTrigger>
+                  <TabsTrigger value="process" className="px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">תהליכי עבודה</TabsTrigger>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white dark:bg-card rounded-lg shadow-sm p-6">
               <TabsContent value="timeline">
                 <div>
                   <h2 className="text-2xl font-bold mb-4">לוח זמנים שנתי</h2>
-                  <div className="text-center p-8 text-gray-500">
+                  <div className="text-center p-8 text-gray-500 dark:text-gray-400">
                     <p>לוח הזמנים זמינות בקרוב...</p>
                     <p className="text-sm mt-2">הקומפוננט נמצא כעת בפיתוח</p>
                   </div>
@@ -56,7 +56,7 @@ const Documentation = () => {
               <TabsContent value="plan">
                 <div>
                   <h2 className="text-2xl font-bold mb-4">תכנית עבודה</h2>
-                  <div className="text-center p-8 text-gray-500">
+                  <div className="text-center p-8 text-gray-500 dark:text-gray-400">
                     <p>תכנית העבודה זמינות בקרוב...</p>
                   </div>
                 </div>

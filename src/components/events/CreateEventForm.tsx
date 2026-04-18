@@ -79,7 +79,7 @@ export const CreateEventForm = () => {
           </div>
         </ScrollArea>
         
-        <div className="border-t pt-4 bg-white sticky bottom-0">
+        <div className="border-t pt-4 bg-white dark:bg-background sticky bottom-0">
           <EventFormActions 
             isLoading={isLoading}
             onCancel={() => navigate("/events")}

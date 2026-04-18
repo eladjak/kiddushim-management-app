@@ -11,7 +11,7 @@ export const EventDurationField = ({ value, onChange }: EventDurationFieldProps)
   return (
     <div className="space-y-2">
       <Label htmlFor="duration">משך האירוע בשעות *</Label>
-      <p className="text-sm text-gray-500">למשל, עבור אירוע של שעה וחצי יש להזין 1.5</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">למשל, עבור אירוע של שעה וחצי יש להזין 1.5</p>
       <Input
         id="duration"
         name="duration"

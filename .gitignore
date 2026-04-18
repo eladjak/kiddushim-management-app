@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (secrets)
+.env
+.env.production
+.env.staging
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +27,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code local state
+.claude/
+
+# Playwright
+playwright-report/
+test-results/

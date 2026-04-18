@@ -106,9 +106,9 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
 
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 p-4 rounded-lg">
+      <div className="bg-blue-50 dark:bg-blue-950/40 p-4 rounded-lg">
         <h3 className="font-medium text-lg mb-2">דיווח אירוע לצהר</h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           טופס זה מותאם לדרישות הדיווח של ארגון צהר
         </p>
       </div>
@@ -136,7 +136,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
               <label className="text-sm font-medium">
                 מה להערכתך קיבלו המשתתפים שהיו באירוע? *
               </label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 איזה פרטו האם יצירתם איתם קשר, כיצד לדעתכם הם השתלבו?
               </p>
               <textarea
@@ -174,7 +174,7 @@ export const CreateReportForm = ({ eventId, reportType, onClose }: CreateReportF
           </div>
         </ScrollArea>
 
-        <div className="flex gap-3 pt-4 border-t bg-white sticky bottom-0">
+        <div className="flex gap-3 pt-4 border-t bg-white dark:bg-background sticky bottom-0">
           <Button type="submit" disabled={loading} className="flex-1">
             {loading ? "שולח דיווח..." : "שלח דיווח לצהר"}
           </Button>

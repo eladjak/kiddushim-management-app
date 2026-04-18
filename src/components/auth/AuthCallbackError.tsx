@@ -118,14 +118,14 @@ export const AuthCallbackError = ({ error }: AuthCallbackErrorProps) => {
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/10">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+      <div className="bg-white dark:bg-card p-8 rounded-lg shadow-md max-w-md w-full">
         <div className="text-center mb-6">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-          <h2 className="text-2xl font-medium text-red-600">שגיאה בהתחברות</h2>
+          <h2 className="text-2xl font-medium text-red-600 dark:text-red-400">שגיאה בהתחברות</h2>
         </div>
-        
-        <Alert className="mb-6 border-red-200 bg-red-50">
-          <AlertDescription className="text-gray-700">
+
+        <Alert className="mb-6 border-red-200 bg-red-50 dark:bg-red-950/40 dark:border-red-800">
+          <AlertDescription className="text-gray-700 dark:text-gray-300">
             {formatErrorMessage(error)}
           </AlertDescription>
         </Alert>
