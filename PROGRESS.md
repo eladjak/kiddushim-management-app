@@ -583,3 +583,6 @@ Added 35 new tests across 4 new test files:
 - **Roles**: user_roles table in Supabase, AppRole type: admin | coordinator | service_girl | youth_volunteer | volunteer
 - **DB Types**: Auto-generated at src/integrations/supabase/types.ts
 - **Tables**: events, profiles, user_roles, equipment, equipment_changes, event_assignments, event_equipment, event_registrations, audit_logs
+
+### 11.6.2026 — מעבר שיפורים רוחבי (Fable-5 sweep)
+- tsc ✓0 · lint: 7→0 שגיאות (main b80b627; נותרו 35 אזהרות react-refresh/hooks-deps) · vite build ירוק · vitest utils 20/20 · audit: high-ים בעיקר dev-טרנזיטיביים (vite/rollup/eslint chain) — אין fix מינורי זמין, לא קריטי לפרוד (Vite app).
