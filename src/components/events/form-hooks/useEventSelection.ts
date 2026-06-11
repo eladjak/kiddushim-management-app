@@ -28,7 +28,7 @@ export const useEventSelection = (
     
     // Set cleanup time to be 1 hour after main time
     let cleanupHour = mainTimeHour + 1;
-    let cleanupMinute = mainTimeMinute;
+    const cleanupMinute = mainTimeMinute;
     
     if (cleanupHour >= 24) {
       cleanupHour -= 24;

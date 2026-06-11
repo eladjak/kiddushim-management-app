@@ -40,7 +40,7 @@ export const AvatarUpload = ({ onAvatarChange }: AvatarUploadProps) => {
       setPreview(objectUrl);
 
       // Upload to Supabase
-      let { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file);
 

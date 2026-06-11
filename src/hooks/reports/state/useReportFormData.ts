@@ -7,7 +7,7 @@ import { logger } from "@/utils/logger";
 
 const log = logger.createLogger({ component: 'useReportFormData' });
 
-export interface ReportFormData extends ReportFormValues {}
+export type ReportFormData = ReportFormValues;
 
 export const useReportFormData = () => {
   const { profile } = useAuth();
