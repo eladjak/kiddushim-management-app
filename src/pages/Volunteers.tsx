@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell
 } from "@/components/ui/table";
 import {
   Tabs,
@@ -20,7 +20,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
+import { SendMessageDialog } from "@/components/volunteers/SendMessageDialog";
+import { AssignmentsDialog } from "@/components/volunteers/AssignmentsDialog";
 import type { Database } from "@/integrations/supabase/types";
+
+type SelectedVolunteer = {
+  id: string;
+  name: string | null;
+  phone: string | null;
+};
 
 // Define Profile type explicitly to fix type errors
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -28,8 +37,14 @@ type UserRole = Database["public"]["Enums"]["user_role"];
 
 const Volunteers = () => {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | UserRole>("all");
+  const [messageTarget, setMessageTarget] = useState<SelectedVolunteer | null>(null);
+  const [assignmentsTarget, setAssignmentsTarget] = useState<SelectedVolunteer | null>(null);
+
+  // רק מנהל/ת ורכז/ת רשאים לשלוח הודעות ולנהל שיבוצים
+  const canManage = profile?.role === "admin" || profile?.role === "coordinator";
 
   // Fetch volunteers data
   const { data: volunteers, isLoading, refetch } = useQuery({
@@ -138,30 +153,38 @@ const Volunteers = () => {
                             : "לא פעיל/ה"}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2 justify-end">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                toast({
-                                  description: "הפעולה עדיין לא מיושמת",
-                                });
-                              }}
-                            >
-                              שיבוצים
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                toast({
-                                  description: "הפעולה עדיין לא מיושמת",
-                                });
-                              }}
-                            >
-                              שלח הודעה
-                            </Button>
-                          </div>
+                          {canManage ? (
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setAssignmentsTarget({
+                                    id: volunteer.id,
+                                    name: volunteer.name,
+                                    phone: volunteer.phone,
+                                  })
+                                }
+                              >
+                                שיבוצים
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setMessageTarget({
+                                    id: volunteer.id,
+                                    name: volunteer.name,
+                                    phone: volunteer.phone,
+                                  })
+                                }
+                              >
+                                שלח הודעה
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -176,6 +199,24 @@ const Volunteers = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {messageTarget && (
+        <SendMessageDialog
+          open={!!messageTarget}
+          onOpenChange={(open) => !open && setMessageTarget(null)}
+          name={messageTarget.name}
+          phone={messageTarget.phone}
+        />
+      )}
+
+      {assignmentsTarget && (
+        <AssignmentsDialog
+          open={!!assignmentsTarget}
+          onOpenChange={(open) => !open && setAssignmentsTarget(null)}
+          userId={assignmentsTarget.id}
+          name={assignmentsTarget.name}
+        />
+      )}
     </div>
   );
 };

@@ -1,7 +1,43 @@
 # kidushishi-menegment-app - Progress
 
 ## Status: Active · event ended but development continues
-## Last Updated: 2026-04-18 (Sprint 6.5 polish round shipped)
+## Last Updated: 2026-06-13 (Sprint 6.7 — wired the 2 dead Volunteers buttons end-to-end)
+
+## Sprint 6.7 — Jun 13, 2026 (deep-iteration: killed the only dead buttons in the app)
+
+### Gap found (definition-of-done audit)
+The whole app was already complete (RBAC, RTL, a11y, 196 tests) EXCEPT one screen:
+`src/pages/Volunteers.tsx` had **two dead buttons** — "שיבוצים" and "שלח הודעה" — both
+just toasted "הפעולה עדיין לא מיושמת". Classic Elad-bar violation. Wired both end-to-end.
+
+### Shipped (UI → logic → DB/API → states → RBAC, all verified)
+- **"שלח הודעה"** → new `SendMessageDialog` sends a real free-text WhatsApp message to the
+  volunteer via the existing `useWhatsApp.sendMessage` → GreenAPI. Free-text textarea, send
+  disabled until non-empty, graceful error state when the volunteer has no valid phone.
+- **"שיבוצים"** → new `AssignmentsDialog` shows the volunteer's REAL `event_assignments`
+  (joined to events: title/date/time/location) via new `useVolunteerAssignments` hook.
+  Full loading / empty / error(+retry) states. Hebrew status & role badges.
+- **New `src/utils/phone.ts`** — Israeli phone → GreenAPI chatId (`972...@c.us`) normalizer
+  (handles 0xx, +972, 00972, bare local, landlines; returns null on garbage).
+- **RBAC**: both actions gated on `profile.role in ['admin','coordinator']` (matches EventsList
+  pattern); non-managers see a `—` in the actions column.
+
+### Tests (+15, total 196 → 211, all green)
+- `src/utils/__tests__/phone.test.ts` — 12 tests (all normalization branches + chatId)
+- `src/components/volunteers/__tests__/SendMessageDialog.test.tsx` — 3 tests (no-phone error
+  state, sends to correct chatId, blocks whitespace-only message)
+
+### Verified
+- `tsc --noEmit`: clean · `vitest run`: 211/211 · `vite build`: OK (9.7s) · eslint: 0 errors on new files
+- App boots, `/volunteers` correctly redirects to `/auth` (ProtectedRoute) — no runtime errors
+
+### Needs Elad
+- Live WhatsApp send needs `VITE_GREEN_API_INSTANCE_ID` + `VITE_GREEN_API_TOKEN` in `.env`
+  (currently absent). Code degrades gracefully without them (clear Hebrew error toast).
+- Could not exercise the authenticated Volunteers UI in-browser (no seed login; no PII fabricated).
+
+---
+
 
 ## Sprint 6.5 — Apr 18, 2026 (commit `06a62c7`)
 
