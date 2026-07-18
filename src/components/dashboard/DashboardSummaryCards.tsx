@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CountUp } from "@/components/ui/count-up";
 import { Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
@@ -84,7 +85,7 @@ export const DashboardSummaryCards = ({ events, isLoading }: DashboardSummaryCar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.total}</div>
+            <div className="text-2xl font-bold"><CountUp value={summary.total} /></div>
             <p className="text-xs text-muted-foreground mt-1">בסיס הנתונים</p>
           </CardContent>
         </Card>
@@ -98,7 +99,7 @@ export const DashboardSummaryCards = ({ events, isLoading }: DashboardSummaryCar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{activeCount}</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400"><CountUp value={activeCount} /></div>
             <p className="text-xs text-muted-foreground mt-1">מתוכנן + מתרחש</p>
           </CardContent>
         </Card>
@@ -112,7 +113,7 @@ export const DashboardSummaryCards = ({ events, isLoading }: DashboardSummaryCar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{completedCount}</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400"><CountUp value={completedCount} /></div>
             <p className="text-xs text-muted-foreground mt-1">אירועים שהסתיימו</p>
           </CardContent>
         </Card>
@@ -126,7 +127,7 @@ export const DashboardSummaryCards = ({ events, isLoading }: DashboardSummaryCar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{pendingCount}</div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400"><CountUp value={pendingCount} /></div>
             <p className="text-xs text-muted-foreground mt-1">טיוטות וממתינים</p>
           </CardContent>
         </Card>

@@ -14,6 +14,7 @@ import { useAssignments } from "@/hooks/dashboard/useAssignments";
 import { logger } from "@/utils/logger";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 /** Returns a Hebrew time-based greeting. */
 const getTimeGreeting = (): string => {
@@ -39,6 +40,11 @@ export const Dashboard = () => {
   
   // Dashboard data state
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
+
+  // Scroll-reveal for the below-the-fold content block (wow-ui-standard #3).
+  // Additive: the wrapper ships visible; the hook hides + reveals at runtime,
+  // and stays fully visible under reduced-motion / no-JS.
+  const contentRevealRef = useScrollReveal<HTMLDivElement>();
   
   useEffect(() => {
     log.info("Dashboard loaded", { 
@@ -69,7 +75,8 @@ export const Dashboard = () => {
           />
 
           <StatusBanner isAllDataLoaded={isAllDataLoaded} />
-          
+
+          <div ref={contentRevealRef}>
           {isMobile ? (
             // Mobile layout
             <div className="space-y-4 mt-4">
@@ -115,9 +122,10 @@ export const Dashboard = () => {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
-      
+
       {/* Onboarding Tour */}
       {showOnboarding && (
         <OnboardingTour 
