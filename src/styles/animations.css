@@ -68,40 +68,10 @@
 .animate-on-scroll.stagger-5 { transition-delay: 0.25s; }
 .animate-on-scroll.stagger-6 { transition-delay: 0.3s; }
 
-/* ===== wow-ui-standard: scroll-reveal (principle 3) ===== */
-/* Base state = final visible state. The `.wow-reveal` hidden class is added at
- * RUNTIME by useScrollReveal, so no-JS and reduced-motion users see everything.
- * Motion diet: transform + opacity only. */
-.wow-reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity 0.5s ease-out,
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
-}
-
-.wow-reveal.in {
-  opacity: 1;
-  transform: none;
-}
-
-.wow-reveal.out-up {
-  opacity: 0;
-  transform: translateY(-16px);
-}
-
-/* ===== wow-ui-standard: reduced-motion belt covering the NEW selectors ===== */
-@media (prefers-reduced-motion: reduce) {
-  .wow-reveal,
-  .wow-reveal.in,
-  .wow-reveal.out-up {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-    will-change: auto !important;
-  }
-}
+/* NOTE: the wow-ui-standard `.wow-reveal` scroll-reveal rules were moved to
+ * src/styles/wow-reveal.css (imported directly from useScrollReveal) because
+ * this file is @imported after @tailwind in index.css and is dropped from the
+ * production bundle. See wow-reveal.css for the full rationale. */
 
 /* ===== Image styling and adjustments ===== */
 img {

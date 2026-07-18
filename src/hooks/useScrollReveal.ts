@@ -1,4 +1,8 @@
 import { useEffect, useRef } from "react";
+// Side-effect import: guarantees the `.wow-reveal` rules are bundled by Vite.
+// (animations.css is @imported after @tailwind in index.css, which drops it
+// from the production build — see wow-reveal.css header for the full rationale.)
+import "@/styles/wow-reveal.css";
 
 interface UseScrollRevealOptions {
   /**

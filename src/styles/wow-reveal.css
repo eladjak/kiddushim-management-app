@@ -1,0 +1,44 @@
+/* ===== wow-ui-standard: scroll-reveal (principle 3) — SCOPED, self-contained =====
+ *
+ * Lives in its own file and is imported as a side-effect from the scroll-reveal
+ * hook so Vite bundles it reliably. This is deliberately NOT added to
+ * animations.css: that file is @imported AFTER the @tailwind directives in
+ * index.css, which per the CSS spec makes the whole @import a no-op — so
+ * animations.css never reaches the production bundle. Rather than reorder that
+ * @import (which would resurrect ~6 currently-dead stylesheets, incl. RTL
+ * overrides, onto a working app = app-wide regression risk), the new motion
+ * rules ship in isolation here.
+ *
+ * Base state = final visible state. The `.wow-reveal` hidden class is added at
+ * RUNTIME by useScrollReveal, so no-JS and reduced-motion users see everything.
+ * Motion diet: transform + opacity only. */
+.wow-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.wow-reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+.wow-reveal.out-up {
+  opacity: 0;
+  transform: translateY(-16px);
+}
+
+/* ===== wow-ui-standard: reduced-motion belt covering the NEW selectors ===== */
+@media (prefers-reduced-motion: reduce) {
+  .wow-reveal,
+  .wow-reveal.in,
+  .wow-reveal.out-up {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+}
