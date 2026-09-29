@@ -218,6 +218,8 @@ export type Database = {
         Row: {
           children_ages: string | null
           comments: string | null
+          consent_at: string | null
+          consent_version: string | null
           created_at: string
           email: string | null
           event_id: string | null
@@ -232,6 +234,8 @@ export type Database = {
         Insert: {
           children_ages?: string | null
           comments?: string | null
+          consent_at?: string | null
+          consent_version?: string | null
           created_at?: string
           email?: string | null
           event_id?: string | null
@@ -246,6 +250,8 @@ export type Database = {
         Update: {
           children_ages?: string | null
           comments?: string | null
+          consent_at?: string | null
+          consent_version?: string | null
           created_at?: string
           email?: string | null
           event_id?: string | null

@@ -1,5 +1,5 @@
 
-import { Calendar, Users, FileText, Wrench, BookOpen, Clock, UserCheck, Home } from "lucide-react";
+import { Calendar, Users, FileText, Wrench, BookOpen, Clock, UserCheck, Home, ClipboardList } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
@@ -7,6 +7,7 @@ export interface NavItem {
   path: string;
   icon: LucideIcon;
   adminOnly?: boolean;
+  staffOnly?: boolean; // admin or coordinator
 }
 
 export const navItems: NavItem[] = [
@@ -31,6 +32,12 @@ export const navItems: NavItem[] = [
     icon: FileText,
   },
   {
+    label: "נרשמים",
+    path: "/registrants",
+    icon: ClipboardList,
+    staffOnly: true,
+  },
+  {
     label: "משתמשים",
     path: "/users",
     icon: Users,
@@ -53,9 +60,12 @@ export const navItems: NavItem[] = [
   },
 ];
 
-export const getNavItems = (isAdmin: boolean = false): NavItem[] => {
+export const getNavItems = (isAdmin: boolean = false, isCoordinator: boolean = false): NavItem[] => {
   return navItems.filter(item => {
     if (item.adminOnly && !isAdmin) {
+      return false;
+    }
+    if (item.staffOnly && !(isAdmin || isCoordinator)) {
       return false;
     }
     return true;

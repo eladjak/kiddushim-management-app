@@ -49,7 +49,19 @@ describe("getNavItems - role-based filtering", () => {
     const items = getNavItems(false);
     const labels = items.map((i) => i.label);
     expect(labels).not.toContain("משתמשים");
-    expect(items.length).toBe(navItems.length - 1);
+    expect(labels).not.toContain("נרשמים");
+    // hides the admin-only item and the staff-only (registrants) item
+    expect(items.length).toBe(navItems.length - 2);
+  });
+
+  it("shows the registrants item to coordinators but not the admin-only item", () => {
+    const labels = getNavItems(false, true).map((i) => i.label);
+    expect(labels).toContain("נרשמים");
+    expect(labels).not.toContain("משתמשים");
+  });
+
+  it("shows the registrants item to admins", () => {
+    expect(getNavItems(true).map((i) => i.label)).toContain("נרשמים");
   });
 
   it("defaults to non-admin when no argument passed", () => {

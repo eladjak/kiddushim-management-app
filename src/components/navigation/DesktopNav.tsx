@@ -13,7 +13,7 @@ interface DesktopNavProps {
 export const DesktopNav = ({ onLogout }: DesktopNavProps) => {
   const { user, profile } = useAuth();
   const location = useLocation();
-  const navItems = getNavItems(profile?.role === "admin");
+  const navItems = getNavItems(profile?.role === "admin", profile?.role === "coordinator");
 
   return (
     <div className="hidden md:flex h-16 items-center px-4 w-full">

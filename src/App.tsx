@@ -30,6 +30,7 @@ const Documentation = lazy(() => import("./pages/Documentation"));
 const Timeline = lazy(() => import("./pages/Timeline"));
 const TimelinePDF = lazy(() => import("./pages/TimelinePDF"));
 const Volunteers = lazy(() => import("./pages/Volunteers"));
+const Registrants = lazy(() => import("./pages/Registrants"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -76,6 +77,9 @@ const App = () => (
                   <Route path="/timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
                   <Route path="/timeline-pdf" element={<ProtectedRoute><TimelinePDF /></ProtectedRoute>} />
                   <Route path="/volunteers" element={<ProtectedRoute><Volunteers /></ProtectedRoute>} />
+
+                  {/* דפים לצוות בלבד (מנהל/ת ורכז/ת) */}
+                  <Route path="/registrants" element={<ProtectedRoute requiredRoles={['admin', 'coordinator']}><Registrants /></ProtectedRoute>} />
 
                   {/* דפים לאדמין בלבד */}
                   <Route path="/users" element={<ProtectedRoute requiredRoles={['admin']}><Users /></ProtectedRoute>} />
