@@ -3,6 +3,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { logger } from "@/utils/logger";
+import { CONSENT_VERSION } from "@/lib/privacy";
+import { validateRegistration, parseFamilySize, extractRegistrationError } from "@/lib/registration";
 import {
   RegistrationForm,
   HeroSection,
@@ -23,61 +25,58 @@ const Landing = () => {
   const [showRegistration, setShowRegistration] = useState(false);
   const [formData, setFormData] = useState<RegistrationFormData>(INITIAL_FORM_DATA);
 
+  // קוראים מהתצוגה הציבורית public_upcoming_events (שדות מצומצמים, אירועים מתוכננים בלבד)
+  // ולא מטבלת events עצמה - כך אורח לא-מחובר לא נחשף לטיוטות ולשדות פנימיים.
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<UpcomingEvent[]>({
     queryKey: ['upcoming-events'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .gte('date', new Date().toISOString())
+        .from('public_upcoming_events' as never)
+        .select('id, title, date, location_name, location_address')
         .order('date', { ascending: true })
         .limit(3);
 
-      if (error) throw error;
-      return (data ?? []) as UpcomingEvent[];
+      if (error) {
+        // התצוגה עדיין לא הותקנה או שאין הרשאה - מציגים "האירוע הבא בתכנון" ולא שגיאה
+        log.warn('Public events unavailable', { error: error.message });
+        return [];
+      }
+      return (data ?? []) as unknown as UpcomingEvent[];
     }
   });
 
   const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationError = validateRegistration(formData);
+    if (validationError) {
+      toast({ title: "בדקו את הפרטים", description: validationError, variant: "destructive" });
+      return;
+    }
+
     setIsRegistering(true);
 
     try {
       const registrationData = {
-        name: formData.name,
+        name: formData.name.trim(),
         phone: formData.phone,
-        email: formData.email,
-        family_size: parseInt(formData.family_size) || 1,
-        children_ages: formData.children_ages,
-        comments: formData.comments,
+        email: formData.email.trim(),
+        family_size: parseFamilySize(formData.family_size),
+        children_ages: formData.children_ages.trim(),
+        comments: formData.comments.trim(),
         event_id: upcomingEvents?.[0]?.id || null,
+        consent: true,
+        consent_version: CONSENT_VERSION,
       };
 
+      // אימות ההרשמה נשלח בצד השרת (secure-registration) - הלקוח לא קורא
+      // ישירות לפונקציית המייל, כדי שאי אפשר יהיה להשתמש בה לשליחת דואר לכתובות זרות.
       const { data, error: functionError } = await supabase.functions.invoke('secure-registration', {
         body: registrationData
       });
 
       if (functionError) throw functionError;
       if (data?.error) throw new Error(data.error);
-
-      try {
-        const nextEvent = upcomingEvents?.[0];
-        await supabase.functions.invoke('send-registration-confirmation', {
-          body: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            eventTitle: nextEvent?.title || "קידושי שבת מגדל העמק",
-            eventDate: nextEvent?.date || new Date().toISOString(),
-            eventLocation: nextEvent?.location_name || "יועלן בהמשך",
-            familySize: parseInt(formData.family_size) || 1,
-            childrenAges: formData.children_ages,
-            comments: formData.comments
-          }
-        });
-      } catch (emailError) {
-        log.warn('Email notification failed', { error: emailError });
-      }
 
       toast({
         title: "נרשמת בהצלחה!",
@@ -86,10 +85,11 @@ const Landing = () => {
 
       setShowRegistration(false);
       setFormData(INITIAL_FORM_DATA);
-    } catch {
+    } catch (err) {
+      log.warn('Registration failed', { error: err instanceof Error ? err.message : 'unknown' });
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה בהרשמה. נסה שוב או צור קשר",
+        description: await extractRegistrationError(err),
         variant: "destructive"
       });
     } finally {
@@ -105,6 +105,7 @@ const Landing = () => {
         onFormDataChange={setFormData}
         onSubmit={handleRegistration}
         onBack={() => setShowRegistration(false)}
+        hasUpcomingEvent={Boolean(upcomingEvents?.length)}
       />
     );
   }

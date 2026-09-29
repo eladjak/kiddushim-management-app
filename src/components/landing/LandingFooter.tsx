@@ -26,6 +26,14 @@ export const LandingFooter = () => {
           <Button
             variant="link"
             className="text-gray-400 hover:text-blue-400 p-0 transition-colors duration-200"
+            onClick={() => navigate("/privacy")}
+          >
+            מדיניות פרטיות
+          </Button>
+          <span className="text-gray-700 hidden md:inline" aria-hidden="true">|</span>
+          <Button
+            variant="link"
+            className="text-gray-400 hover:text-blue-400 p-0 transition-colors duration-200"
             onClick={() => navigate("/documentation")}
           >
             תיעוד הפרויקט

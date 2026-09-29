@@ -9,6 +9,8 @@ export interface RegistrationFormData {
   family_size: string;
   children_ages: string;
   comments: string;
+  /** הסכמה מפורשת לעיבוד המידע (מדיניות פרטיות) */
+  consent: boolean;
 }
 
 export const INITIAL_FORM_DATA: RegistrationFormData = {
@@ -18,6 +20,7 @@ export const INITIAL_FORM_DATA: RegistrationFormData = {
   family_size: "",
   children_ages: "",
   comments: "",
+  consent: false,
 };
 
 export interface UpcomingEvent {

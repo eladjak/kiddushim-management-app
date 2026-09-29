@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /privacy
+Disallow: /auth
+Disallow: /events
+Disallow: /reports
+Disallow: /profile
+Disallow: /equipment
+Disallow: /volunteers
+Disallow: /users
+Disallow: /timeline
+Disallow: /timeline-pdf
+Disallow: /documentation

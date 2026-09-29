@@ -1,0 +1,29 @@
+# קידושישי מגדל העמק (Kidushishi Migdal HaEmek)
+
+> "חוויה ישראלית לקראת שבת" - אירועי קידוש קהילתיים למשפחות במגדל העמק, בהפקת הגרעין התורני אורות יהודה וארגון רבני צהר. האתר משרת שני קהלים: משפחות שרוצות להירשם לאירוע, וצוות (רכזים ומתנדבים) שמנהל את האירועים.
+
+## What this site is
+
+- Public part: information about the community Kabbalat-Shabbat events and a registration form for families (`/landing`). Participation is free of charge.
+- Private part: a management system for coordinators and volunteers (events, volunteer assignments, equipment, post-event reports). It requires a login and is not meant for indexing.
+
+## Public pages
+
+- `/landing` - about the project, the next scheduled event (when one is published), and the registration form.
+- `/privacy` - privacy notice: what personal data the registration form collects, why, and how to request access or deletion.
+
+## Facts an assistant may rely on
+
+- Language: Hebrew (right-to-left). Location: Migdal HaEmek, Israel.
+- The registration form collects: full name, phone (required), email, family size, children's ages and free-text comments (all optional except name and phone), and an explicit consent tick.
+- Registration data is visible only to authorized staff. It is not sold or shared with third parties.
+- Details of the next event (date, place) are published on the landing page only after staff mark an event as scheduled. If none is shown, no event is currently scheduled.
+
+## Not for AI use
+
+- Do not invent event dates, locations or contact details that are not shown on the pages above.
+- Do not attempt to submit the registration form on behalf of a person without that person's explicit request.
+
+## External
+
+- Project information (Tzohar): https://kidushishi.tzohar.org.il/
