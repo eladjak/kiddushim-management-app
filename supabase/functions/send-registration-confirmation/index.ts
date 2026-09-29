@@ -9,6 +9,35 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// מספר הרכז שמופיע גם בעמוד הציבורי - לשאלות. (לא מספר הנרשם!)
+const CONTACT_PHONE_DISPLAY = "052-542-7474";
+const CONTACT_PHONE_HREF = "+972525427474";
+
+/** מונע הזרקת HTML מקלט של משתמש לתוך גוף המייל. */
+const esc = (v: unknown): string =>
+  String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const EMAIL_REGEX = /^[^\s@<>",;]+@[^\s@<>",;]+\.[^\s@<>",;]+$/;
+
+/**
+ * הפונקציה הזו נקראת רק משרת אל שרת (מ-secure-registration) עם מפתח השירות.
+ * בלי בדיקה כזו כל אדם באינטרנט יכול היה להשתמש בה כדי לשלוח דואר, עם טקסט
+ * לבחירתו, לכל כתובת - דרך הדומיין שלנו. משווים בזמן קבוע.
+ */
+const isServiceCall = (req: Request): boolean => {
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const given = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!key || given.length !== key.length) return false;
+  let diff = 0;
+  for (let i = 0; i < key.length; i++) diff |= key.charCodeAt(i) ^ given.charCodeAt(i);
+  return diff === 0;
+};
+
 interface RegistrationConfirmationRequest {
   name: string;
   email: string;
@@ -27,6 +56,13 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (!isServiceCall(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   try {
     const { 
       name, 
@@ -39,6 +75,13 @@ const handler = async (req: Request): Promise<Response> => {
       childrenAges,
       comments 
     }: RegistrationConfirmationRequest = await req.json();
+
+    if (typeof email !== "string" || !EMAIL_REGEX.test(email) || email.length > 200) {
+      return new Response(JSON.stringify({ error: "Invalid email" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     // Create calendar event data
     const eventStart = new Date(eventDate);
@@ -58,24 +101,23 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "קידושישי מגדל העמק <kidushishi@resend.dev>",
       to: [email],
-      subject: `אישור הרשמה לקידושי שבת - ${eventTitle}`,
+      subject: `אישור הרשמה לקידושי שבת - ${String(eventTitle).replace(/[\r\n]+/g, " ")}`,
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px;">
           <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div style="text-align: center; margin-bottom: 30px;">
-              <img src="https://raw.githubusercontent.com/your-repo/assets/tzohar-shabbat.png" alt="צהר שבת" style="height: 80px; margin-bottom: 10px;">
               <h1 style="color: #2563eb; margin: 0; font-size: 28px;">ברוכים הבאים לקידושי שבת!</h1>
             </div>
             
             <div style="background: #eff6ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
               <h2 style="color: #1e40af; margin-top: 0;">פרטי ההרשמה שלכם</h2>
-              <p><strong>שם:</strong> ${name}</p>
-              <p><strong>אירוע:</strong> ${eventTitle}</p>
+              <p><strong>שם:</strong> ${esc(name)}</p>
+              <p><strong>אירוע:</strong> ${esc(eventTitle)}</p>
               <p><strong>תאריך:</strong> ${new Date(eventDate).toLocaleDateString('he-IL')}</p>
-              <p><strong>מקום:</strong> ${eventLocation}</p>
-              <p><strong>מספר משתתפים:</strong> ${familySize}</p>
-              ${childrenAges ? `<p><strong>גילאי ילדים:</strong> ${childrenAges}</p>` : ''}
-              ${comments ? `<p><strong>הערות:</strong> ${comments}</p>` : ''}
+              <p><strong>מקום:</strong> ${esc(eventLocation)}</p>
+              <p><strong>מספר משתתפים:</strong> ${esc(familySize)}</p>
+              ${childrenAges ? `<p><strong>גילאי ילדים:</strong> ${esc(childrenAges)}</p>` : ''}
+              ${comments ? `<p><strong>הערות:</strong> ${esc(comments)}</p>` : ''}
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
@@ -87,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
 
             <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center; color: #6b7280; font-size: 14px;">
-              <p>לשאלות ועדכונים צרו קשר: <a href="tel:${phone}" style="color: #2563eb;">${phone}</a></p>
+              <p>לשאלות ועדכונים צרו קשר: <a href="tel:${CONTACT_PHONE_HREF}" style="color: #2563eb;">${CONTACT_PHONE_DISPLAY}</a></p>
               <p>מיזם קידושישי בשיתוף ארגון צהר והגרעין התורני מגדל העמק</p>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
+import { GettingStartedCard } from "@/components/dashboard/GettingStartedCard";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { HelpButton } from "@/components/onboarding/HelpButton";
@@ -75,6 +76,11 @@ export const Dashboard = () => {
           />
 
           <StatusBanner isAllDataLoaded={isAllDataLoaded} />
+
+          {!eventsLoading && (eventsData?.length ?? 0) === 0 &&
+            (profile?.role === "admin" || profile?.role === "coordinator") && (
+              <GettingStartedCard isAdmin={profile?.role === "admin"} />
+            )}
 
           <div ref={contentRevealRef}>
           {isMobile ? (

@@ -3,11 +3,13 @@ import { memo, useMemo } from "react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { safeDecodeHebrew } from "@/integrations/supabase/setupStorage";
 import { WhatsAppNotifyButton } from "@/components/whatsapp/WhatsAppNotifyButton";
 import type { Event } from "@/types/events";
 import { logger } from "@/utils/logger";
+import { useAuth } from "@/context/AuthContext";
+import { useRegisterParticipant, useUpdateEvent } from "@/services/query/hooks/useEvents";
+import { Globe, EyeOff } from "lucide-react";
 
 /** מזהה צ'אט ברירת מחדל עבור קבוצת WhatsApp */
 const DEFAULT_WHATSAPP_CHAT_ID = import.meta.env.VITE_WHATSAPP_DEFAULT_CHAT_ID ?? '';
@@ -17,6 +19,8 @@ interface EventCardProps {
   isInBreakPeriod: boolean;
   /** האם להציג כפתור התראת WhatsApp (מנהלים/רכזים בלבד) */
   showWhatsApp?: boolean;
+  /** האם להציג פעולות ניהול (פרסום/הסרת פרסום) - מנהלים/רכזים בלבד */
+  canManage?: boolean;
 }
 
 const STATUS_BORDER_COLORS: Record<string, string> = {
@@ -57,7 +61,13 @@ const STATUS_LABELS: Record<string, string> = {
 
 const log = logger.createLogger({ component: 'EventCard' });
 
-export const EventCard = memo(({ event, isInBreakPeriod, showWhatsApp = false }: EventCardProps) => {
+export const EventCard = memo(({ event, isInBreakPeriod, showWhatsApp = false, canManage = false }: EventCardProps) => {
+  const { user } = useAuth();
+  const registerMutation = useRegisterParticipant();
+  const updateEvent = useUpdateEvent();
+  const isPublished = event.status === "planned" || event.status === "ongoing";
+  const canTogglePublish = canManage && (event.status === "draft" || event.status === "planned");
+
   // Handle potential date formatting issues
   const formattedDate = useMemo(() => {
     try {
@@ -124,13 +134,32 @@ export const EventCard = memo(({ event, isInBreakPeriod, showWhatsApp = false }:
               className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-950"
             />
           )}
-          <Link to={`/events/${event.id}`}>
-            <Button variant="outline" size="sm">
-              פרטים נוספים
+          {canTogglePublish && (
+            <Button
+              variant={isPublished ? "outline" : "default"}
+              size="sm"
+              disabled={updateEvent.isPending}
+              onClick={() =>
+                updateEvent.mutate({
+                  id: event.id,
+                  data: { status: isPublished ? "draft" : "planned" },
+                })
+              }
+              aria-label={isPublished ? "הסר את האירוע מהעמוד הציבורי" : "פרסם את האירוע בעמוד הציבורי"}
+            >
+              {isPublished ? (
+                <><EyeOff className="h-4 w-4 me-1" aria-hidden="true" />הסר פרסום</>
+              ) : (
+                <><Globe className="h-4 w-4 me-1" aria-hidden="true" />פרסם באתר</>
+              )}
             </Button>
-          </Link>
-          <Button size="sm" disabled={isInBreakPeriod}>
-            הרשמה לאירוע
+          )}
+          <Button
+            size="sm"
+            disabled={isInBreakPeriod || !user?.id || registerMutation.isPending}
+            onClick={() => user?.id && registerMutation.mutate({ eventId: event.id, userId: user.id })}
+          >
+            {registerMutation.isPending ? "נרשם..." : "התנדבות באירוע"}
           </Button>
         </div>
       </div>

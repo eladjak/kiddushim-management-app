@@ -49,7 +49,11 @@ export const WelcomeScreen = () => {
           
           <div className="flex flex-col items-center gap-3 md:gap-4">
             <Button asChild size="lg" className="w-full sm:w-auto py-6 text-base">
-              <Link to="/auth">התחבר למערכת</Link>
+              <Link to="/landing">הרשמה לאירוע קידושישי</Link>
+            </Button>
+
+            <Button asChild variant="outline" className="w-full sm:w-auto">
+              <Link to="/auth">כניסה לצוות ולמתנדבים</Link>
             </Button>
             
             <Button asChild variant="outline" className="w-full sm:w-auto">

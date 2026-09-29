@@ -30,6 +30,7 @@ const Documentation = lazy(() => import("./pages/Documentation"));
 const Timeline = lazy(() => import("./pages/Timeline"));
 const TimelinePDF = lazy(() => import("./pages/TimelinePDF"));
 const Volunteers = lazy(() => import("./pages/Volunteers"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
@@ -62,6 +63,7 @@ const App = () => (
                   {/* דפים ציבוריים */}
                   <Route path="/" element={<Index />} />
                   <Route path="/landing" element={<Landing />} />
+                  <Route path="/privacy" element={<Privacy />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
 

@@ -80,6 +80,7 @@ export const EventsList = memo(({ events }: EventsListProps) => {
               event={event}
               isInBreakPeriod={inBreakPeriod}
               showWhatsApp={showWhatsApp}
+              canManage={showWhatsApp}
             />
           );
         })}
